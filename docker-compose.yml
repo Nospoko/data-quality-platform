@@ -1,0 +1,19 @@
+version: '3.4'
+
+services:
+  data-api:
+    build: ./data-api/
+    volumes:
+      - ./data-api:/code
+    ports:
+      - 8080:8080
+
+  db:
+    image: postgres:14.7
+    volumes:
+      - ./tmp/db_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 5432:5432
