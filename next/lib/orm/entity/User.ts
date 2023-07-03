@@ -17,13 +17,13 @@ export class User {
   email: string;
 
   @Column({ type: 'text', nullable: true })
-  firstName: string;
+  firstName: string | null;
 
   @Column({ type: 'text', nullable: true })
-  lastName: string;
+  lastName: string | null;
 
   @Column({ type: 'text', nullable: true })
-  image: string;
+  image: string | null;
 
   @OneToMany(() => DataCheck, (dataCheck) => dataCheck.user)
   dataChecks: Relation<DataCheck>[];

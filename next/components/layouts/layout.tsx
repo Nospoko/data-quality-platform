@@ -24,9 +24,9 @@ const contentStyle: React.CSSProperties = {
 
 const CustomLayout = ({ children }: { children: JSX.Element }) => (
   <Layout style={layoutStyle}>
-    {/* <Header style={headerStyle}>
+    <Header style={headerStyle}>
       <CustomHeader />
-    </Header> */}
+    </Header>
     <Content style={contentStyle}>{children}</Content>
   </Layout>
 );

@@ -22,7 +22,6 @@ services:
   #   environment:
   #     NODE_ENV: development
 
-
   db:
     image: postgres:14.7
     volumes:

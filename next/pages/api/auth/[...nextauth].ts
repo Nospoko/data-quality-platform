@@ -1,17 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth from 'next-auth';
-import FacebookProvider from 'next-auth/providers/facebook';
 import GoogleProvider from 'next-auth/providers/google';
 
-import axiosApi from '@/services/axios';
+import { customGetRepository } from '@/lib/orm/data-source';
+import { User } from '@/lib/orm/entity/User';
 import { UserData } from '@/types/common';
 
-const options = {
+export const authOptions = {
   providers: [
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_ID || '',
-      clientSecret: process.env.FACEBOOK_SECRET || '',
-    }),
     GoogleProvider({
       clientId: process.env.GOOGLE_ID || '',
       clientSecret: process.env.GOOGLE_SECRET || '',
@@ -29,10 +25,19 @@ const options = {
       }
 
       try {
-        await axiosApi.post(
-          `${process.env.EXTERNAL_DOCKER_API_URL}/api/auth/signin`,
-          userData,
-        );
+        const userRepo = await customGetRepository(User);
+        const existedUser = await userRepo.findOne({
+          where: { email: userData.email },
+        });
+        if (existedUser) {
+          existedUser.firstName = userData.firstName;
+          existedUser.lastName = userData.lastName;
+          existedUser.image = userData.image;
+          await userRepo.save(existedUser);
+        } else {
+          const user = await userRepo.create(userData);
+          await userRepo.save(user);
+        }
       } catch (err: any) {
         console.log(err.message);
       }
@@ -41,11 +46,11 @@ const options = {
     },
     async session({ session }: Record<string, any>) {
       try {
-        const res = await axiosApi.get(
-          `${process.env.EXTERNAL_DOCKER_API_URL}/api/user/get-by-email/${session?.user?.email}`,
-        );
+        const userRepo = await customGetRepository(User);
+        const user = await userRepo.findOne({
+          where: { email: session?.user?.email },
+        });
 
-        const user = res?.data?.data;
         if (user) {
           session.user.id = user.id;
         }
@@ -59,4 +64,4 @@ const options = {
 };
 
 export default (req: NextApiRequest, res: NextApiResponse) =>
-  NextAuth(req, res, options);
+  NextAuth(req, res, authOptions);
