@@ -1,13 +1,14 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
-  ManyToOne,
+  Entity,
   JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
+
+import { Record } from './Record';
 import { User } from './User';
-import { Record } from './Rectord';
 
 export enum Choice {
   APPROVED = 'approved',

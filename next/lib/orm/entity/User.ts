@@ -1,10 +1,11 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
+  Entity,
   OneToMany,
+  PrimaryGeneratedColumn,
   Relation,
 } from 'typeorm';
+
 import { DataCheck } from './DataCheck';
 
 @Entity('users')

@@ -1,11 +1,12 @@
-import type { AppProps } from 'next/app';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { SessionProvider } from 'next-auth/react';
-import { ReactElement, ReactNode } from 'react';
-import { NextPage } from 'next';
 import 'reflect-metadata';
 
-type NextPageWithLayout<P = {}, IP = P> = NextPage<P, IP> & {
+import type { AppProps } from 'next/app';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { NextPage } from 'next';
+import { SessionProvider } from 'next-auth/react';
+import { ReactElement, ReactNode } from 'react';
+
+type NextPageWithLayout<P = unknown, IP = P> = NextPage<P, IP> & {
   getNestedLayout?: (page: ReactElement) => ReactNode;
 };
 

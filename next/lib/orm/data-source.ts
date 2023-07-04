@@ -1,9 +1,10 @@
-import { DataSource, ObjectLiteral, ObjectType, Repository } from 'typeorm';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
-import { User } from './entity/User';
-import { Record } from './entity/Rectord';
+import { DataSource, ObjectLiteral, ObjectType, Repository } from 'typeorm';
+
 import { DataCheck } from './entity/DataCheck';
+import { Record } from './entity/Record';
+import { User } from './entity/User';
 
 dotenv.config({
   path: path.resolve(__dirname, '../../.env.local'),

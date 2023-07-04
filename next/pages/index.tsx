@@ -1,6 +1,8 @@
 import { ReactElement } from 'react';
-import CustomLayout from '@/components/layouts/layout';
+
 import HomePage from '../modules/homeChart/pages/HomePage';
+
+import CustomLayout from '@/components/layouts/layout';
 
 const Home = () => {
   return <HomePage />;
