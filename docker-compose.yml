@@ -5,6 +5,7 @@ services:
     build: ./data-api/
     volumes:
       - ./data-api:/code
+      - ./tmp/dataset_cache:/root/.cache/huggingface/datasets/
     ports:
       - 8080:8080
     env_file: .env

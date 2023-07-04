@@ -13,4 +13,4 @@ def prepare_database(dataset: Dataset):
 
     print("Creating records table")
     columns = ["time", "label", "position", "exam_uid"]
-    dataset.select_columns(columns).to_sql("records", con=engine)
+    dataset.select_columns(columns).to_sql("records", con=engine, index=True)
