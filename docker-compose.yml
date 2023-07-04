@@ -5,21 +5,22 @@ services:
     build: ./data-api/
     volumes:
       - ./data-api:/code
+      - ./tmp/dataset_cache:/root/.cache/huggingface/datasets/
     ports:
       - 8080:8080
     env_file: .env
 
-  web:
-    build:
-      context: ./next 
-      target: runner
-    volumes:
-      - ./next:/app
-    command: yarn dev
-    ports:
-      - '3000:3000'
-    environment:
-      NODE_ENV: development
+  # web:
+  #   build:
+  #     context: ./next 
+  #     target: runner
+  #   volumes:
+  #     - ./next:/app
+  #   command: yarn dev
+  #   ports:
+  #     - '3000:3000'
+  #   environment:
+  #     NODE_ENV: development
 
   db:
     image: postgres:14.7
