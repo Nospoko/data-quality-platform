@@ -7,7 +7,7 @@ import { Record } from './entity/Record';
 import { User } from './entity/User';
 
 dotenv.config({
-  path: path.resolve(__dirname, '../../.env.local'),
+  path: path.resolve(__dirname, '../../../.env.local'),
 });
 
 export const dataSource = new DataSource({
@@ -16,8 +16,8 @@ export const dataSource = new DataSource({
   synchronize: false,
   logging: false,
   migrationsRun: false,
-  entities: ['./lib/orm/entity/**/*.ts'],
-  migrations: ['./lib/orm/migration/**/*.ts'],
+  entities: ['./src/lib/orm/entity/**/*.ts'],
+  migrations: ['./src/lib/orm/migration/**/*.ts'],
 });
 
 const AppDataSource = new DataSource({
