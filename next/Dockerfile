@@ -11,8 +11,6 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN yarn next build
-# RUN DB MIGRATIONS
-RUN yarn migrate
 # Expose port
 EXPOSE 3000
 

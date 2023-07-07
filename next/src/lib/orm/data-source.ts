@@ -11,7 +11,6 @@ import { User } from './entity/User';
 //   path: path.resolve(__dirname, '../../../.env.local'),
 // });
 
-
 export const dataSource = new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,

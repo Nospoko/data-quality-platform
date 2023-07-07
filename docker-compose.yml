@@ -23,16 +23,14 @@ services:
   web:
     build:
       context: ./next 
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     image: web-image:latest
     volumes:
       - ./next/src:/app/src
     command: sh -c  "yarn migrate && yarn start"
     ports:
       - '3000:3000'
-    environment:
-      DATABASE_URL: postgresql://postgres:postgres@db:5432/data_quality
+    
     env_file: .env
     depends_on:
       - data-api
-
