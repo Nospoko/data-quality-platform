@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -9,15 +9,19 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { getFragment } from '@/services/reactQueryFn';
+import Feedback from './Feedback';
+
+import { Choice } from '@/lib/orm/entity/DataCheck';
+import { getFragment, sendFeedback } from '@/services/reactQueryFn';
 import { EcgFragment } from '@/types/common';
 
 interface ChartProps {
   id: number;
+  addFeedback: (index: number) => void;
 }
 
 const LEGEND_DATA = [
@@ -36,13 +40,25 @@ ChartJS.register(
   Legend,
 );
 
-const MainChart: React.FC<ChartProps> = ({ id }) => {
+const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
   const [chartData, setChartData] = useState<any>();
 
   const { isLoading, error, data } = useQuery<EcgFragment, Error>(
     ['record', id],
     () => getFragment(id),
   );
+
+  const queryClient = useQueryClient();
+  const mutation = useMutation(sendFeedback, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['dataCheck']);
+    },
+  });
+
+  const handleSelect = (choice: Choice) => {
+    mutation.mutate({ index: id, choice });
+    addFeedback(id);
+  };
 
   useEffect(() => {
     if (!data) {
@@ -55,7 +71,7 @@ const MainChart: React.FC<ChartProps> = ({ id }) => {
       fill: false,
       borderColor: LEGEND_DATA[index].color,
       tension: 0,
-      pointRadius: 1,
+      pointRadius: 0,
       borderWidth: 1,
     }));
 
@@ -69,17 +85,17 @@ const MainChart: React.FC<ChartProps> = ({ id }) => {
     <>
       {chartData && (
         <Wrapper>
-          <ChartDetails>
-            {`target: 0.0, prediction: 0.83, source: lead1, exam:${data?.exam_uid}`}
-          </ChartDetails>
           <ChartWrapper>
             <Line
               data={chartData}
               options={{
                 maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
+                plugins: {
+                  legend: { display: false },
+                },
               }}
             />
+            <Feedback handleSelect={handleSelect} />
           </ChartWrapper>
           <LegendContainer>
             <CustomLegend>
@@ -97,7 +113,7 @@ const MainChart: React.FC<ChartProps> = ({ id }) => {
   );
 };
 
-export default MainChart;
+export default memo(MainChart);
 
 const Wrapper = styled.div`
   height: 300px;
@@ -107,11 +123,7 @@ const Wrapper = styled.div`
 `;
 
 const ChartWrapper = styled.div`
-  height: 280px; */
-`;
-
-const ChartDetails = styled.div`
-  text-align: center;
+  display: flex;
 `;
 
 const CustomLegend = styled.div`

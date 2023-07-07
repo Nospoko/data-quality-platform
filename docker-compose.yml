@@ -1,6 +1,14 @@
 version: '3.4'
 
 services:
+  db:
+    image: postgres:14.7
+    volumes:
+      - ./tmp/db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    env_file: .env
+
   data-api:
     build: ./data-api/
     volumes:
@@ -9,24 +17,20 @@ services:
     ports:
       - 8080:8080
     env_file: .env
+    depends_on:
+      - db
 
-  # web:
-  #   build:
-  #     context: ./next 
-  #     target: runner
-  #   volumes:
-  #     - ./next:/app
-  #   command: yarn dev
-  #   ports:
-  #     - '3000:3000'
-  #   environment:
-  #     NODE_ENV: development
-
-
-  db:
-    image: postgres:14.7
+  web:
+    build:
+      context: ./next 
+      dockerfile: Dockerfile
+    image: web-image:latest
     volumes:
-      - ./tmp/db_data:/var/lib/postgresql/data
+      - ./next/src:/app/src
+    command: sh -c  "yarn migrate && yarn start"
     ports:
-      - 5432:5432
+      - '3000:3000'
+    
     env_file: .env
+    depends_on:
+      - data-api

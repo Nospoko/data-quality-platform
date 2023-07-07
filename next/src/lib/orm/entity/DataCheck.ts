@@ -28,9 +28,9 @@ export class DataCheck {
   })
   choice: Choice;
 
-  @ManyToOne(() => Record, (record) => record.exam_uid)
+  @ManyToOne(() => Record, (record) => record.index)
   @JoinColumn({ name: 'record_id' })
-  record: Relation<User>;
+  record: Relation<Record>;
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_id' })

@@ -6,9 +6,10 @@ import { DataCheck } from './entity/DataCheck';
 import { Record } from './entity/Record';
 import { User } from './entity/User';
 
-dotenv.config({
-  path: path.resolve(__dirname, '../../.env.local'),
-});
+// Don't remove next lines
+// dotenv.config({
+//   path: path.resolve(__dirname, '../../../.env.local'),
+// });
 
 export const dataSource = new DataSource({
   type: 'postgres',
@@ -16,8 +17,8 @@ export const dataSource = new DataSource({
   synchronize: false,
   logging: false,
   migrationsRun: false,
-  entities: ['./lib/orm/entity/**/*.ts'],
-  migrations: ['./lib/orm/migration/**/*.ts'],
+  entities: ['./src/lib/orm/entity/**/*.ts'],
+  migrations: ['./src/lib/orm/migration/**/*.ts'],
 });
 
 const AppDataSource = new DataSource({

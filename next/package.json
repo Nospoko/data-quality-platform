@@ -10,7 +10,7 @@
     "prettier": "prettier --write '**/*.{ts,tsx}'",
     "lint:last-commit": "commitlint -f HEAD~1",
     "typeorm": "ts-node --files -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
-    "migrate": " yarn typeorm migration:run -d ./lib/orm/data-source.ts"
+    "migrate": " yarn typeorm migration:run -d ./src/lib/orm/data-source.ts"
   },
   "dependencies": {
     "@ant-design/icons": "^5.1.4",
@@ -26,6 +26,7 @@
     "react": "18.2.0",
     "react-chartjs-2": "^5.2.0",
     "react-dom": "18.2.0",
+    "react-infinite-scroll-component": "^6.1.0",
     "reflect-metadata": "^0.1.13",
     "styled-components": "^6.0.0-rc.3",
     "ts-node": "^10.9.1",
