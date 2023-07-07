@@ -15,4 +15,5 @@ RUN yarn next build
 EXPOSE 3000
 
 # Start the application
-CMD [ "yarn", "start" ]
+# CMD [ "yarn", "start" ]
+CMD ["yarn", "migrate", "&&", "yarn", "start"]
