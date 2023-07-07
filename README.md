@@ -56,8 +56,8 @@ $ curl http://0.0.0.0:8080/record/23
 ```
 
 ## Next.js app
-When you run for the first time, you will need to copy the template .env.local file and add missed variables:
+When you run for the first time, you will need to copy the template .env.example file and add missed variables:
 
    ```sh
-   $ cp next/.env.template next/api/.env.local
+   $ cp .env.example .env
    ```

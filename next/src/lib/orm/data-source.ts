@@ -6,9 +6,11 @@ import { DataCheck } from './entity/DataCheck';
 import { Record } from './entity/Record';
 import { User } from './entity/User';
 
-dotenv.config({
-  path: path.resolve(__dirname, '../../../.env.local'),
-});
+// Don't remove next lines
+// dotenv.config({
+//   path: path.resolve(__dirname, '../../../.env.local'),
+// });
+
 
 export const dataSource = new DataSource({
   type: 'postgres',
