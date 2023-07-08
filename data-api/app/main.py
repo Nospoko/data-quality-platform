@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"], 
 )
 
-dataset = load_dataset("roszcz/qrs-swipe-demo", split="train")
+dataset = load_dataset("roszcz/qrs-swipe-demo", split="train[:200]")
 
 app_utils.prepare_database(dataset)
 
