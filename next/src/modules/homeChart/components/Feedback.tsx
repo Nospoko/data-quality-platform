@@ -15,28 +15,28 @@ type Props = {
 const Feedback: React.FC<Props> = ({ handleSelect }) => {
   return (
     <Wrapper>
-      <Button
+      <StyledButton
         type="primary"
         ghost
         size="large"
         icon={<CheckOutlined />}
         onClick={() => handleSelect(Choice.APPROVED)}
-      ></Button>
-      <Button
+      ></StyledButton>
+      <StyledButton
         type="primary"
         ghost
         danger
         size="large"
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
-      ></Button>
-      <Button
+      ></StyledButton>
+      <StyledButton
         type="primary"
         ghost
         size="large"
-        disabled
+        onClick={() => handleSelect(Choice.UNKNOWN)}
         icon={<QuestionOutlined />}
-      ></Button>
+      ></StyledButton>
     </Wrapper>
   );
 };
@@ -44,9 +44,17 @@ const Feedback: React.FC<Props> = ({ handleSelect }) => {
 export default Feedback;
 
 const Wrapper = styled.div`
-  padding: 40px 0;
+  padding: 40px 5px;
   height: 300px;
+  width: 40px;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
+`;
+
+const StyledButton = styled(Button)`
+  &&& {
+    height: 60px;
+    width: 40px;
+  }
 `;
