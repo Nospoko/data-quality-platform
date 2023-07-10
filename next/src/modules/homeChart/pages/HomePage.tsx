@@ -2,7 +2,6 @@ import { useInfiniteQuery } from '@tanstack/react-query';
 import { Button, Spin } from 'antd';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
 import { styled } from 'styled-components';
 
 import MainChart from '../components/MainChart';
