@@ -62,16 +62,4 @@ When you run for the first time, you will need to copy the template .env.example
 $ cp .env.example .env
 ```
 
-I've added `docker-compose-dev` - use this file if you need to make changes to the code. Next.js will compile into a dev build automatically after any changes are made to the JS (Type Script) code. This build is convenient for development, but it's about 30-40% slower than the "production" build. Therefore, if you want to get maximum performance, use:
-```
-$ docker-compose build 
-$ docker-compose up
-```
-If you want the ability to change the code and see changes immediately, use:
-
-```
-$  docker-compose -f docker-compose-dev.yml  build
-$  docker-compose -f docker-compose-dev.yml  up
-```
-
 For deployment, use only prod Dockerfile (not Dockerfile.dev). Note that it should receive `ARG EXTERNAL_API` to work correctly with the Python API.
