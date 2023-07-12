@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Spin } from 'antd';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -83,9 +84,13 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
 
   return (
     <>
-      {chartData && (
-        <Wrapper>
-          <ChartWrapper>
+      <Wrapper>
+        <ChartWrapper>
+          {isLoading || !chartData ? (
+            <Loader>
+              <Spin size="large" />
+            </Loader>
+          ) : (
             <Line
               data={chartData}
               options={{
@@ -95,20 +100,21 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
                 },
               }}
             />
-            <Feedback handleSelect={handleSelect} />
-          </ChartWrapper>
-          <LegendContainer>
-            <CustomLegend>
-              {LEGEND_DATA.map((d) => (
-                <LegendRow key={d.label}>
-                  <LineColor color={d.color} />
-                  <LegendValue>{d.label}</LegendValue>
-                </LegendRow>
-              ))}
-            </CustomLegend>
-          </LegendContainer>
-        </Wrapper>
-      )}
+          )}
+
+          <Feedback handleSelect={handleSelect} />
+        </ChartWrapper>
+        <LegendContainer>
+          <CustomLegend>
+            {LEGEND_DATA.map((d) => (
+              <LegendRow key={d.label}>
+                <LineColor color={d.color} />
+                <LegendValue>{d.label}</LegendValue>
+              </LegendRow>
+            ))}
+          </CustomLegend>
+        </LegendContainer>
+      </Wrapper>
     </>
   );
 };
@@ -152,6 +158,15 @@ const LegendRow = styled.div`
   display: flex;
   align-items: center;
 `;
+
 const LegendValue = styled.div`
   padding-left: 10px;
+`;
+
+const Loader = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: solid 1px;
 `;

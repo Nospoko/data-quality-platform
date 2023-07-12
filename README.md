@@ -58,6 +58,8 @@ $ curl http://0.0.0.0:8080/record/23
 ## Next.js app
 When you run for the first time, you will need to copy the template .env.example file and add missed variables:
 
-   ```sh
-   $ cp .env.example .env
-   ```
+```sh
+$ cp .env.example .env
+```
+
+For deployment, use only prod Dockerfile (not Dockerfile.dev). Note that it should receive `ARG EXTERNAL_API` to work correctly with the Python API.
