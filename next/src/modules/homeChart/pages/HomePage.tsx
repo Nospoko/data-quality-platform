@@ -1,4 +1,4 @@
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Spin } from 'antd';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
@@ -14,25 +14,36 @@ const HomePage = () => {
 
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
 
-  const { fetchNextPage, hasNextPage, isFetchingNextPage, data } =
-    useInfiniteQuery({
-      queryKey: ['records'],
-      queryFn: ({ pageParam = 1 }) => fetchRecords(pageParam, 5),
-      getNextPageParam: (lastPage, allPages) => {
-        const nextPage = allPages.length + 1;
-        const totalPages = Math.ceil(lastPage.total / 5);
-        return nextPage <= totalPages ? nextPage : undefined;
-      },
-    });
+  const { data, refetch } = useQuery({
+    queryKey: ['records'],
+    queryFn: () => fetchRecords(recordsToDisplay.length),
+    staleTime: Infinity,
+    refetchOnWindowFocus: false,
+  });
 
-  // add new rerocds to display list
+  // add new records to display list
+  // I added this complicated logic to avoid charts rerenders
+  // It allow memorize all rendered chart
+  // and improve performance
   useEffect(() => {
     if (!data) {
       return;
     }
-    const latestPage = data.pages.length - 1;
-    setRecordsToDisplay((prev) => [...prev, ...data.pages[latestPage].data]);
+    const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
+      acc[d.index] = true;
+      return acc;
+    }, {});
+    const newRecords = data.data.filter(
+      (record) => !existedRecordsId[record.index],
+    );
+    setRecordsToDisplay((prev) => [...prev, ...newRecords]);
   }, [data]);
+
+  const fetchNextPage = () => {
+    refetch();
+  };
+
+  const hasNextPage = data && data.total > recordsToDisplay.length;
 
   //fetch new records if records <  5
   useEffect(() => {

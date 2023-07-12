@@ -10,12 +10,12 @@ export const getFragment = async (id: number): Promise<EcgFragment> => {
 };
 
 export const fetchRecords = async (
-  page: number,
-  limit: number,
+  skip: number,
+  limit = 5,
 ): Promise<RecordsResponse> => {
   const response = await axios.get('/api/records/list', {
     params: {
-      page,
+      skip,
       limit,
     },
   });
