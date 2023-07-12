@@ -23,14 +23,16 @@ services:
   web:
     build:
       context: ./next 
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
+      args:
+        EXTERNAL_API: ${NEXT_PUBLIC_API_URL}
     image: web-image:latest
     volumes:
       - ./next/src:/app/src
-    command: sh -c  "yarn migrate && yarn start"
+    command: sh -c  "yarn migrate && yarn dev"
     ports:
       - '3000:3000'
-    
     env_file: .env
     depends_on:
       - data-api
+      

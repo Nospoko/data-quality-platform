@@ -5,19 +5,18 @@ import { createRouter } from 'next-connect';
 import { authOptions } from '../auth/[...nextauth]';
 
 import { customGetRepository } from '@/lib/orm/data-source';
+import { DataCheck } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
 router.get(async (req, res) => {
-  // TODO fix issue with skipped records
   const session = await getServerSession(req, res, authOptions);
   if (!session) {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
-  const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+  const skip = Number(req.query.skip) || 0;
 
   const recordsRepo = await customGetRepository(Record);
   const userId = session.user.id;
@@ -25,9 +24,19 @@ router.get(async (req, res) => {
   const query = recordsRepo
     .createQueryBuilder('record')
     .leftJoinAndSelect('record.dataChecks', 'dataCheck')
-    .where('dataCheck.user.id IS NULL OR dataCheck.user.id != :userId', {
-      userId,
-    });
+    .where(
+      (qb) => {
+        const subQuery = qb
+          .subQuery()
+          .select('dataCheck_sub.id')
+          .from(DataCheck, 'dataCheck_sub')
+          .where('dataCheck_sub.record_id = record.index')
+          .andWhere('dataCheck_sub.user_id = :userId')
+          .getQuery();
+        return 'NOT EXISTS (' + subQuery + ')';
+      },
+      { userId },
+    );
 
   const total = await query.getCount();
 
@@ -36,7 +45,6 @@ router.get(async (req, res) => {
   res.status(200).json({
     data: recordsWithoutUserCheck,
     total,
-    page,
     limit,
   });
 });
