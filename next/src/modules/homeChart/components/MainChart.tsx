@@ -15,6 +15,7 @@ import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
 import { chartSettings } from '../models';
+import { processSignal } from '../utils/processSignal';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -74,9 +75,11 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
       (index / samplingRate).toFixed(2),
     );
 
-    const datasets = fragment.signal[0].map((_, index) => ({
+    const processedSignal = processSignal(fragment);
+
+    const datasets = processedSignal.signal[0].map((_, index) => ({
       label: `lead ${index + 1}`,
-      data: fragment.signal.map((signal) => signal[index]),
+      data: processedSignal.signal.map((signal) => signal[index]),
       fill: false,
       borderColor: LEGEND_DATA[index].color,
       tension: 0,
@@ -99,7 +102,9 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
               <Spin size="large" />
             </Loader>
           ) : (
-            <Line data={chartData.data} options={chartSettings} />
+            <LineWrapper>
+              <Line data={chartData.data} options={chartSettings} />
+            </LineWrapper>
           )}
           <Feedback handleSelect={handleSelect} />
         </ChartWrapper>

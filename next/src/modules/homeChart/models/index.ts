@@ -1,3 +1,7 @@
+export const CONVERSION_FACTOR = 304.0;
+export const SEGMENT_START = 540;
+export const SEGMENT_END = 660;
+
 export const chartSettings: any = {
   scales: {
     x: {
