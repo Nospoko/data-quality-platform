@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Spin } from 'antd';
 import {
   CategoryScale,
@@ -14,15 +14,17 @@ import { memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
+import { chartSettings } from '../models';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import { getFragment, sendFeedback } from '@/services/reactQueryFn';
-import { EcgFragment } from '@/types/common';
+import { getFragment } from '@/services/reactQueryFn';
+import { Dataset, EcgFragment, SelectedChartData } from '@/types/common';
 
-interface ChartProps {
+interface Props {
   id: number;
-  addFeedback: (index: number) => void;
+  addFeedback: (index: number, choice: Choice) => void;
+  onClickChart: (data: SelectedChartData) => void;
 }
 
 const LEGEND_DATA = [
@@ -41,39 +43,40 @@ ChartJS.register(
   Legend,
 );
 
-const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
-  const [chartData, setChartData] = useState<any>();
+const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
+  const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
-  const { isLoading, error, data } = useQuery<EcgFragment, Error>(
-    ['record', id],
-    () => getFragment(id),
-  );
-
-  const queryClient = useQueryClient();
-  const mutation = useMutation(sendFeedback, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dataCheck']);
-    },
-  });
+  const {
+    isLoading,
+    error,
+    data: fragment,
+  } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
 
   const handleSelect = (choice: Choice) => {
-    mutation.mutate({ index: id, choice });
-    addFeedback(id);
+    addFeedback(id, choice);
+  };
+
+  const handleClickChart = () => {
+    if (!chartData) {
+      return;
+    }
+
+    onClickChart(chartData);
   };
 
   useEffect(() => {
-    if (!data) {
+    if (!fragment) {
       return;
     }
 
     const samplingRate = 200;
-    const labels = data.signal.map((_, index) =>
+    const labels = fragment.signal.map((_, index) =>
       (index / samplingRate).toFixed(2),
     );
 
-    const datasets = data.signal[0].map((_, index) => ({
+    const datasets = fragment.signal[0].map((_, index) => ({
       label: `lead ${index + 1}`,
-      data: data.signal.map((signal) => signal[index]),
+      data: fragment.signal.map((signal) => signal[index]),
       fill: false,
       borderColor: LEGEND_DATA[index].color,
       tension: 0,
@@ -82,60 +85,22 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
     }));
 
     setChartData({
-      labels,
-      datasets,
+      id,
+      data: { labels, datasets },
     });
-  }, [data]);
+  }, [fragment]);
 
   return (
     <>
       <Wrapper>
-        <ChartWrapper>
-          {isLoading || !chartData ? (
+        <ChartWrapper onClick={handleClickChart}>
+          {isLoading || !chartData?.data ? (
             <Loader>
               <Spin size="large" />
             </Loader>
           ) : (
-            <Line
-              data={chartData}
-              options={{
-                scales: {
-                  x: {
-                    border: {
-                      color: 'black',
-                      width: 2,
-                    },
-                  },
-                  y: {
-                    position: 'left',
-                    ticks: { display: true },
-                    border: {
-                      color: 'black',
-                      width: 2,
-                    },
-                  },
-                  y1: {
-                    position: 'center',
-                    ticks: { display: false },
-                    border: {
-                      color: 'black',
-                      width: 2,
-                    },
-                    grid: { display: false },
-                  },
-                },
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    enabled: false,
-                  },
-                },
-                events: [],
-              }}
-            />
+            <Line data={chartData.data} options={chartSettings} />
           )}
-
           <Feedback handleSelect={handleSelect} />
         </ChartWrapper>
         <LegendContainer>
@@ -160,6 +125,12 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+`;
+
+const LineWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 `;
 
 const ChartWrapper = styled.div`
