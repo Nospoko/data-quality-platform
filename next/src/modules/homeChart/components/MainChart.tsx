@@ -65,7 +65,12 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
     if (!data) {
       return;
     }
-    const labels = data.signal.map((_, index) => index);
+
+    const samplingRate = 200;
+    const labels = data.signal.map((_, index) =>
+      (index / samplingRate).toFixed(2),
+    );
+
     const datasets = data.signal[0].map((_, index) => ({
       label: `lead ${index + 1}`,
       data: data.signal.map((signal) => signal[index]),
@@ -94,6 +99,31 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
             <Line
               data={chartData}
               options={{
+                scales: {
+                  x: {
+                    border: {
+                      color: 'black',
+                      width: 2,
+                    },
+                  },
+                  y: {
+                    position: 'left',
+                    ticks: { display: true },
+                    border: {
+                      color: 'black',
+                      width: 2,
+                    },
+                  },
+                  y1: {
+                    position: 'center',
+                    ticks: { display: false },
+                    border: {
+                      color: 'black',
+                      width: 2,
+                    },
+                    grid: { display: false },
+                  },
+                },
                 maintainAspectRatio: false,
                 plugins: {
                   legend: { display: false },
