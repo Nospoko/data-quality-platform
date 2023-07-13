@@ -97,7 +97,11 @@ const MainChart: React.FC<ChartProps> = ({ id, addFeedback }) => {
                 maintainAspectRatio: false,
                 plugins: {
                   legend: { display: false },
+                  tooltip: {
+                    enabled: false,
+                  },
                 },
+                events: [],
               }}
             />
           )}
