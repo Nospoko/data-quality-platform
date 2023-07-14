@@ -101,10 +101,12 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
           )}
-          <Feedback
-            onOpenZoomView={handleClickChart}
-            handleSelect={handleSelect}
-          />
+          <ButtonWrapper>
+            <Feedback
+              onOpenZoomView={handleClickChart}
+              handleSelect={handleSelect}
+            />
+          </ButtonWrapper>
         </ChartWrapper>
         <LegendContainer>
           <CustomLegend>
@@ -124,25 +126,33 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
 export default memo(MainChart);
 
 const Wrapper = styled.div`
-  height: 300px;
+  margin-bottom: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
+  height: 300px;
 `;
 
 const LineWrapper = styled.div`
   width: 100%;
-  height: 100%;
+  height: 300px;
   cursor: pointer;
 `;
 
 const ChartWrapper = styled.div`
   display: flex;
+  gap: 12px;
+`;
+
+const ButtonWrapper = styled.div`
+  padding: 12px 0;
+  height: 100%;
+  width: 40px;
 `;
 
 const CustomLegend = styled.div`
   position: absolute;
-  top: -115px;
+  top: -105px;
   left: 40px;
   height: 65px;
   width: 100px;

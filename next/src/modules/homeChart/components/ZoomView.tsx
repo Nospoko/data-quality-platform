@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { Modal } from 'antd';
 import React from 'react';
 import styled from 'styled-components';
@@ -6,7 +7,8 @@ import Chart from './Chart';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import { SelectedChartData } from '@/types/common';
+import { getFragment } from '@/services/reactQueryFn';
+import { EcgFragment, SelectedChartData } from '@/types/common';
 
 interface Props {
   chartData: SelectedChartData;
@@ -22,6 +24,12 @@ const ZoomView: React.FC<Props> = ({
   addFeedback,
 }) => {
   const { id, data } = chartData;
+
+  const {
+    isLoading,
+    error,
+    data: fragment,
+  } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
 
   const handleDecision = (choice: Choice) => {
     addFeedback(id, choice);
@@ -50,10 +58,22 @@ const ZoomView: React.FC<Props> = ({
                 })}
             </ChartsWrapper>
 
-            <Feedback isZoomView={true} handleSelect={handleDecision} />
+            <ButtonWrapper>
+              <Feedback isZoomView={true} handleSelect={handleDecision} />
+            </ButtonWrapper>
           </Wrapper>
 
-          <AdditionalWrapper>Additional info</AdditionalWrapper>
+          <AdditionalWrapper>
+            <FragmentTitle>
+              Label: <FragmentInfo>{fragment?.label}</FragmentInfo>
+            </FragmentTitle>
+            <FragmentTitle>
+              Position: <FragmentInfo>{fragment?.position}</FragmentInfo>
+            </FragmentTitle>
+            <FragmentTitle>
+              Exam UID: <FragmentInfo>{fragment?.exam_uid}</FragmentInfo>
+            </FragmentTitle>
+          </AdditionalWrapper>
         </ModalBody>
       </Modal>
     </>
@@ -73,18 +93,34 @@ const Wrapper = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 `;
 
 const ChartsWrapper = styled.div`
   width: 100%;
 `;
 
+const ButtonWrapper = styled.div`
+  height: 450px;
+  width: 60px;
+`;
+
 const AdditionalWrapper = styled.div`
   margin-top: 20px;
   padding-top: 20px;
   padding-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: space-between;
+  gap: 20px;
   border: 2px solid black;
   border-radius: 8px;
-  text-align: center;
-  cursor: pointer;
+`;
+
+const FragmentTitle = styled.b`
+  font-size: 20px;
+`;
+
+const FragmentInfo = styled.span`
+  font-weight: normal;
 `;

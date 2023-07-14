@@ -80,7 +80,7 @@ const CustomLegend = styled.div`
   position: absolute;
   justify-content: center;
   align-items: center;
-  top: -80px;
+  top: -70px;
   left: 40px;
   border: 1px solid;
   border-radius: 5px;
