@@ -97,7 +97,7 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
               <Spin size="large" />
             </Loader>
           ) : (
-            <LineWrapper onClick={handleClickChart}>
+            <LineWrapper>
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
           )}
