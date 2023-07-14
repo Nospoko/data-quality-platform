@@ -10,9 +10,15 @@ import { styled } from 'styled-components';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 
 type Props = {
+  isZoomView?: boolean;
+  onOpenZoomView?: () => void;
   handleSelect: (choice: Choice) => void;
 };
-const Feedback: React.FC<Props> = ({ handleSelect }) => {
+const Feedback: React.FC<Props> = ({
+  isZoomView = false,
+  onOpenZoomView,
+  handleSelect,
+}) => {
   return (
     <Wrapper>
       <StyledButton
@@ -30,13 +36,16 @@ const Feedback: React.FC<Props> = ({ handleSelect }) => {
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
       ></StyledButton>
-      <StyledButton
-        type="primary"
-        ghost
-        size="large"
-        onClick={() => handleSelect(Choice.UNKNOWN)}
-        icon={<QuestionOutlined />}
-      ></StyledButton>
+
+      {!isZoomView && (
+        <StyledButton
+          type="primary"
+          ghost
+          size="large"
+          onClick={() => onOpenZoomView && onOpenZoomView()}
+          icon={<QuestionOutlined />}
+        />
+      )}
     </Wrapper>
   );
 };

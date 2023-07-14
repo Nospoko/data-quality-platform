@@ -13,7 +13,9 @@ import { User } from './User';
 export enum Choice {
   APPROVED = 'approved',
   REJECTED = 'rejected',
-  UNKNOWN = 'unknown',
+
+  // this choice is won't be used?
+  // UNKNOWN = 'unknown',
 }
 
 @Entity('data_checks')

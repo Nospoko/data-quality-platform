@@ -28,7 +28,7 @@ export type RecordsResponse = {
 export type Dataset = ChartDataset<'line', number[]>;
 
 export type ChartData = {
-  labels: string[];
+  labels: number[];
   datasets: Dataset[];
 };
 

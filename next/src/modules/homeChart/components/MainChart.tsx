@@ -70,13 +70,8 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
       return;
     }
 
-    const samplingRate = 200;
-    const labels = fragment.signal.map((_, index) =>
-      (index / samplingRate).toFixed(2),
-    );
-
+    const labels = fragment.signal.map((_, index) => index);
     const processedSignal = processSignal(fragment);
-
     const datasets = processedSignal.signal[0].map((_, index) => ({
       label: `lead ${index + 1}`,
       data: processedSignal.signal.map((signal) => signal[index]),
@@ -96,17 +91,20 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
   return (
     <>
       <Wrapper>
-        <ChartWrapper onClick={handleClickChart}>
+        <ChartWrapper>
           {isLoading || !chartData?.data ? (
             <Loader>
               <Spin size="large" />
             </Loader>
           ) : (
-            <LineWrapper>
+            <LineWrapper onClick={handleClickChart}>
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
           )}
-          <Feedback handleSelect={handleSelect} />
+          <Feedback
+            onOpenZoomView={handleClickChart}
+            handleSelect={handleSelect}
+          />
         </ChartWrapper>
         <LegendContainer>
           <CustomLegend>

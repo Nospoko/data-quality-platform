@@ -13,6 +13,7 @@ import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
 import { chartSettings } from '../models';
+import { getLimits } from '../utils/getRange';
 
 import { ChartData } from '@/types/common';
 
@@ -31,12 +32,26 @@ ChartJS.register(
 );
 
 const Chart: React.FC<Props> = ({ data }) => {
-  const { borderColor, label } = data.datasets[0];
+  const { borderColor, label, data: signal } = data.datasets[0];
+  const limits = getLimits(signal);
 
   return (
     <>
       <Wrapper>
-        <Line data={data} options={chartSettings} />
+        <Line
+          data={data}
+          options={{
+            ...chartSettings,
+            scales: {
+              ...chartSettings.scales,
+              y: {
+                ...chartSettings.scales.y,
+                min: limits[0],
+                max: limits[1],
+              },
+            },
+          }}
+        />
         <LegendContainer>
           <CustomLegend>
             <LegendRow>

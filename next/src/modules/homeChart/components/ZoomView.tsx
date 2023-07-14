@@ -50,7 +50,7 @@ const ZoomView: React.FC<Props> = ({
                 })}
             </ChartsWrapper>
 
-            <Feedback handleSelect={handleDecision} />
+            <Feedback isZoomView={true} handleSelect={handleDecision} />
           </Wrapper>
 
           <AdditionalWrapper>Additional info</AdditionalWrapper>
