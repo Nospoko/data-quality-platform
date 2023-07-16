@@ -10,9 +10,15 @@ import { styled } from 'styled-components';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 
 type Props = {
+  isZoomView?: boolean;
+  onOpenZoomView?: () => void;
   handleSelect: (choice: Choice) => void;
 };
-const Feedback: React.FC<Props> = ({ handleSelect }) => {
+const Feedback: React.FC<Props> = ({
+  isZoomView = false,
+  onOpenZoomView,
+  handleSelect,
+}) => {
   return (
     <Wrapper>
       <StyledButton
@@ -21,7 +27,8 @@ const Feedback: React.FC<Props> = ({ handleSelect }) => {
         size="large"
         icon={<CheckOutlined />}
         onClick={() => handleSelect(Choice.APPROVED)}
-      ></StyledButton>
+      />
+
       <StyledButton
         type="primary"
         ghost
@@ -29,14 +36,17 @@ const Feedback: React.FC<Props> = ({ handleSelect }) => {
         size="large"
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
-      ></StyledButton>
+      />
+
       <StyledButton
         type="primary"
         ghost
         size="large"
-        onClick={() => handleSelect(Choice.UNKNOWN)}
+        onClick={() =>
+          onOpenZoomView ? onOpenZoomView() : handleSelect(Choice.UNKNOWN)
+        }
         icon={<QuestionOutlined />}
-      ></StyledButton>
+      />
     </Wrapper>
   );
 };
@@ -44,17 +54,17 @@ const Feedback: React.FC<Props> = ({ handleSelect }) => {
 export default Feedback;
 
 const Wrapper = styled.div`
-  padding: 40px 5px;
-  height: 300px;
-  width: 40px;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  width: 100%;
 `;
 
 const StyledButton = styled(Button)`
   &&& {
-    height: 60px;
-    width: 40px;
+    height: 30%;
+    width: 100%;
   }
 `;

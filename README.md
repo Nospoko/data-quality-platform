@@ -63,3 +63,11 @@ $ cp .env.example .env
 ```
 
 For deployment, use only prod Dockerfile (not Dockerfile.dev). Note that it should receive `ARG EXTERNAL_API` to work correctly with the Python API.
+
+## Customizing Signal Processing
+To customize the signal processing settings, you can follow these steps:
+
+- Open the file `next\src\modules\homeChart\models\index.ts`
+- In this file, you will find the `CONVERSION_FACTOR`, `SEGMENT_START`, and `SEGMENT_END` constants.
+- Modify the values of these constants according to your requirements. For example, you can change the conversion factor or adjust the segment range.
+- Additionally, if you want to customize the signal processing logic itself, you can open the file `next\src\modules\homeChart\utils\processSignal.ts`. In this file, you can find the implementation of the `processSignal` function.

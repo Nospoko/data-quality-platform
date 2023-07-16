@@ -1,3 +1,5 @@
+import { ChartDataset } from 'chart.js';
+
 import { Record } from '@/lib/orm/entity/Record';
 
 export type UserData = {
@@ -21,4 +23,16 @@ export type RecordsResponse = {
   total: number;
   page: number;
   limit: number;
+};
+
+export type Dataset = ChartDataset<'line', number[]>;
+
+export type ChartData = {
+  labels: number[];
+  datasets: Dataset[];
+};
+
+export type SelectedChartData = {
+  id: number;
+  data: ChartData;
 };
