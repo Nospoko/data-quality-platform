@@ -1,5 +1,6 @@
 import { ChartDataset } from 'chart.js';
 
+import { DataCheck } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 
 export type UserData = {
@@ -28,11 +29,29 @@ export type RecordsResponse = {
 export type Dataset = ChartDataset<'line', number[]>;
 
 export type ChartData = {
-  labels: number[];
+  labels: string[];
   datasets: Dataset[];
 };
 
 export type SelectedChartData = {
   id: number;
   data: ChartData;
+  decision?: HistoryData;
+};
+
+export type SelectedHistoryChartData = {
+  id: number;
+  data?: ChartData;
+  decision: HistoryData;
+};
+
+export interface HistoryData extends DataCheck {
+  record: Record;
+}
+
+export type HistoryDataResponse = {
+  data: HistoryData[];
+  total: number;
+  page: number;
+  limit: number;
 };

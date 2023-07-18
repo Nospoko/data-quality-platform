@@ -1,0 +1,201 @@
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from '@tanstack/react-query';
+import { Modal, Spin } from 'antd';
+import { useSession } from 'next-auth/react';
+import React, { useCallback, useEffect, useState } from 'react';
+import InfiniteScroll from 'react-infinite-scroll-component';
+import styled from 'styled-components';
+
+import MainChart from '../components/MainChart';
+import ModalCharts from '../components/ZoomView';
+
+import { Choice } from '@/lib/orm/entity/DataCheck';
+import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
+import { HistoryData, SelectedHistoryChartData } from '@/types/common';
+
+const History = () => {
+  const [historyRecordsToDisplay, setHistoryRecordsToDisplay] = useState<
+    HistoryData[]
+  >([]);
+  const [selectedChartData, setSelectedChartData] =
+    useState<SelectedHistoryChartData | null>(null);
+  const [isConfirmModal, setIsConfirmModal] = useState(false);
+  const [selectedDataCheck, setSelectedDataCheck] = useState<{
+    dataCheckId: string;
+    choice: Choice;
+  } | null>(null);
+
+  const [isZoomModal, setIsZoomModal] = useState(false);
+
+  const { status } = useSession();
+  const loading = status === 'loading';
+
+  const {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    data: historyData,
+  } = useInfiniteQuery({
+    queryKey: ['history-data'],
+    queryFn: ({ pageParam = 1 }) => fetchUserRecords(pageParam, 5),
+    getNextPageParam: (lastPage, allPages) => {
+      const nextPage = allPages.length + 1;
+      const totalPages = Math.ceil(lastPage.total / 5);
+
+      return nextPage <= totalPages ? nextPage : undefined;
+    },
+  });
+
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation(changeChoice, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(['dataCheck']);
+    },
+  });
+
+  useEffect(() => {
+    if (!historyData?.pages) {
+      return;
+    }
+    const latestPage = historyData.pages.length - 1;
+    setHistoryRecordsToDisplay((prev) => [
+      ...prev,
+      ...historyData.pages[latestPage].data,
+    ]);
+  }, [historyData]);
+
+  useEffect(() => {
+    if (historyRecordsToDisplay.length >= 5) {
+      return;
+    }
+    fetchNextPage();
+  }, [historyRecordsToDisplay.length, fetchNextPage]);
+
+  const changeFeedback = (dataCheckId: string, choice: Choice) => {
+    setSelectedDataCheck({ dataCheckId, choice });
+    setIsConfirmModal(true);
+  };
+
+  const changeFeedbackOnZoomView = (dataCheckId: string, choice: Choice) => {
+    mutation.mutate({ dataCheckId, choice });
+    setHistoryRecordsToDisplay((prev) =>
+      prev.map((history) => {
+        if (history.id === dataCheckId) {
+          setSelectedChartData((prevChartData) => {
+            if (prevChartData) {
+              return {
+                ...prevChartData,
+                decision: {
+                  ...prevChartData.decision,
+                  choice,
+                },
+              };
+            }
+            return null;
+          });
+
+          return { ...history, choice };
+        }
+
+        return history;
+      }),
+    );
+  };
+
+  const handleConfirm = () => {
+    if (selectedDataCheck) {
+      const { dataCheckId, choice } = selectedDataCheck;
+      mutation.mutate({ dataCheckId, choice });
+      setHistoryRecordsToDisplay((prev) =>
+        prev.map((history) =>
+          history.id === dataCheckId ? { ...history, choice } : history,
+        ),
+      );
+    }
+
+    setIsConfirmModal(false);
+  };
+
+  const handleCancel = () => {
+    setIsConfirmModal(false);
+  };
+
+  const handleOpenModal = useCallback((chartData: SelectedHistoryChartData) => {
+    setSelectedChartData(chartData);
+    setIsZoomModal(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setSelectedChartData(null);
+    setIsZoomModal(false);
+  }, []);
+
+  return (
+    <>
+      <Modal
+        title="Confirmation"
+        centered
+        visible={isConfirmModal}
+        onOk={handleConfirm}
+        onCancel={handleCancel}
+      >
+        <p>Are you sure you want to change the feedback?</p>
+      </Modal>
+
+      {selectedChartData && (
+        <ModalCharts
+          chartData={selectedChartData}
+          isOpen={isZoomModal}
+          onClose={handleCloseModal}
+          addFeedback={changeFeedbackOnZoomView}
+        />
+      )}
+
+      {loading && (
+        <StateWrapper>
+          <Spin size="large" />
+        </StateWrapper>
+      )}
+      <InfiniteScroll
+        style={{ overflow: 'visible' }}
+        dataLength={historyRecordsToDisplay.length}
+        next={fetchNextPage}
+        hasMore={Boolean(hasNextPage)}
+        loader={false}
+        endMessage={
+          <TextWrapper>
+            <b>No more charts</b>
+          </TextWrapper>
+        }
+      >
+        {historyRecordsToDisplay
+          ? historyRecordsToDisplay.map((history) => (
+              <MainChart
+                key={history.record.index}
+                id={history.record.index}
+                addFeedback={changeFeedback}
+                onClickChart={handleOpenModal}
+                historyData={history}
+              />
+            ))
+          : null}
+      </InfiniteScroll>
+    </>
+  );
+};
+
+export default History;
+
+const StateWrapper = styled.div`
+  display: flex;
+  justify-content: center;
+  font-size: 24px;
+`;
+
+const TextWrapper = styled.div`
+  text-align: center;
+`;

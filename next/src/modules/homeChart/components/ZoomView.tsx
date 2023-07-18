@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { Modal } from 'antd';
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 import Chart from './Chart';
@@ -8,13 +8,17 @@ import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { getFragment } from '@/services/reactQueryFn';
-import { EcgFragment, SelectedChartData } from '@/types/common';
+import {
+  EcgFragment,
+  SelectedChartData,
+  SelectedHistoryChartData,
+} from '@/types/common';
 
 interface Props {
-  chartData: SelectedChartData;
+  chartData: SelectedChartData | SelectedHistoryChartData;
   isOpen: boolean;
   onClose: () => void;
-  addFeedback: (index: number, choice: Choice) => void;
+  addFeedback: (index: number | string, choice: Choice) => void;
 }
 
 const ZoomView: React.FC<Props> = ({
@@ -23,7 +27,10 @@ const ZoomView: React.FC<Props> = ({
   onClose,
   addFeedback,
 }) => {
-  const { id, data } = chartData;
+  const [isConfirmModal, setIsConfirmModal] = useState(false);
+  const [selectedDecision, setSelectedDecision] = useState<Choice | null>(null);
+
+  const { id, data, decision } = chartData;
 
   const {
     isLoading,
@@ -32,12 +39,54 @@ const ZoomView: React.FC<Props> = ({
   } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
 
   const handleDecision = (choice: Choice) => {
+    if (decision?.choice === choice) {
+      return;
+    }
+
+    if (decision) {
+      setSelectedDecision(choice);
+      setIsConfirmModal(true);
+
+      return;
+    }
+
+    if (!id) {
+      return;
+    }
+
     addFeedback(id, choice);
     onClose();
   };
 
+  const handleConfirm = () => {
+    if (!decision || !selectedDecision) {
+      return;
+    }
+
+    if (!decision.id) {
+      return;
+    }
+
+    addFeedback(decision.id, selectedDecision);
+    setIsConfirmModal(false);
+  };
+
+  const handleCancel = () => {
+    setIsConfirmModal(false);
+  };
+
   return (
     <>
+      <Modal
+        title="Confirmation"
+        centered
+        visible={isConfirmModal}
+        onOk={handleConfirm}
+        onCancel={handleCancel}
+      >
+        <p>Are you sure you want to change the feedback?</p>
+      </Modal>
+
       <Modal
         centered
         open={isOpen}
@@ -59,7 +108,11 @@ const ZoomView: React.FC<Props> = ({
             </ChartsWrapper>
 
             <ButtonWrapper>
-              <Feedback isZoomView={true} handleSelect={handleDecision} />
+              <Feedback
+                isZoomView={true}
+                handleSelect={handleDecision}
+                decision={decision?.choice}
+              />
             </ButtonWrapper>
           </Wrapper>
 
