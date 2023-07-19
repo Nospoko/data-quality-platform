@@ -73,10 +73,6 @@ const HomePage = () => {
     fetchNextPage();
   }, [recordsToDisplay.length, fetchNextPage]);
 
-  if (status === 'unauthenticated') {
-    return <h1>Please sign in</h1>;
-  }
-
   const handleOpenModal = useCallback((chartData: SelectedChartData) => {
     setSelectedChartData(chartData);
     setOpenModal(true);
@@ -90,6 +86,10 @@ const HomePage = () => {
   const handleFetchNextPage = useCallback(() => {
     fetchNextPage();
   }, [fetchNextPage]);
+
+  if (status === 'unauthenticated') {
+    return <h1>Please sign in</h1>;
+  }
 
   return (
     <>
