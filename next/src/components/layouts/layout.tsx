@@ -1,5 +1,4 @@
-import { Breadcrumb, Button, Layout } from 'antd';
-import { useRouter } from 'next/router';
+import { Button, Layout } from 'antd';
 import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -21,21 +20,13 @@ const headerStyle: React.CSSProperties = {
 };
 
 const contentStyle: React.CSSProperties = {
-  padding: '0 50px',
+  padding: '50px',
   backgroundColor: '#fff',
 };
 
 const CustomLayout = ({ children }: { children: JSX.Element }) => {
   const { status } = useSession();
-  const router = useRouter();
-  const { pathname } = router;
-  const normalizedPath = pathname === '/' ? 'home' : pathname.slice(1);
-  const [opened, setOpened] = useState(normalizedPath);
   const [showTopBtn, setShowTopBtn] = useState(false);
-
-  useEffect(() => {
-    setOpened(normalizedPath);
-  }, [router]);
 
   useEffect(() => {
     window.addEventListener('scroll', () => {
@@ -54,10 +45,6 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
     });
   }, []);
 
-  if (status === 'unauthenticated') {
-    return <h1>Please sign in</h1>;
-  }
-
   return (
     <Layout style={layoutStyle}>
       <Header style={headerStyle}>
@@ -65,18 +52,19 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
       </Header>
 
       <Content style={contentStyle}>
-        <Breadcrumb style={{ margin: '16px 0', textTransform: 'capitalize' }}>
-          <Breadcrumb.Item>{opened}/</Breadcrumb.Item>
-        </Breadcrumb>
-
-        {children}
-
-        {showTopBtn && (
-          <ButtonWrapper>
-            <StyledButton type="primary" danger onClick={handleScrollToTop}>
-              Top
-            </StyledButton>
-          </ButtonWrapper>
+        {status === 'unauthenticated' ? (
+          <h1>Please sign in</h1>
+        ) : (
+          <>
+            {children}
+            {showTopBtn && (
+              <ButtonWrapper>
+                <StyledButton type="primary" danger onClick={handleScrollToTop}>
+                  Top
+                </StyledButton>
+              </ButtonWrapper>
+            )}
+          </>
         )}
       </Content>
     </Layout>

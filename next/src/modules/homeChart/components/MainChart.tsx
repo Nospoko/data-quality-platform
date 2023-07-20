@@ -65,7 +65,7 @@ const MainChart: React.FC<Props> = ({
   } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
 
   const handleSelect = (choice: Choice) => {
-    if (!chartData) {
+    if (!chartData || choice === chartData.decision?.choice) {
       return;
     }
 

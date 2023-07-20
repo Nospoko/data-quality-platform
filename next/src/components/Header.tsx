@@ -73,6 +73,7 @@ const Wrapper = styled.div`
 
 const SignWrapper = styled.div`
   padding-right: 12px;
+  width: 500px;
 `;
 
 const UserInfo = styled.div`

@@ -3,10 +3,9 @@ import {
   useMutation,
   useQueryClient,
 } from '@tanstack/react-query';
-import { Modal, Spin } from 'antd';
+import { Button, Modal, Spin } from 'antd';
 import { useSession } from 'next-auth/react';
-import React, { useCallback, useEffect, useState } from 'react';
-import InfiniteScroll from 'react-infinite-scroll-component';
+import React, { useCallback, useState } from 'react';
 import styled from 'styled-components';
 
 import MainChart from '../components/MainChart';
@@ -14,12 +13,9 @@ import ModalCharts from '../components/ZoomView';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
-import { HistoryData, SelectedHistoryChartData } from '@/types/common';
+import { SelectedHistoryChartData } from '@/types/common';
 
 const History = () => {
-  const [historyRecordsToDisplay, setHistoryRecordsToDisplay] = useState<
-    HistoryData[]
-  >([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedHistoryChartData | null>(null);
   const [isConfirmModal, setIsConfirmModal] = useState(false);
@@ -36,7 +32,6 @@ const History = () => {
   const {
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage,
     data: historyData,
   } = useInfiniteQuery({
     queryKey: ['history-data'],
@@ -53,27 +48,9 @@ const History = () => {
 
   const mutation = useMutation(changeChoice, {
     onSuccess: () => {
-      queryClient.invalidateQueries(['dataCheck']);
+      queryClient.invalidateQueries(['history-data']);
     },
   });
-
-  useEffect(() => {
-    if (!historyData?.pages) {
-      return;
-    }
-    const latestPage = historyData.pages.length - 1;
-    setHistoryRecordsToDisplay((prev) => [
-      ...prev,
-      ...historyData.pages[latestPage].data,
-    ]);
-  }, [historyData]);
-
-  useEffect(() => {
-    if (historyRecordsToDisplay.length >= 5) {
-      return;
-    }
-    fetchNextPage();
-  }, [historyRecordsToDisplay.length, fetchNextPage]);
 
   const changeFeedback = (dataCheckId: string, choice: Choice) => {
     setSelectedDataCheck({ dataCheckId, choice });
@@ -82,39 +59,12 @@ const History = () => {
 
   const changeFeedbackOnZoomView = (dataCheckId: string, choice: Choice) => {
     mutation.mutate({ dataCheckId, choice });
-    setHistoryRecordsToDisplay((prev) =>
-      prev.map((history) => {
-        if (history.id === dataCheckId) {
-          setSelectedChartData((prevChartData) => {
-            if (prevChartData) {
-              return {
-                ...prevChartData,
-                decision: {
-                  ...prevChartData.decision,
-                  choice,
-                },
-              };
-            }
-            return null;
-          });
-
-          return { ...history, choice };
-        }
-
-        return history;
-      }),
-    );
   };
 
   const handleConfirm = () => {
     if (selectedDataCheck) {
       const { dataCheckId, choice } = selectedDataCheck;
       mutation.mutate({ dataCheckId, choice });
-      setHistoryRecordsToDisplay((prev) =>
-        prev.map((history) =>
-          history.id === dataCheckId ? { ...history, choice } : history,
-        ),
-      );
     }
 
     setIsConfirmModal(false);
@@ -139,7 +89,7 @@ const History = () => {
       <Modal
         title="Confirmation"
         centered
-        visible={isConfirmModal}
+        open={isConfirmModal}
         onOk={handleConfirm}
         onCancel={handleCancel}
       >
@@ -160,20 +110,10 @@ const History = () => {
           <Spin size="large" />
         </StateWrapper>
       )}
-      <InfiniteScroll
-        style={{ overflow: 'visible' }}
-        dataLength={historyRecordsToDisplay.length}
-        next={fetchNextPage}
-        hasMore={Boolean(hasNextPage)}
-        loader={false}
-        endMessage={
-          <TextWrapper>
-            <b>No more charts</b>
-          </TextWrapper>
-        }
-      >
-        {historyRecordsToDisplay
-          ? historyRecordsToDisplay.map((history) => (
+
+      {historyData
+        ? historyData.pages.map((page) =>
+            page.data.map((history) => (
               <MainChart
                 key={history.record.index}
                 id={history.record.index}
@@ -181,9 +121,12 @@ const History = () => {
                 onClickChart={handleOpenModal}
                 historyData={history}
               />
-            ))
-          : null}
-      </InfiniteScroll>
+            )),
+          )
+        : null}
+      <Button disabled={!hasNextPage} onClick={fetchNextPage}>
+        Load More
+      </Button>
     </>
   );
 };
@@ -194,8 +137,4 @@ const StateWrapper = styled.div`
   display: flex;
   justify-content: center;
   font-size: 24px;
-`;
-
-const TextWrapper = styled.div`
-  text-align: center;
 `;
