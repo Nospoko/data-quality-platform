@@ -11,7 +11,7 @@ type Signals = number[][];
  * @param {number} value - The signal value.
  * @returns {number} - The signal value converted to millivolts.
  */
-function convertToMv(signal: number[]): number[] {
+export function convertToMv(signal: number[]): number[] {
   return signal.map(
     (value) => Math.round((value / CONVERSION_FACTOR) * 100) / 100,
   );
@@ -23,7 +23,7 @@ function convertToMv(signal: number[]): number[] {
  * @param {Signals} signals - The array of signal arrays.
  * @returns {Object} - The object containing converted signals and the mean.
  */
-function convertToMvAndCalculateMean(signals: Signals): {
+export function convertToMvAndCalculateMean(signals: Signals): {
   convertedSignals: Signals;
   mean: Mean;
 } {
@@ -57,7 +57,7 @@ function convertToMvAndCalculateMean(signals: Signals): {
  * @param {Mean} mean - The mean to subtract from the signal values.
  * @returns {number[]} - The array of shifted signal values.
  */
-function shiftSignal(signal: number[], mean: Mean): number[] {
+export function shiftSignal(signal: number[], mean: Mean): number[] {
   return signal.map((value, i) => value - mean[i]);
 }
 
