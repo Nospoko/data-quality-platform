@@ -5,18 +5,17 @@ export class Initial1688644099344 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`
-            DROP INDEX "public"."ix_records_index"
+            CREATE TABLE "records" (
+                "id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+                "exam_uid" text NOT NULL,
+                "dataset_name" text,
+                "position" int,
+                "label" text,
+                "index" int,
+                "time" timestamp,
+                CONSTRAINT "UQ_97672ac88f789774dd47f7c8be1" UNIQUE ("position", "exam_uid", "dataset_name")
+            )
         `);
-    await queryRunner.query(`DELETE FROM records
-            WHERE ctid IN (
-                SELECT ctid
-                FROM (
-                SELECT ctid,
-                ROW_NUMBER() OVER (partition BY index ORDER BY index) AS rn
-                FROM records
-                ) t
-                WHERE t.rn > 1
-            );`);
     await queryRunner.query(`
             CREATE TABLE "users" (
                 "id" uuid NOT NULL DEFAULT uuid_generate_v4(),

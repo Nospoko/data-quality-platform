@@ -7,6 +7,11 @@ services:
       - ./tmp/db_data:/var/lib/postgresql/data
     ports:
       - 5432:5432
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
     env_file: .env
 
   data-api:
@@ -18,7 +23,7 @@ services:
       - 8080:8080
     env_file: .env
     depends_on:
-      - db
+      - web
 
   web:
     build:
@@ -34,5 +39,5 @@ services:
       - '3000:3000'
     env_file: .env
     depends_on:
-      - data-api
-      
+      db:
+        condition: service_healthy

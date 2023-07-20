@@ -125,6 +125,7 @@ const MainChart: React.FC<Props> = ({
             </Loader>
           ) : (
             <LineWrapper>
+              {chartData.id} | {fragment.exam_uid} | {fragment.position} | {fragment.time}
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
           )}
