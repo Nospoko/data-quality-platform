@@ -1,5 +1,5 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+// import * as dotenv from 'dotenv';
+// import * as path from 'path';
 import { DataSource, ObjectLiteral, ObjectType, Repository } from 'typeorm';
 
 import { DataCheck } from './entity/DataCheck';

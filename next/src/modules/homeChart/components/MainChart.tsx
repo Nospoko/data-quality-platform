@@ -58,11 +58,10 @@ const MainChart: React.FC<Props> = ({
 }) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
-  const {
-    isLoading,
-    error,
-    data: fragment,
-  } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
+  const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
+    ['record', id],
+    () => getFragment(id),
+  );
 
   const handleSelect = (choice: Choice) => {
     if (!chartData || choice === chartData.decision?.choice) {
