@@ -16,7 +16,6 @@ type Props = {
   handleSelect: (choice: Choice) => void;
 };
 const Feedback: React.FC<Props> = ({
-  isZoomView = false,
   onOpenZoomView,
   handleSelect,
   decision,

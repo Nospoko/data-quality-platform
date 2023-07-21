@@ -43,12 +43,12 @@ export const sendFeedback = async ({
 };
 
 export const fetchUserRecords = async (
-  skip: number,
+  page: number,
   limit = 5,
 ): Promise<HistoryDataResponse> => {
   const response = await axios.get('/api/records/history', {
     params: {
-      skip,
+      page,
       limit,
     },
   });

@@ -34,6 +34,7 @@ services:
     image: web-image:latest
     volumes:
       - ./next/src:/app/src
+      - ./next/__test__:/app/__test__
     command: sh -c  "yarn migrate && yarn dev"
     ports:
       - '3000:3000'

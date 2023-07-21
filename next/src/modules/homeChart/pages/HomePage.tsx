@@ -87,6 +87,10 @@ const HomePage = () => {
     fetchNextPage();
   }, [fetchNextPage]);
 
+  if (status === 'unauthenticated') {
+    return <h1>Please sign in</h1>;
+  }
+
   return (
     <>
       {selectedChartData && (

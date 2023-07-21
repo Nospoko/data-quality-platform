@@ -64,6 +64,21 @@ $ cp .env.example .env
 
 For deployment, use only prod Dockerfile (not Dockerfile.dev). Note that it should receive `ARG EXTERNAL_API` to work correctly with the Python API.
 
+### Tests
+To run tests for your Next.js application, you first need to start the application inside a Docker container. To do this, use the following command:
+
+```sh
+$ docker-compose up
+```
+After your application is up and running, you can start the tests by using the following command:
+```sh
+$ docker exec $(docker ps -qf "ancestor=web-image:latest") yarn test
+```
+If you want to run your tests in watch mode, you can do it by using the following command:
+```sh
+$ docker exec $(docker ps -qf "ancestor=web-image:latest") yarn test:dev
+```
+
 ## Customizing Signal Processing
 To customize the signal processing settings, you can follow these steps:
 

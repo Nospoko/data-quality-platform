@@ -28,6 +28,12 @@ export class DataCheck {
   })
   choice: Choice;
 
+  @Column('timestamp', {
+    name: 'created_at',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
+
   @ManyToOne(() => Record, (record) => record.index)
   @JoinColumn({ name: 'record_id' })
   record: Relation<Record>;

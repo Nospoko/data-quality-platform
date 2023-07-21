@@ -58,6 +58,13 @@ const History = () => {
   };
 
   const changeFeedbackOnZoomView = (dataCheckId: string, choice: Choice) => {
+    setSelectedChartData(
+      (prev) =>
+        ({
+          ...prev,
+          decision: { ...prev?.decision, choice },
+        } as SelectedHistoryChartData),
+    );
     mutation.mutate({ dataCheckId, choice });
   };
 

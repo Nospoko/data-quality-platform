@@ -16,8 +16,9 @@ router.get(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
+  const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
-  const skip = Number(req.query.skip) || 0;
+  const skip = (page - 1) * limit;
 
   const dataCheckRepo = await customGetRepository(DataCheck);
   const userId = session.user.id;
@@ -26,7 +27,8 @@ router.get(async (req, res) => {
     .createQueryBuilder('dataCheck')
     .leftJoin('dataCheck.user', 'user')
     .leftJoinAndSelect('dataCheck.record', 'record')
-    .where('user_id = :userId', { userId });
+    .where('user_id = :userId', { userId })
+    .orderBy('dataCheck.createdAt', 'DESC');
 
   const total = await query.getCount();
 

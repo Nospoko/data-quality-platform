@@ -32,11 +32,9 @@ const ZoomView: React.FC<Props> = ({
 
   const { id, data, decision } = chartData;
 
-  const {
-    isLoading,
-    error,
-    data: fragment,
-  } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
+  const { data: fragment } = useQuery<EcgFragment, Error>(['record', id], () =>
+    getFragment(id),
+  );
 
   const handleDecision = (choice: Choice) => {
     if (decision?.choice === choice) {
@@ -84,7 +82,11 @@ const ZoomView: React.FC<Props> = ({
         onOk={handleConfirm}
         onCancel={handleCancel}
       >
+<<<<<<< HEAD
         <p>Are you sure you want to change the feedback?</p>
+=======
+        <p>Are you sure you want to change the label?</p>
+>>>>>>> develop
       </Modal>
 
       <Modal
