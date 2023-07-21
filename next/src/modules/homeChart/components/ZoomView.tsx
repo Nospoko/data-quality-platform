@@ -82,11 +82,7 @@ const ZoomView: React.FC<Props> = ({
         onOk={handleConfirm}
         onCancel={handleCancel}
       >
-<<<<<<< HEAD
-        <p>Are you sure you want to change the feedback?</p>
-=======
         <p>Are you sure you want to change the label?</p>
->>>>>>> develop
       </Modal>
 
       <Modal
