@@ -1,5 +1,7 @@
-import { Layout } from 'antd';
-import React from 'react';
+import { Button, Layout } from 'antd';
+import { useSession } from 'next-auth/react';
+import React, { useCallback, useEffect, useState } from 'react';
+import styled from 'styled-components';
 
 import CustomHeader from '../Header';
 
@@ -18,17 +20,71 @@ const headerStyle: React.CSSProperties = {
 };
 
 const contentStyle: React.CSSProperties = {
-  padding: '0 50px',
+  padding: '50px',
   backgroundColor: '#fff',
 };
 
-const CustomLayout = ({ children }: { children: JSX.Element }) => (
-  <Layout style={layoutStyle}>
-    <Header style={headerStyle}>
-      <CustomHeader />
-    </Header>
-    <Content style={contentStyle}>{children}</Content>
-  </Layout>
-);
+const CustomLayout = ({ children }: { children: JSX.Element }) => {
+  const { status } = useSession();
+  const [showTopBtn, setShowTopBtn] = useState(false);
+
+  useEffect(() => {
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 400) {
+        setShowTopBtn(true);
+      } else {
+        setShowTopBtn(false);
+      }
+    });
+  }, []);
+
+  const handleScrollToTop = useCallback(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  }, []);
+
+  return (
+    <Layout style={layoutStyle}>
+      <Header style={headerStyle}>
+        <CustomHeader />
+      </Header>
+
+      <Content style={contentStyle}>
+        {status === 'unauthenticated' ? (
+          <h1>Please sign in</h1>
+        ) : (
+          <>
+            {children}
+            {showTopBtn && (
+              <ButtonWrapper>
+                <StyledButton type="primary" danger onClick={handleScrollToTop}>
+                  Top
+                </StyledButton>
+              </ButtonWrapper>
+            )}
+          </>
+        )}
+      </Content>
+    </Layout>
+  );
+};
 
 export default CustomLayout;
+
+const ButtonWrapper = styled.div`
+  position: fixed;
+  left: 16px;
+  bottom: 80px;
+`;
+
+const StyledButton = styled(Button)`
+  &&& {
+    display: flex;
+    justify-content: center;
+    align-item: center;
+    height: 36px;
+    width: 40px;
+  }
+`;

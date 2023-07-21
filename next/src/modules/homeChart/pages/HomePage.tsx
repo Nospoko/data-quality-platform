@@ -16,7 +16,7 @@ const HomePage = () => {
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedChartData | null>(null);
-  const [openModal, setOpenModal] = useState(false);
+  const [isZoomModal, setIsZoomModal] = useState(false);
   const { status } = useSession();
   const loading = status === 'loading';
 
@@ -75,11 +75,11 @@ const HomePage = () => {
 
   const handleOpenModal = useCallback((chartData: SelectedChartData) => {
     setSelectedChartData(chartData);
-    setOpenModal(true);
+    setIsZoomModal(true);
   }, []);
 
   const handleCloseModal = useCallback(() => {
-    setOpenModal(false);
+    setIsZoomModal(false);
     setSelectedChartData(null);
   }, []);
 
@@ -96,7 +96,7 @@ const HomePage = () => {
       {selectedChartData && (
         <ModalCharts
           chartData={selectedChartData}
-          isOpen={openModal}
+          isOpen={isZoomModal}
           onClose={handleCloseModal}
           addFeedback={addFeedback}
         />

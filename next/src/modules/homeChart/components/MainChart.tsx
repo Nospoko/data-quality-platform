@@ -20,12 +20,18 @@ import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { getFragment } from '@/services/reactQueryFn';
-import { Dataset, EcgFragment, SelectedChartData } from '@/types/common';
+import {
+  EcgFragment,
+  HistoryData,
+  SelectedChartData,
+  SelectedHistoryChartData,
+} from '@/types/common';
 
 interface Props {
   id: number;
-  addFeedback: (index: number, choice: Choice) => void;
-  onClickChart: (data: SelectedChartData) => void;
+  addFeedback: (index: number | string, choice: Choice) => void;
+  onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
+  historyData?: HistoryData;
 }
 
 const LEGEND_DATA = [
@@ -44,16 +50,30 @@ ChartJS.register(
   Legend,
 );
 
-const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
+const MainChart: React.FC<Props> = ({
+  id,
+  historyData,
+  addFeedback,
+  onClickChart,
+}) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
-  const {
-    isLoading,
-    error,
-    data: fragment,
-  } = useQuery<EcgFragment, Error>(['record', id], () => getFragment(id));
+  const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
+    ['record', id],
+    () => getFragment(id),
+  );
 
   const handleSelect = (choice: Choice) => {
+    if (!chartData || choice === chartData.decision?.choice) {
+      return;
+    }
+
+    if (historyData) {
+      addFeedback(historyData.id, choice);
+
+      return;
+    }
+
     addFeedback(id, choice);
   };
 
@@ -70,8 +90,13 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
       return;
     }
 
-    const labels = fragment.signal.map((_, index) => index);
+    const samplingRate = 200;
+    const labels = fragment.signal.map((_, index) =>
+      (index / samplingRate).toFixed(2),
+    );
+
     const processedSignal = processSignal(fragment);
+
     const datasets = processedSignal.signal[0].map((_, index) => ({
       label: `lead ${index + 1}`,
       data: processedSignal.signal.map((signal) => signal[index]),
@@ -85,8 +110,9 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
     setChartData({
       id,
       data: { labels, datasets },
+      decision: historyData,
     });
-  }, [fragment]);
+  }, [fragment, historyData]);
 
   return (
     <>
@@ -103,8 +129,9 @@ const MainChart: React.FC<Props> = ({ id, addFeedback, onClickChart }) => {
           )}
           <ButtonWrapper>
             <Feedback
-              onOpenZoomView={handleClickChart}
               handleSelect={handleSelect}
+              onOpenZoomView={handleClickChart}
+              decision={historyData?.choice}
             />
           </ButtonWrapper>
         </ChartWrapper>
@@ -136,7 +163,6 @@ const Wrapper = styled.div`
 const LineWrapper = styled.div`
   width: 100%;
   height: 300px;
-  cursor: pointer;
 `;
 
 const ChartWrapper = styled.div`

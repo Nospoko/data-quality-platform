@@ -12,41 +12,42 @@ import { Choice } from '@/lib/orm/entity/DataCheck';
 type Props = {
   isZoomView?: boolean;
   onOpenZoomView?: () => void;
+  decision?: Choice;
   handleSelect: (choice: Choice) => void;
 };
 const Feedback: React.FC<Props> = ({
-  isZoomView = false,
   onOpenZoomView,
   handleSelect,
+  decision,
 }) => {
   return (
     <Wrapper>
       <StyledButton
         type="primary"
-        ghost
+        ghost={decision !== Choice.APPROVED}
         size="large"
         icon={<CheckOutlined />}
         onClick={() => handleSelect(Choice.APPROVED)}
-      />
+      ></StyledButton>
 
       <StyledButton
         type="primary"
-        ghost
+        ghost={decision !== Choice.REJECTED}
         danger
         size="large"
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
-      />
+      ></StyledButton>
 
       <StyledButton
         type="primary"
-        ghost
+        ghost={decision !== Choice.UNKNOWN}
         size="large"
         onClick={() =>
           onOpenZoomView ? onOpenZoomView() : handleSelect(Choice.UNKNOWN)
         }
         icon={<QuestionOutlined />}
-      />
+      ></StyledButton>
     </Wrapper>
   );
 };

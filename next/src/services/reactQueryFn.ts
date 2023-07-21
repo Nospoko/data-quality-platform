@@ -2,7 +2,11 @@ import axios from 'axios';
 
 import axiosApi from './axios';
 
-import { EcgFragment, RecordsResponse } from '@/types/common';
+import {
+  EcgFragment,
+  HistoryDataResponse,
+  RecordsResponse,
+} from '@/types/common';
 
 export const getFragment = async (id: number): Promise<EcgFragment> => {
   const { data } = await axiosApi.get<EcgFragment>(`/record/${id}`);
@@ -32,6 +36,35 @@ export const sendFeedback = async ({
 }): Promise<RecordsResponse> => {
   const response = await axios.post('/api/data-check', {
     index,
+    choice,
+  });
+
+  return response.data;
+};
+
+export const fetchUserRecords = async (
+  page: number,
+  limit = 5,
+): Promise<HistoryDataResponse> => {
+  const response = await axios.get('/api/records/history', {
+    params: {
+      page,
+      limit,
+    },
+  });
+
+  return response.data;
+};
+
+export const changeChoice = async ({
+  dataCheckId,
+  choice,
+}: {
+  dataCheckId: string;
+  choice: string;
+}): Promise<RecordsResponse> => {
+  const response = await axios.patch('/api/data-check', {
+    dataCheckId,
     choice,
   });
 
