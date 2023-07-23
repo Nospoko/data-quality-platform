@@ -3,29 +3,34 @@ import {
   CreateDateColumn,
   Entity,
   OneToMany,
-  PrimaryColumn,
-  Relation,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 
 import { DataCheck } from './DataCheck';
 
 @Entity('records')
 export class Record {
-  @CreateDateColumn({ type: 'timestamp', name: 'time' })
-  time: Date;
-
-  @Column({ type: 'text' })
-  label: string;
-
-  @Column({ type: 'bigint' })
-  position: number;
-
-  @PrimaryColumn({ type: 'bigint', unique: true })
-  index: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column({ type: 'text' })
   exam_uid: string;
 
+  @Column({ type: 'text', nullable: true })
+  dataset_name: string;
+
+  @Column({ type: 'int' })
+  position: number;
+
+  @Column({ type: 'text' })
+  label: string;
+
+  @Column({ type: 'int' })
+  index: number;
+
+  @CreateDateColumn({ type: 'timestamp', name: 'time' })
+  time: Date;
+
   @OneToMany(() => DataCheck, (dataCheck) => dataCheck.record)
-  dataChecks: Relation<DataCheck>[];
+  dataChecks: DataCheck[];
 }
