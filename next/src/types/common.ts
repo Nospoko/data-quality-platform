@@ -34,7 +34,7 @@ export type ChartData = {
 };
 
 export type SelectedChartData = {
-  id: number;
+  id: string;
   data: ChartData;
   decision?: HistoryData;
 };

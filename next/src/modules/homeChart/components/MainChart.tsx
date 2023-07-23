@@ -19,6 +19,7 @@ import { processSignal } from '../utils/processSignal';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
+import { Record } from '@/lib/orm/entity/Record';
 import { getFragment } from '@/services/reactQueryFn';
 import {
   EcgFragment,
@@ -28,7 +29,7 @@ import {
 } from '@/types/common';
 
 interface Props {
-  id: number;
+  record: Record;
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
@@ -51,7 +52,7 @@ ChartJS.register(
 );
 
 const MainChart: React.FC<Props> = ({
-  id,
+  record,
   historyData,
   addFeedback,
   onClickChart,
@@ -59,8 +60,8 @@ const MainChart: React.FC<Props> = ({
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
-    ['record', id],
-    () => getFragment(id),
+    ['record', record.id],
+    () => getFragment(record.exam_uid, record.position),
   );
 
   const handleSelect = (choice: Choice) => {
@@ -74,7 +75,7 @@ const MainChart: React.FC<Props> = ({
       return;
     }
 
-    addFeedback(id, choice);
+    addFeedback(record.id, choice);
   };
 
   const handleClickChart = () => {
@@ -108,7 +109,7 @@ const MainChart: React.FC<Props> = ({
     }));
 
     setChartData({
-      id,
+      id: record.id,
       data: { labels, datasets },
       decision: historyData,
     });
@@ -124,7 +125,8 @@ const MainChart: React.FC<Props> = ({
             </Loader>
           ) : (
             <LineWrapper>
-              {chartData.id} | {fragment.exam_uid} | {fragment.position} | {fragment.time} | {fragment.label}
+              {record.id} | {record?.exam_uid} | {record.position} |{' '}
+              {record.time as any} | {record.label}
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
           )}
