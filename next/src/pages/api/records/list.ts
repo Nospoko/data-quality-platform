@@ -20,7 +20,6 @@ router.get(async (req, res) => {
 
   const recordsRepo = await customGetRepository(Record);
   const userId = session.user.id;
-
   const query = recordsRepo
     .createQueryBuilder('record')
     .leftJoinAndSelect('record.dataChecks', 'dataCheck')
@@ -30,7 +29,7 @@ router.get(async (req, res) => {
           .subQuery()
           .select('dataCheck_sub.id')
           .from(DataCheck, 'dataCheck_sub')
-          .where('dataCheck_sub.record_id = record.index')
+          .where('dataCheck_sub.record_id = record.id')
           .andWhere('dataCheck_sub.user_id = :userId')
           .getQuery();
         return 'NOT EXISTS (' + subQuery + ')';

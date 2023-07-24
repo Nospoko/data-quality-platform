@@ -34,10 +34,10 @@ const HomePage = () => {
     },
   });
 
-  const addFeedback = (index: number, choice: Choice) => {
-    mutation.mutate({ index, choice });
+  const addFeedback = (id: string, choice: Choice) => {
+    mutation.mutate({ id, choice });
     setRecordsToDisplay((prev) => {
-      return prev.filter((r) => r.index !== index);
+      return prev.filter((r) => r.id !== id);
     });
   };
 
@@ -111,7 +111,7 @@ const HomePage = () => {
         ? recordsToDisplay.map((record) => (
             <MainChart
               key={record.index}
-              id={record.index}
+              record={record}
               addFeedback={addFeedback}
               onClickChart={handleOpenModal}
             />

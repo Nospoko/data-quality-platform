@@ -123,7 +123,7 @@ const History = () => {
             page.data.map((history) => (
               <MainChart
                 key={history.record.index}
-                id={history.record.index}
+                record={history.record}
                 addFeedback={changeFeedback}
                 onClickChart={handleOpenModal}
                 historyData={history}

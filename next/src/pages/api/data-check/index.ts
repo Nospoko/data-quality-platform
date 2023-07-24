@@ -16,10 +16,10 @@ router.post(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const { index, choice } = req.body;
+  const { id, choice } = req.body;
   const dataCheckRepo = await customGetRepository(DataCheck);
   const recordRepo = await customGetRepository(Record);
-  const record = await recordRepo.findOne({ where: { index } });
+  const record = await recordRepo.findOne({ where: { id } });
 
   if (!record) {
     return res.status(400).json({ error: 'Record not found' });

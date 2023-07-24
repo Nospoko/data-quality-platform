@@ -34,7 +34,7 @@ export class DataCheck {
   })
   createdAt: Date;
 
-  @ManyToOne(() => Record, (record) => record.index)
+  @ManyToOne(() => Record, (record) => record.id)
   @JoinColumn({ name: 'record_id' })
   record: Relation<Record>;
 

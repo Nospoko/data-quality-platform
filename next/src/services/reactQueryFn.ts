@@ -8,8 +8,13 @@ import {
   RecordsResponse,
 } from '@/types/common';
 
-export const getFragment = async (id: number): Promise<EcgFragment> => {
-  const { data } = await axiosApi.get<EcgFragment>(`/record/${id}`);
+export const getFragment = async (
+  exam_uuid: string,
+  position: number,
+): Promise<EcgFragment> => {
+  const { data } = await axiosApi.get<EcgFragment>(
+    `data/?exam_uid=${exam_uuid}&position=${position}`,
+  );
   return data;
 };
 
@@ -28,14 +33,14 @@ export const fetchRecords = async (
 };
 
 export const sendFeedback = async ({
-  index,
+  id,
   choice,
 }: {
-  index: number;
+  id: string;
   choice: string;
 }): Promise<RecordsResponse> => {
   const response = await axios.post('/api/data-check', {
-    index,
+    id,
     choice,
   });
 
