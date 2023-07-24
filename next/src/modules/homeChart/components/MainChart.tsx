@@ -125,7 +125,7 @@ const MainChart: React.FC<Props> = ({
             </Loader>
           ) : (
             <LineWrapper>
-              {record.id} | {record?.exam_uid} | {record.position} |{' '}
+              {record.index} | {record?.exam_uid} | {record.position} |{' '}
               {record.time as any} | {record.label}
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
