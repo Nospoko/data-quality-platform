@@ -167,6 +167,7 @@ const History = () => {
             <MainChart
               key={history.record.index}
               record={history.record}
+              isFirst={false}
               addFeedback={changeFeedback}
               onClickChart={handleOpenModal}
               historyData={history}
