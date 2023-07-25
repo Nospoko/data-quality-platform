@@ -1,4 +1,3 @@
-import { useQuery } from '@tanstack/react-query';
 import { Modal } from 'antd';
 import React, { useState } from 'react';
 import styled from 'styled-components';
@@ -7,12 +6,7 @@ import Chart from './Chart';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import { getFragment } from '@/services/reactQueryFn';
-import {
-  EcgFragment,
-  SelectedChartData,
-  SelectedHistoryChartData,
-} from '@/types/common';
+import { SelectedChartData, SelectedHistoryChartData } from '@/types/common';
 
 interface Props {
   chartData: SelectedChartData | SelectedHistoryChartData;
@@ -30,11 +24,8 @@ const ZoomView: React.FC<Props> = ({
   const [isConfirmModal, setIsConfirmModal] = useState(false);
   const [selectedDecision, setSelectedDecision] = useState<Choice | null>(null);
 
-  const { id, data, decision } = chartData;
-
-  const { data: fragment } = useQuery<EcgFragment, Error>(['record', id], () =>
-    getFragment(id),
-  );
+  const { id, fragment, data, decision } = chartData;
+  const { label, position, exam_uid } = fragment;
 
   const handleDecision = (choice: Choice) => {
     if (decision?.choice === choice) {
@@ -116,13 +107,13 @@ const ZoomView: React.FC<Props> = ({
 
           <AdditionalWrapper>
             <FragmentTitle>
-              Label: <FragmentInfo>{fragment?.label}</FragmentInfo>
+              Label: <FragmentInfo>{label}</FragmentInfo>
             </FragmentTitle>
             <FragmentTitle>
-              Position: <FragmentInfo>{fragment?.position}</FragmentInfo>
+              Position: <FragmentInfo>{position}</FragmentInfo>
             </FragmentTitle>
             <FragmentTitle>
-              Exam UID: <FragmentInfo>{fragment?.exam_uid}</FragmentInfo>
+              Exam UID: <FragmentInfo>{exam_uid}</FragmentInfo>
             </FragmentTitle>
           </AdditionalWrapper>
         </ModalBody>

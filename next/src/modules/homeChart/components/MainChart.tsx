@@ -10,13 +10,14 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { memo, useEffect, useState } from 'react';
+import { forwardRef, memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
 import { chartSettings } from '../models';
 import { processSignal } from '../utils/processSignal';
 import Feedback from './Feedback';
+import RecordInfo from './RecordInfo';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
@@ -30,6 +31,7 @@ import {
 
 interface Props {
   record: Record;
+  isFirst: boolean;
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
@@ -51,12 +53,10 @@ ChartJS.register(
   Legend,
 );
 
-const MainChart: React.FC<Props> = ({
-  record,
-  historyData,
-  addFeedback,
-  onClickChart,
-}) => {
+const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
+  { record, historyData, addFeedback, onClickChart, isFirst },
+  ref,
+) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
@@ -110,62 +110,103 @@ const MainChart: React.FC<Props> = ({
 
     setChartData({
       id: record.id,
+      fragment,
       data: { labels, datasets },
       decision: historyData,
     });
   }, [fragment, historyData]);
 
+  useEffect(() => {
+    if (!chartData || !isFirst) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'n':
+          addFeedback(record.id, Choice.APPROVED);
+          break;
+        case 'x':
+          addFeedback(record.id, Choice.REJECTED);
+          break;
+        case 'y':
+          onClickChart(chartData);
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [record.id, addFeedback, onClickChart, chartData, isFirst]);
+
   return (
-    <>
-      <Wrapper>
-        <ChartWrapper>
-          {isLoading || !chartData?.data ? (
-            <Loader>
-              <Spin size="large" />
-            </Loader>
-          ) : (
+    <Wrapper ref={ref}>
+      <ChartWrapper>
+        {isLoading || !chartData?.data ? (
+          <Loader>
+            <Spin size="large" />
+          </Loader>
+        ) : (
+          <LineDescriptionWrapper>
+            <DescriptionWrapper>
+              <RecordInfo record={record} />
+            </DescriptionWrapper>
+
             <LineWrapper>
-              {record.index} | {record?.exam_uid} | {record.position} |{' '}
-              {record.time as any} | {record.label}
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
-          )}
-          <ButtonWrapper>
-            <Feedback
-              handleSelect={handleSelect}
-              onOpenZoomView={handleClickChart}
-              decision={historyData?.choice}
-            />
-          </ButtonWrapper>
-        </ChartWrapper>
-        <LegendContainer>
-          <CustomLegend>
-            {LEGEND_DATA.map((d) => (
-              <LegendRow key={d.label}>
-                <LineColor color={d.color} />
-                <LegendValue>{d.label}</LegendValue>
-              </LegendRow>
-            ))}
-          </CustomLegend>
-        </LegendContainer>
-      </Wrapper>
-    </>
+          </LineDescriptionWrapper>
+        )}
+        <ButtonWrapper>
+          <Feedback
+            handleSelect={handleSelect}
+            onOpenZoomView={handleClickChart}
+            decision={historyData?.choice}
+          />
+        </ButtonWrapper>
+      </ChartWrapper>
+      <LegendContainer>
+        <CustomLegend>
+          {LEGEND_DATA.map((d) => (
+            <LegendRow key={d.label}>
+              <LineColor color={d.color} />
+              <LegendValue>{d.label}</LegendValue>
+            </LegendRow>
+          ))}
+        </CustomLegend>
+      </LegendContainer>
+    </Wrapper>
   );
 };
 
-export default memo(MainChart);
+export default memo(forwardRef(MainChart));
 
 const Wrapper = styled.div`
-  margin-bottom: 40px;
+  margin-bottom: 80px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 300px;
+  height: 340px;
+`;
+
+const DescriptionWrapper = styled.div`
+  margin-bottom: 4px;
 `;
 
 const LineWrapper = styled.div`
   width: 100%;
   height: 300px;
+`;
+
+const LineDescriptionWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
 `;
 
 const ChartWrapper = styled.div`

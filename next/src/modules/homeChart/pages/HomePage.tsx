@@ -1,77 +1,83 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Spin } from 'antd';
 import { useSession } from 'next-auth/react';
 import { useCallback, useEffect, useState } from 'react';
+import FlipMove from 'react-flip-move';
 import { styled } from 'styled-components';
 
 import MainChart from '../components/MainChart';
+import SearchingForm from '../components/SearchForm';
 import ModalCharts from '../components/ZoomView';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 import { fetchRecords, sendFeedback } from '@/services/reactQueryFn';
-import { SelectedChartData } from '@/types/common';
+import { Filter, SelectedChartData } from '@/types/common';
 
 const HomePage = () => {
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedChartData | null>(null);
   const [isZoomModal, setIsZoomModal] = useState(false);
+  // filtering settings object
+  const [filters, setFilters] = useState<Filter>({
+    exams: [],
+  });
+  const [hasNextPage, setHasNextPage] = useState(false);
+
   const { status } = useSession();
   const loading = status === 'loading';
 
-  const { data: records, refetch } = useQuery({
-    queryKey: ['records'],
-    queryFn: () => fetchRecords(recordsToDisplay.length),
-    staleTime: Infinity,
-    refetchOnWindowFocus: false,
-  });
-  const queryClient = useQueryClient();
+  const fetchAndUpdateHistoryData = async (skip: number) => {
+    try {
+      const response = await fetchRecords(skip, filters);
+      const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
+        acc[d.index] = true;
+        return acc;
+      }, {});
+      const newRecords = response.data.filter(
+        (record) => !existedRecordsId[record.index],
+      );
 
-  const mutation = useMutation(sendFeedback, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['dataCheck']);
-    },
-  });
-
-  const addFeedback = (id: string, choice: Choice) => {
-    mutation.mutate({ id, choice });
-    setRecordsToDisplay((prev) => {
-      return prev.filter((r) => r.id !== id);
-    });
+      setRecordsToDisplay((prev) => [...prev, ...newRecords]);
+      if (response.total > recordsToDisplay.length + 5) {
+        return setHasNextPage(true);
+      }
+      setHasNextPage(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
-  // add new records to display list
-  // I added this complicated logic to avoid charts rerenders
-  // It allow memorize all rendered chart
-  // and improve performance
-  useEffect(() => {
-    if (!records) {
-      return;
+  const refetchAndReplaceHistoryData = async (
+    limit: number,
+    paramFilters?: Filter,
+  ) => {
+    try {
+      const response = await fetchRecords(0, paramFilters ?? filters, limit);
+
+      setRecordsToDisplay(response.data);
+      if (response.total > recordsToDisplay.length + 5) {
+        return setHasNextPage(true);
+      }
+      setHasNextPage(false);
+    } catch (error) {
+      console.error(error);
     }
-    const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
-      acc[d.index] = true;
-      return acc;
-    }, {});
-    const newRecords = records.data.filter(
-      (record) => !existedRecordsId[record.index],
-    );
-    setRecordsToDisplay((prev) => [...prev, ...newRecords]);
-  }, [records]);
+  };
 
   const fetchNextPage = () => {
-    refetch();
+    fetchAndUpdateHistoryData(recordsToDisplay.length);
   };
 
-  const hasNextPage = records && records.total > recordsToDisplay.length;
-
-  //fetch new records if records <  5
-  useEffect(() => {
-    if (recordsToDisplay.length >= 5) {
-      return;
-    }
-    fetchNextPage();
-  }, [recordsToDisplay.length, fetchNextPage]);
+  const addFeedback = useCallback(
+    async (id: string, choice: Choice) => {
+      await sendFeedback({ id, choice });
+      setRecordsToDisplay((prev) => {
+        return prev.filter((r) => r.id !== id);
+      });
+    },
+    [setRecordsToDisplay],
+  );
 
   const handleOpenModal = useCallback((chartData: SelectedChartData) => {
     setSelectedChartData(chartData);
@@ -83,16 +89,30 @@ const HomePage = () => {
     setSelectedChartData(null);
   }, []);
 
-  const handleFetchNextPage = useCallback(() => {
-    fetchNextPage();
-  }, [fetchNextPage]);
+  const addNewFilters = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    refetchAndReplaceHistoryData(0, newFilters);
+  };
 
-  if (status === 'unauthenticated') {
-    return <h1>Please sign in</h1>;
-  }
+  //fetch new records if records < 5
+  useEffect(() => {
+    if (!recordsToDisplay.length || recordsToDisplay.length >= 5) {
+      return;
+    }
+    fetchNextPage();
+  }, [recordsToDisplay.length, fetchNextPage]);
+
+  // initial fetch
+  useEffect(() => {
+    refetchAndReplaceHistoryData(5);
+  }, []);
 
   return (
     <>
+      <SearchingFormWrapper>
+        <SearchingForm onChangeFilter={addNewFilters} />
+      </SearchingFormWrapper>
+
       {selectedChartData && (
         <ModalCharts
           chartData={selectedChartData}
@@ -107,17 +127,20 @@ const HomePage = () => {
           <Spin size="large" />
         </StateWrapper>
       )}
-      {recordsToDisplay
-        ? recordsToDisplay.map((record) => (
-            <MainChart
-              key={record.index}
-              record={record}
-              addFeedback={addFeedback}
-              onClickChart={handleOpenModal}
-            />
-          ))
-        : null}
-      <Button disabled={!hasNextPage} onClick={handleFetchNextPage}>
+      <FlipMove>
+        {recordsToDisplay
+          ? recordsToDisplay.map((record, i) => (
+              <MainChart
+                key={record.index}
+                isFirst={i === 0}
+                record={record}
+                addFeedback={addFeedback}
+                onClickChart={handleOpenModal}
+              />
+            ))
+          : null}
+      </FlipMove>
+      <Button disabled={!hasNextPage} onClick={fetchNextPage}>
         Load More
       </Button>
     </>
@@ -128,6 +151,10 @@ const StateWrapper = styled.div`
   display: flex;
   justify-content: center;
   font-size: 24px;
+`;
+
+const SearchingFormWrapper = styled.div`
+  margin-bottom: 40px;
 `;
 
 export default HomePage;

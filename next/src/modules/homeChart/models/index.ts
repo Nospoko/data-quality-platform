@@ -32,7 +32,7 @@ export const chartSettings: any = {
       position: 'center',
       ticks: { display: false },
       border: {
-        color: 'black',
+        color: 'rgba(0, 0, 0, 0.3)',
         width: 2,
       },
       grid: { display: false },
