@@ -72,6 +72,9 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
+
+  border: 1px solid #1677ff;
+  border-radius: 8px;
 `;
 
 const CustomLegend = styled.div`
@@ -94,7 +97,7 @@ const LegendContainer = styled.div`
 const LineColor = styled.div`
   width: 20px;
   height: 0;
-  border: 1px solid ${(props) => props.color};
+  border-: 1px solid ${(props) => props.color};
 `;
 
 const LegendRow = styled.div`

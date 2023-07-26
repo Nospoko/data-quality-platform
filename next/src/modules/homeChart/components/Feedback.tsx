@@ -14,11 +14,13 @@ type Props = {
   onOpenZoomView?: () => void;
   decision?: Choice;
   handleSelect: (choice: Choice) => void;
+  isFetching: boolean;
 };
 const Feedback: React.FC<Props> = ({
   onOpenZoomView,
   handleSelect,
   decision,
+  isFetching,
 }) => {
   return (
     <Wrapper>
@@ -28,6 +30,7 @@ const Feedback: React.FC<Props> = ({
         size="large"
         icon={<CheckOutlined />}
         onClick={() => handleSelect(Choice.APPROVED)}
+        disabled={isFetching}
       ></StyledButton>
 
       <StyledButton
@@ -37,6 +40,7 @@ const Feedback: React.FC<Props> = ({
         size="large"
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
+        disabled={isFetching}
       ></StyledButton>
 
       <StyledButton
@@ -47,6 +51,7 @@ const Feedback: React.FC<Props> = ({
           onOpenZoomView ? onOpenZoomView() : handleSelect(Choice.UNKNOWN)
         }
         icon={<QuestionOutlined />}
+        disabled={isFetching}
       ></StyledButton>
     </Wrapper>
   );

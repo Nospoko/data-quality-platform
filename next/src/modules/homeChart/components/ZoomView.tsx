@@ -1,7 +1,8 @@
 import { Modal } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import showNotification from '../utils/helpers/showNotification';
 import Chart from './Chart';
 import Feedback from './Feedback';
 
@@ -9,15 +10,19 @@ import { Choice } from '@/lib/orm/entity/DataCheck';
 import { SelectedChartData, SelectedHistoryChartData } from '@/types/common';
 
 interface Props {
+  zoomMode: boolean;
   chartData: SelectedChartData | SelectedHistoryChartData;
   isOpen: boolean;
+  isFetching: boolean;
   onClose: () => void;
   addFeedback: (index: number | string, choice: Choice) => void;
 }
 
 const ZoomView: React.FC<Props> = ({
+  zoomMode,
   chartData,
   isOpen,
+  isFetching,
   onClose,
   addFeedback,
 }) => {
@@ -44,7 +49,6 @@ const ZoomView: React.FC<Props> = ({
     }
 
     addFeedback(id, choice);
-    onClose();
   };
 
   const handleConfirm = () => {
@@ -64,12 +68,57 @@ const ZoomView: React.FC<Props> = ({
     setIsConfirmModal(false);
   };
 
+  useEffect(() => {
+    if (!chartData || isFetching || !isOpen) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'n':
+          addFeedback(id, Choice.APPROVED);
+          showNotification('success', 'n');
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        case 'x':
+          addFeedback(id, Choice.REJECTED);
+          showNotification('error', 'x');
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        case 'y':
+          addFeedback(id, Choice.UNKNOWN);
+          showNotification('error', 'y');
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [id, addFeedback, chartData, zoomMode, isFetching, isOpen]);
+
   return (
     <>
       <Modal
         title="Confirmation"
         centered
-        visible={isConfirmModal}
+        open={isConfirmModal}
         onOk={handleConfirm}
         onCancel={handleCancel}
       >
@@ -92,12 +141,17 @@ const ZoomView: React.FC<Props> = ({
                     labels: data.labels,
                     datasets: [{ ...dataset }],
                   };
-                  return <Chart key={dataset.label} data={lineProps} />;
+                  return (
+                    <ChartContainer key={dataset.label}>
+                      <Chart data={lineProps} />
+                    </ChartContainer>
+                  );
                 })}
             </ChartsWrapper>
 
             <ButtonWrapper>
               <Feedback
+                isFetching={isFetching}
                 isZoomView={true}
                 handleSelect={handleDecision}
                 decision={decision?.choice}
@@ -140,6 +194,10 @@ const Wrapper = styled.div`
 
 const ChartsWrapper = styled.div`
   width: 100%;
+`;
+
+const ChartContainer = styled.div`
+  margin-bottom: 2px;
 `;
 
 const ButtonWrapper = styled.div`
