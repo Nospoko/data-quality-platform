@@ -153,6 +153,8 @@ const History = () => {
           isOpen={isZoomModal}
           onClose={handleCloseModal}
           addFeedback={changeFeedbackOnZoomView}
+          zoomMode={false}
+          isFetching={false}
         />
       )}
 
@@ -171,6 +173,8 @@ const History = () => {
               addFeedback={changeFeedback}
               onClickChart={handleOpenModal}
               historyData={history}
+              isZoomView={false}
+              isFetching={false}
             />
           ))
         : null}
