@@ -258,7 +258,11 @@ const HomePage = () => {
             translateX: [0, 100],
             backgroundColor: [
               'black',
-              selectedChoice === Choice.APPROVED ? 'green' : 'red',
+              selectedChoice === Choice.APPROVED
+                ? 'green'
+                : selectedChoice === Choice.REJECTED
+                ? 'red'
+                : '#1677ff',
             ],
           },
         ]}
