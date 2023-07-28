@@ -15,8 +15,8 @@ app.add_middleware(
 )
 
 
-# dataset = app_utils.prepare_database("roszcz/qrs-swipe-demo")
-dataset = app_utils.prepare_database("roszcz/qrs-review-v0")
+dataset = app_utils.prepare_database("roszcz/qrs-swipe-demo")
+# dataset = app_utils.prepare_database("roszcz/qrs-review-v0")
 
 
 @app.get("/ping")
