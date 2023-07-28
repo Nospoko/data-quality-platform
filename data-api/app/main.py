@@ -6,9 +6,11 @@ from app import utils as app_utils
 
 app = FastAPI()
 
+origins = ['*']
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "https://pqrst.tech"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
