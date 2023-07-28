@@ -35,12 +35,14 @@ export type ChartData = {
 
 export type SelectedChartData = {
   id: string;
+  fragment: EcgFragment;
   data: ChartData;
   decision?: HistoryData;
 };
 
 export type SelectedHistoryChartData = {
   id: number;
+  fragment: EcgFragment;
   data?: ChartData;
   decision: HistoryData;
 };
@@ -55,3 +57,7 @@ export type HistoryDataResponse = {
   page: number;
   limit: number;
 };
+
+export interface Filter {
+  exams: string[];
+}

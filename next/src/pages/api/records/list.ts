@@ -17,6 +17,8 @@ router.get(async (req, res) => {
   }
   const limit = Number(req.query.limit) || 10;
   const skip = Number(req.query.skip) || 0;
+  const exams = req.query['exams[]'];
+  const examIds = Array.isArray(exams) ? exams : [exams];
 
   const recordsRepo = await customGetRepository(Record);
   const userId = session.user.id;
@@ -36,6 +38,10 @@ router.get(async (req, res) => {
       },
       { userId },
     );
+
+  if (exams) {
+    await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
+  }
 
   const total = await query.getCount();
 

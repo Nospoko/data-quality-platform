@@ -1,40 +1,36 @@
-import { useQuery } from '@tanstack/react-query';
 import { Modal } from 'antd';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import showNotification from '../utils/helpers/showNotification';
 import Chart from './Chart';
 import Feedback from './Feedback';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import { getFragment } from '@/services/reactQueryFn';
-import {
-  EcgFragment,
-  SelectedChartData,
-  SelectedHistoryChartData,
-} from '@/types/common';
+import { SelectedChartData, SelectedHistoryChartData } from '@/types/common';
 
 interface Props {
+  zoomMode: boolean;
   chartData: SelectedChartData | SelectedHistoryChartData;
   isOpen: boolean;
+  isFetching: boolean;
   onClose: () => void;
   addFeedback: (index: number | string, choice: Choice) => void;
 }
 
 const ZoomView: React.FC<Props> = ({
+  zoomMode,
   chartData,
   isOpen,
+  isFetching,
   onClose,
   addFeedback,
 }) => {
   const [isConfirmModal, setIsConfirmModal] = useState(false);
   const [selectedDecision, setSelectedDecision] = useState<Choice | null>(null);
 
-  const { id, data, decision } = chartData;
-
-  const { data: fragment } = useQuery<EcgFragment, Error>(['record', id], () =>
-    getFragment(id),
-  );
+  const { id, fragment, data, decision } = chartData;
+  const { label, position, exam_uid } = fragment;
 
   const handleDecision = (choice: Choice) => {
     if (decision?.choice === choice) {
@@ -53,7 +49,6 @@ const ZoomView: React.FC<Props> = ({
     }
 
     addFeedback(id, choice);
-    onClose();
   };
 
   const handleConfirm = () => {
@@ -73,12 +68,57 @@ const ZoomView: React.FC<Props> = ({
     setIsConfirmModal(false);
   };
 
+  useEffect(() => {
+    if (!chartData || isFetching || !isOpen) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'n':
+          addFeedback(id, Choice.APPROVED);
+          showNotification('success');
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        case 'x':
+          addFeedback(id, Choice.REJECTED);
+          showNotification('error');
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        case 'y':
+          addFeedback(id, Choice.UNKNOWN);
+          showNotification(Choice.UNKNOWN);
+
+          if (!zoomMode) {
+            onClose();
+          }
+
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [id, addFeedback, chartData, zoomMode, isFetching, isOpen]);
+
   return (
     <>
       <Modal
         title="Confirmation"
         centered
-        visible={isConfirmModal}
+        open={isConfirmModal}
         onOk={handleConfirm}
         onCancel={handleCancel}
       >
@@ -101,12 +141,17 @@ const ZoomView: React.FC<Props> = ({
                     labels: data.labels,
                     datasets: [{ ...dataset }],
                   };
-                  return <Chart key={dataset.label} data={lineProps} />;
+                  return (
+                    <ChartContainer key={dataset.label}>
+                      <Chart data={lineProps} />
+                    </ChartContainer>
+                  );
                 })}
             </ChartsWrapper>
 
             <ButtonWrapper>
               <Feedback
+                isFetching={isFetching}
                 isZoomView={true}
                 handleSelect={handleDecision}
                 decision={decision?.choice}
@@ -116,13 +161,13 @@ const ZoomView: React.FC<Props> = ({
 
           <AdditionalWrapper>
             <FragmentTitle>
-              Label: <FragmentInfo>{fragment?.label}</FragmentInfo>
+              Label: <FragmentInfo>{label}</FragmentInfo>
             </FragmentTitle>
             <FragmentTitle>
-              Position: <FragmentInfo>{fragment?.position}</FragmentInfo>
+              Position: <FragmentInfo>{position}</FragmentInfo>
             </FragmentTitle>
             <FragmentTitle>
-              Exam UID: <FragmentInfo>{fragment?.exam_uid}</FragmentInfo>
+              Exam UID: <FragmentInfo>{exam_uid}</FragmentInfo>
             </FragmentTitle>
           </AdditionalWrapper>
         </ModalBody>
@@ -149,6 +194,10 @@ const Wrapper = styled.div`
 
 const ChartsWrapper = styled.div`
   width: 100%;
+`;
+
+const ChartContainer = styled.div`
+  margin-bottom: 2px;
 `;
 
 const ButtonWrapper = styled.div`

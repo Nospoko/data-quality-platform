@@ -10,13 +10,15 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { memo, useEffect, useState } from 'react';
+import { forwardRef, memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
 import { chartSettings } from '../models';
-import { processSignal } from '../utils/processSignal';
+import { getChartData } from '../utils/getChartData';
+import showNotification from '../utils/helpers/showNotification';
 import Feedback from './Feedback';
+import RecordInfo from './RecordInfo';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
@@ -30,6 +32,9 @@ import {
 
 interface Props {
   record: Record;
+  isFirst: boolean;
+  isZoomView: boolean;
+  isFetching: boolean;
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
@@ -51,12 +56,18 @@ ChartJS.register(
   Legend,
 );
 
-const MainChart: React.FC<Props> = ({
-  record,
-  historyData,
-  addFeedback,
-  onClickChart,
-}) => {
+const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
+  {
+    record,
+    historyData,
+    addFeedback,
+    onClickChart,
+    isFirst,
+    isZoomView,
+    isFetching,
+  },
+  ref,
+) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
@@ -91,76 +102,111 @@ const MainChart: React.FC<Props> = ({
       return;
     }
 
-    const samplingRate = 200;
-    const labels = fragment.signal.map((_, index) =>
-      (index / samplingRate).toFixed(2),
-    );
+    const processedChartData = getChartData(record.id, fragment);
 
-    const processedSignal = processSignal(fragment);
-
-    const datasets = processedSignal.signal[0].map((_, index) => ({
-      label: `lead ${index + 1}`,
-      data: processedSignal.signal.map((signal) => signal[index]),
-      fill: false,
-      borderColor: LEGEND_DATA[index].color,
-      tension: 0,
-      pointRadius: 0,
-      borderWidth: 1,
-    }));
-
-    setChartData({
-      id: record.id,
-      data: { labels, datasets },
-      decision: historyData,
-    });
+    setChartData({ ...processedChartData, decision: historyData });
   }, [fragment, historyData]);
 
+  useEffect(() => {
+    if (!chartData || !isFirst || isFetching || isZoomView) {
+      return;
+    }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      switch (event.key) {
+        case 'n':
+          addFeedback(record.id, Choice.APPROVED);
+          showNotification('success');
+          break;
+
+        case 'x':
+          addFeedback(record.id, Choice.REJECTED);
+          showNotification('error');
+
+          break;
+
+        case 'y':
+          if (isZoomView) {
+            addFeedback(record.id, Choice.UNKNOWN);
+            showNotification('error');
+
+            break;
+          }
+
+          onClickChart(chartData);
+          break;
+
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+    record.id,
+    addFeedback,
+    onClickChart,
+    chartData,
+    isFirst,
+    isZoomView,
+    isFetching,
+  ]);
+
   return (
-    <>
-      <Wrapper>
-        <ChartWrapper>
-          {isLoading || !chartData?.data ? (
-            <Loader>
-              <Spin size="large" />
-            </Loader>
-          ) : (
+    <Wrapper ref={ref}>
+      <ChartWrapper>
+        {isLoading || !chartData?.data ? (
+          <Loader>
+            <Spin size="large" />
+          </Loader>
+        ) : (
+          <LineDescriptionWrapper>
+            <DescriptionWrapper>
+              <RecordInfo record={record} />
+            </DescriptionWrapper>
+
             <LineWrapper>
-              {record.index} | {record?.exam_uid} | {record.position} |{' '}
-              {record.time as any} | {record.label}
               <Line data={chartData.data} options={chartSettings} />
             </LineWrapper>
-          )}
-          <ButtonWrapper>
-            <Feedback
-              handleSelect={handleSelect}
-              onOpenZoomView={handleClickChart}
-              decision={historyData?.choice}
-            />
-          </ButtonWrapper>
-        </ChartWrapper>
-        <LegendContainer>
-          <CustomLegend>
-            {LEGEND_DATA.map((d) => (
-              <LegendRow key={d.label}>
-                <LineColor color={d.color} />
-                <LegendValue>{d.label}</LegendValue>
-              </LegendRow>
-            ))}
-          </CustomLegend>
-        </LegendContainer>
-      </Wrapper>
-    </>
+          </LineDescriptionWrapper>
+        )}
+        <ButtonWrapper>
+          <Feedback
+            handleSelect={handleSelect}
+            onOpenZoomView={handleClickChart}
+            decision={historyData?.choice}
+            isFetching={isFetching}
+          />
+        </ButtonWrapper>
+      </ChartWrapper>
+      <LegendContainer>
+        <CustomLegend>
+          {LEGEND_DATA.map((d) => (
+            <LegendRow key={d.label}>
+              <LineColor color={d.color} />
+              <LegendValue>{d.label}</LegendValue>
+            </LegendRow>
+          ))}
+        </CustomLegend>
+      </LegendContainer>
+    </Wrapper>
   );
 };
 
-export default memo(MainChart);
+export default memo(forwardRef(MainChart));
 
 const Wrapper = styled.div`
-  margin-bottom: 40px;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  height: 300px;
+  /* height: 100%; */
+`;
+
+const DescriptionWrapper = styled.div`
+  margin-bottom: 4px;
 `;
 
 const LineWrapper = styled.div`
@@ -168,21 +214,35 @@ const LineWrapper = styled.div`
   height: 300px;
 `;
 
+const LineDescriptionWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+`;
+
 const ChartWrapper = styled.div`
   display: flex;
   gap: 12px;
+  min-height: 300px;
+
+  padding: 10px;
+  margin-bottom: 16px;
+
+  border: 1px solid #000;
+  border-radius: 8px;
 `;
 
 const ButtonWrapper = styled.div`
   padding: 12px 0;
-  height: 100%;
+  min-height: 100%;
   width: 40px;
 `;
 
 const CustomLegend = styled.div`
   position: absolute;
-  top: -105px;
-  left: 40px;
+  top: -130px;
+  left: 60px;
   height: 65px;
   width: 100px;
   border: 1px solid;

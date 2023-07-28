@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import NextAuth from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
+import { signOut } from 'next-auth/react';
 
 import { customGetRepository } from '@/lib/orm/data-source';
 import { User } from '@/lib/orm/entity/User';
@@ -50,6 +51,11 @@ export const authOptions = {
         const user = await userRepo.findOne({
           where: { email: session?.user?.email },
         });
+
+        if (!user) {
+          signOut();
+          return;
+        }
 
         if (user) {
           session.user.id = user.id;

@@ -1,21 +1,18 @@
-import {
-  useInfiniteQuery,
-  useMutation,
-  useQueryClient,
-} from '@tanstack/react-query';
 import { Button, Modal, Spin } from 'antd';
 import { useSession } from 'next-auth/react';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import MainChart from '../components/MainChart';
+import SearchingForm from '../components/SearchForm';
 import ModalCharts from '../components/ZoomView';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
-import { SelectedHistoryChartData } from '@/types/common';
+import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 
 const History = () => {
+  const [recordsToDisplay, setRecordsToDisplay] = useState<HistoryData[]>([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedHistoryChartData | null>(null);
   const [isConfirmModal, setIsConfirmModal] = useState(false);
@@ -25,39 +22,69 @@ const History = () => {
   } | null>(null);
 
   const [isZoomModal, setIsZoomModal] = useState(false);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [filters, setFilters] = useState<Filter>({
+    exams: [],
+  });
 
   const { status } = useSession();
   const loading = status === 'loading';
 
-  const {
-    fetchNextPage,
-    hasNextPage,
-    data: historyData,
-  } = useInfiniteQuery({
-    queryKey: ['history-data'],
-    queryFn: ({ pageParam = 1 }) => fetchUserRecords(pageParam, 5),
-    getNextPageParam: (lastPage, allPages) => {
-      const nextPage = allPages.length + 1;
-      const totalPages = Math.ceil(lastPage.total / 5);
+  const fetchAndUpdateHistoryData = async (skip: number) => {
+    try {
+      const response = await fetchUserRecords(skip, filters);
+      const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
+        acc[d.record.index] = true;
+        return acc;
+      }, {});
 
-      return nextPage <= totalPages ? nextPage : undefined;
-    },
-  });
+      const newRecords = response.data?.filter(
+        (record) => !existedRecordsId[record.record.index],
+      );
 
-  const queryClient = useQueryClient();
+      setRecordsToDisplay((prev) => [...prev, ...newRecords]);
+      if (response.total > recordsToDisplay.length + 5) {
+        return setHasNextPage(true);
+      }
+      setHasNextPage(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
-  const mutation = useMutation(changeChoice, {
-    onSuccess: () => {
-      queryClient.invalidateQueries(['history-data']);
-    },
-  });
+  const refetchAndReplaceHistoryData = async (
+    limit: number,
+    paramFilters?: Filter,
+  ) => {
+    try {
+      const response = await fetchUserRecords(
+        0,
+        paramFilters ?? filters,
+        limit,
+      );
+
+      setRecordsToDisplay(response.data);
+      if (response.total > recordsToDisplay.length + 5) {
+        return setHasNextPage(true);
+      }
+      setHasNextPage(false);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const fetchNextPage = () => {
+    fetchAndUpdateHistoryData(recordsToDisplay.length);
+  };
 
   const changeFeedback = (dataCheckId: string, choice: Choice) => {
     setSelectedDataCheck({ dataCheckId, choice });
     setIsConfirmModal(true);
   };
 
-  const changeFeedbackOnZoomView = (dataCheckId: string, choice: Choice) => {
+  const changeFeedbackOnZoomView = async (
+    dataCheckId: string,
+    choice: Choice,
+  ) => {
     setSelectedChartData(
       (prev) =>
         ({
@@ -65,13 +92,16 @@ const History = () => {
           decision: { ...prev?.decision, choice },
         } as SelectedHistoryChartData),
     );
-    mutation.mutate({ dataCheckId, choice });
+    await changeChoice({ dataCheckId, choice });
+    await refetchAndReplaceHistoryData(recordsToDisplay.length);
   };
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (selectedDataCheck) {
       const { dataCheckId, choice } = selectedDataCheck;
-      mutation.mutate({ dataCheckId, choice });
+      await changeChoice({ dataCheckId, choice });
+      // refetch all data
+      await refetchAndReplaceHistoryData(recordsToDisplay.length);
     }
 
     setIsConfirmModal(false);
@@ -91,6 +121,16 @@ const History = () => {
     setIsZoomModal(false);
   }, []);
 
+  const addNewFilters = (newFilters) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
+    refetchAndReplaceHistoryData(0, newFilters);
+  };
+
+  // initial fetch
+  useEffect(() => {
+    refetchAndReplaceHistoryData(5);
+  }, []);
+
   return (
     <>
       <Modal
@@ -103,12 +143,18 @@ const History = () => {
         <p>Are you sure you want to change the feedback?</p>
       </Modal>
 
+      <SearchingFormWrapper>
+        <SearchingForm onChangeFilter={addNewFilters} />
+      </SearchingFormWrapper>
+
       {selectedChartData && (
         <ModalCharts
           chartData={selectedChartData}
           isOpen={isZoomModal}
           onClose={handleCloseModal}
           addFeedback={changeFeedbackOnZoomView}
+          zoomMode={false}
+          isFetching={false}
         />
       )}
 
@@ -118,18 +164,19 @@ const History = () => {
         </StateWrapper>
       )}
 
-      {historyData
-        ? historyData.pages.map((page) =>
-            page.data.map((history) => (
-              <MainChart
-                key={history.record.index}
-                record={history.record}
-                addFeedback={changeFeedback}
-                onClickChart={handleOpenModal}
-                historyData={history}
-              />
-            )),
-          )
+      {recordsToDisplay
+        ? recordsToDisplay.map((history) => (
+            <MainChart
+              key={history.record.index}
+              record={history.record}
+              isFirst={false}
+              addFeedback={changeFeedback}
+              onClickChart={handleOpenModal}
+              historyData={history}
+              isZoomView={false}
+              isFetching={false}
+            />
+          ))
         : null}
       <Button disabled={!hasNextPage} onClick={fetchNextPage}>
         Load More
@@ -144,4 +191,8 @@ const StateWrapper = styled.div`
   display: flex;
   justify-content: center;
   font-size: 24px;
+`;
+
+const SearchingFormWrapper = styled.div`
+  margin-bottom: 40px;
 `;

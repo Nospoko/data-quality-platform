@@ -4,6 +4,7 @@ import axiosApi from './axios';
 
 import {
   EcgFragment,
+  Filter,
   HistoryDataResponse,
   RecordsResponse,
 } from '@/types/common';
@@ -20,11 +21,14 @@ export const getFragment = async (
 
 export const fetchRecords = async (
   skip: number,
+  filters: Filter,
   limit = 5,
 ): Promise<RecordsResponse> => {
+  const { exams } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
       skip,
+      exams,
       limit,
     },
   });
@@ -48,12 +52,15 @@ export const sendFeedback = async ({
 };
 
 export const fetchUserRecords = async (
-  page: number,
+  skip: number,
+  filters: Filter,
   limit = 5,
 ): Promise<HistoryDataResponse> => {
+  const { exams } = filters;
   const response = await axios.get('/api/records/history', {
     params: {
-      page,
+      skip,
+      exams,
       limit,
     },
   });
@@ -72,6 +79,12 @@ export const changeChoice = async ({
     dataCheckId,
     choice,
   });
+
+  return response.data;
+};
+
+export const fetchExamIds = async (): Promise<string[]> => {
+  const response = await axios.get('/api/filters');
 
   return response.data;
 };

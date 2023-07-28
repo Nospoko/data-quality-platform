@@ -16,19 +16,25 @@ router.get(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const page = Number(req.query.page) || 1;
   const limit = Number(req.query.limit) || 10;
-  const skip = (page - 1) * limit;
+  const skip = Number(req.query.skip) || 0;
+  const exams = req.query['exams[]'];
+  const examIds = Array.isArray(exams) ? exams : [exams];
 
   const dataCheckRepo = await customGetRepository(DataCheck);
   const userId = session.user.id;
 
   const query = dataCheckRepo
     .createQueryBuilder('dataCheck')
-    .leftJoin('dataCheck.user', 'user')
-    .leftJoinAndSelect('dataCheck.record', 'record')
-    .where('user_id = :userId', { userId })
-    .orderBy('dataCheck.createdAt', 'DESC');
+    .innerJoinAndSelect('dataCheck.record', 'record')
+    .innerJoinAndSelect('dataCheck.user', 'user')
+    .where('user.id = :userId', { userId });
+
+  if (exams) {
+    await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
+  }
+
+  query.orderBy('dataCheck.createdAt', 'DESC');
 
   const total = await query.getCount();
 
