@@ -94,7 +94,7 @@ const ZoomView: React.FC<Props> = ({
           break;
         case 'y':
           addFeedback(id, Choice.UNKNOWN);
-          showNotification('error');
+          showNotification(Choice.UNKNOWN);
 
           if (!zoomMode) {
             onClose();

@@ -30,7 +30,7 @@ const Feedback: React.FC<Props> = ({
   return (
     <Wrapper>
       <Button
-        style={ButtonStyle}
+        style={{ ...ButtonStyle, color: 'green', border: '1px solid green' }}
         type="primary"
         ghost={decision !== Choice.APPROVED}
         size="large"
