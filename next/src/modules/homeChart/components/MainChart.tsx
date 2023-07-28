@@ -115,24 +115,24 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
       switch (event.key) {
         case 'n':
           addFeedback(record.id, Choice.APPROVED);
-          showNotification('success', 'n');
+          showNotification('success');
           break;
 
         case 'x':
           addFeedback(record.id, Choice.REJECTED);
-          showNotification('error', 'x');
+          showNotification('error');
+
           break;
 
         case 'y':
           if (isZoomView) {
             addFeedback(record.id, Choice.UNKNOWN);
-            showNotification('error', 'y');
+            showNotification('error');
 
             break;
           }
 
           onClickChart(chartData);
-          showNotification('info', 'y');
           break;
 
         default:

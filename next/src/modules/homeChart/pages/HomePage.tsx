@@ -101,6 +101,7 @@ const HomePage = () => {
   const handleCloseModal = useCallback(() => {
     setIsZoomModal(false);
     setSelectedChartData(null);
+    setZoomMode(false);
   }, []);
 
   const handleChangeNextChartData = async (record?: Record) => {
@@ -195,6 +196,25 @@ const HomePage = () => {
     }, 300);
   }, [selectedChoice]);
 
+  const handleClickZoomMode = async (state: boolean) => {
+    if (!state) {
+      return;
+    }
+
+    setZoomMode(true);
+
+    const { id, exam_uid, position } = recordsToDisplay[0];
+
+    try {
+      const fragment = await getFragment(exam_uid, position);
+      const nextChartData = getChartData(id, fragment);
+
+      handleOpenModal(nextChartData);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <>
       <SearchingFormWrapper>
@@ -205,7 +225,8 @@ const HomePage = () => {
         <Switch
           checkedChildren="Zoom Mode ON"
           unCheckedChildren="Zoom Mode OFF"
-          onChange={setZoomMode}
+          checked={zoomMode}
+          onChange={handleClickZoomMode}
         />
       </SwitchWrapper>
 

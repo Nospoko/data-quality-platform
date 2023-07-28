@@ -1,37 +1,12 @@
 import { notification } from 'antd';
 
-const showNotification = (type, shortcut, duration = 2) => {
-  let message = '';
-  let description = '';
-
-  switch (shortcut) {
-    case 'n':
-      message = 'You have approved the card!';
-      description = 'Keyboard shortcut: "n"';
-      break;
-
-    case 'x':
-      message = 'You have marked the card as rejected!';
-      description = 'Keyboard shortcut: "x"';
-      break;
-
-    case 'y':
-      if (type === 'info') {
-        message = 'You have opened the zoom view!';
-      } else {
-        message = 'You have marked the card as unknown!';
-      }
-      description = 'Keyboard shortcut: "y"';
-      break;
-
-    default:
-      break;
-  }
-
+const showNotification = (type, duration = 1) => {
   notification[type]({
-    message,
-    description,
+    message: undefined,
+    placement: 'bottomRight',
     duration,
+    style: { width: '100%', height: '60px' },
+    maxCount: 1,
   });
 };
 

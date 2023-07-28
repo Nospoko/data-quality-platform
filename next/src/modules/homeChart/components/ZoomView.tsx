@@ -76,7 +76,7 @@ const ZoomView: React.FC<Props> = ({
       switch (event.key) {
         case 'n':
           addFeedback(id, Choice.APPROVED);
-          showNotification('success', 'n');
+          showNotification('success');
 
           if (!zoomMode) {
             onClose();
@@ -85,7 +85,7 @@ const ZoomView: React.FC<Props> = ({
           break;
         case 'x':
           addFeedback(id, Choice.REJECTED);
-          showNotification('error', 'x');
+          showNotification('error');
 
           if (!zoomMode) {
             onClose();
@@ -94,7 +94,7 @@ const ZoomView: React.FC<Props> = ({
           break;
         case 'y':
           addFeedback(id, Choice.UNKNOWN);
-          showNotification('error', 'y');
+          showNotification('error');
 
           if (!zoomMode) {
             onClose();
