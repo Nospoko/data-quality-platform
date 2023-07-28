@@ -9,6 +9,11 @@ import { styled } from 'styled-components';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
 
+const ButtonStyle: React.CSSProperties = {
+  height: '30%',
+  width: '100%',
+};
+
 type Props = {
   isZoomView?: boolean;
   onOpenZoomView?: () => void;
@@ -24,16 +29,18 @@ const Feedback: React.FC<Props> = ({
 }) => {
   return (
     <Wrapper>
-      <StyledButton
+      <Button
+        style={ButtonStyle}
         type="primary"
         ghost={decision !== Choice.APPROVED}
         size="large"
         icon={<CheckOutlined />}
         onClick={() => handleSelect(Choice.APPROVED)}
         disabled={isFetching}
-      ></StyledButton>
+      ></Button>
 
-      <StyledButton
+      <Button
+        style={ButtonStyle}
         type="primary"
         ghost={decision !== Choice.REJECTED}
         danger
@@ -41,9 +48,10 @@ const Feedback: React.FC<Props> = ({
         onClick={() => handleSelect(Choice.REJECTED)}
         icon={<CloseOutlined />}
         disabled={isFetching}
-      ></StyledButton>
+      ></Button>
 
-      <StyledButton
+      <Button
+        style={ButtonStyle}
         type="primary"
         ghost={decision !== Choice.UNKNOWN}
         size="large"
@@ -52,7 +60,7 @@ const Feedback: React.FC<Props> = ({
         }
         icon={<QuestionOutlined />}
         disabled={isFetching}
-      ></StyledButton>
+      ></Button>
     </Wrapper>
   );
 };
@@ -66,11 +74,4 @@ const Wrapper = styled.div`
   justify-content: space-between;
   height: 100%;
   width: 100%;
-`;
-
-const StyledButton = styled(Button)`
-  &&& {
-    height: 30%;
-    width: 100%;
-  }
 `;

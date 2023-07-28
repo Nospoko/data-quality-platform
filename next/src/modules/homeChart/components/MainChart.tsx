@@ -104,7 +104,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 
     const processedChartData = getChartData(record.id, fragment);
 
-    setChartData(processedChartData);
+    setChartData({ ...processedChartData, decision: historyData });
   }, [fragment, historyData]);
 
   useEffect(() => {
