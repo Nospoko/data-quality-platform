@@ -14,7 +14,7 @@ export const getFragment = async (
   position: number,
 ): Promise<EcgFragment> => {
   const { data } = await axiosApi.get<EcgFragment>(
-    `data/?exam_uid=${exam_uuid}&position=${position}`,
+    `data?exam_uid=${exam_uuid}&position=${position}`,
   );
   return data;
 };
