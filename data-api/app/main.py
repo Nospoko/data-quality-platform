@@ -1,22 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app import config as C
 from app import utils as app_utils
 
 
 app = FastAPI()
 
+# TODO Learn more about CORS
+origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# dataset = app_utils.prepare_database("roszcz/qrs-swipe-demo")
-dataset = app_utils.prepare_database("roszcz/qrs-review-v0")
+dataset = app_utils.prepare_database(C.DATASET_NAME)
 
 
 @app.get("/ping")
