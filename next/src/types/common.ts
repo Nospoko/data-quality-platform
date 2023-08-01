@@ -61,3 +61,9 @@ export type HistoryDataResponse = {
 export interface Filter {
   exams: string[];
 }
+
+export enum UserRole {
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  GUEST = 'guest',
+}
