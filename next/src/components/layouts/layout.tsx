@@ -1,34 +1,43 @@
-import { Button, Layout } from 'antd';
+import {
+  Button,
+  ConfigProvider,
+  Divider,
+  Layout,
+  Space,
+  theme as themeSettings,
+  Typography,
+} from 'antd';
 import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import CustomHeader from '../Header';
 
+import { useTheme } from '@/app/contexts/ThemeProvider';
+import { ThemeType } from '@/types/common';
+
 const { Header, Content } = Layout;
 
 const layoutStyle: React.CSSProperties = {
   margin: '0 auto',
   maxWidth: 1400,
-  height: '100vh',
-};
-
-const headerStyle: React.CSSProperties = {
-  display: 'flex',
-  justifyContent: 'flex-end',
-  backgroundColor: '#fff',
-};
-
-const contentStyle: React.CSSProperties = {
-  padding: '50px',
-  backgroundColor: '#fff',
+  width: '100%',
 };
 
 const CustomLayout = ({ children }: { children: JSX.Element }) => {
+  // next line avoids hydration mismatch
+  const [mounted, setMounted] = useState(false);
+
+  const { defaultAlgorithm, darkAlgorithm } = themeSettings;
+  const { isDarkMode, theme } = useTheme();
+
   const { status } = useSession();
   const [showTopBtn, setShowTopBtn] = useState(false);
 
   useEffect(() => {
+    // next line avoids hydration mismatch
+    setMounted(true);
+
     window.addEventListener('scroll', () => {
       if (window.scrollY > 400) {
         setShowTopBtn(true);
@@ -46,32 +55,87 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
   }, []);
 
   return (
-    <Layout style={layoutStyle}>
-      <Header style={headerStyle}>
-        <CustomHeader />
-      </Header>
+    mounted && (
+      <ConfigProvider
+        theme={{
+          token: {
+            colorBgBase: isDarkMode ? '#141414' : '#fff',
+            colorText: isDarkMode ? '#fff' : '#000',
+          },
+          algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
+        }}
+      >
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Layout>
+            <Layout
+              style={{
+                ...layoutStyle,
+              }}
+            >
+              <HeaderContainer color={theme}>
+                <CustomHeader />
+              </HeaderContainer>
 
-      <Content style={contentStyle}>
-        {status === 'unauthenticated' ? (
-          <h1>Please sign in</h1>
-        ) : (
-          <>
-            {children}
-            {showTopBtn && (
-              <ButtonWrapper>
-                <StyledButton type="primary" danger onClick={handleScrollToTop}>
-                  Top
-                </StyledButton>
-              </ButtonWrapper>
-            )}
-          </>
-        )}
-      </Content>
-    </Layout>
+              <Divider style={{ margin: '0 0 30px 0' }} />
+
+              <Wrapper>
+                <ContentWrapper>
+                  {status === 'unauthenticated' ? (
+                    <Typography.Title
+                      style={{ textAlign: 'center', height: '100vh' }}
+                    >
+                      Please, sign in
+                    </Typography.Title>
+                  ) : (
+                    <>
+                      {children}
+                      {showTopBtn && (
+                        <ButtonWrapper>
+                          <StyledButton
+                            type="primary"
+                            danger
+                            onClick={handleScrollToTop}
+                          >
+                            Top
+                          </StyledButton>
+                        </ButtonWrapper>
+                      )}
+                    </>
+                  )}
+                </ContentWrapper>
+              </Wrapper>
+            </Layout>
+          </Layout>
+        </Space>
+      </ConfigProvider>
+    )
   );
 };
 
 export default CustomLayout;
+
+const Wrapper = styled.div`
+  max-width: 1400px;
+  min-height: 100vh;
+  width: 100%;
+  margin: 0 auto;
+
+  box-sizing: content-box;
+`;
+
+const ContentWrapper = styled(Content)`
+  padding: 0 12px;
+
+  @media (min-width: 744px) {
+    padding: 0 50px;
+  }
+`;
+
+const HeaderContainer = styled(Header)`
+  width: 100%;
+  background-color: ${(props) =>
+    props.color === ThemeType.DARK ? '#282828' : '#fff'};
+`;
 
 const ButtonWrapper = styled.div`
   position: fixed;

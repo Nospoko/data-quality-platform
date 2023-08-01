@@ -14,12 +14,13 @@ import { forwardRef, memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { chartSettings } from '../models';
+import { getChartSettings } from '../models';
 import { getChartData } from '../utils/getChartData';
 import showNotification from '../utils/helpers/showNotification';
 import Feedback from './Feedback';
 import RecordInfo from './RecordInfo';
 
+import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 import { getFragment } from '@/services/reactQueryFn';
@@ -28,13 +29,14 @@ import {
   HistoryData,
   SelectedChartData,
   SelectedHistoryChartData,
+  ThemeType,
 } from '@/types/common';
 
 interface Props {
   record: Record;
   isFirst: boolean;
   isZoomView: boolean;
-  isFetching: boolean;
+  isFetching?: boolean;
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
@@ -64,11 +66,14 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     onClickChart,
     isFirst,
     isZoomView,
-    isFetching,
+    isFetching = false,
   },
   ref,
 ) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
+
+  const { theme } = useTheme();
+  const chartSettings = getChartSettings(theme);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
@@ -157,7 +162,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 
   return (
     <Wrapper ref={ref}>
-      <ChartWrapper>
+      <ChartWrapper color={theme}>
         {isLoading || !chartData?.data ? (
           <Loader>
             <Spin size="large" />
@@ -179,11 +184,12 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
             onOpenZoomView={handleClickChart}
             decision={historyData?.choice}
             isFetching={isFetching}
+            isZoomView={isZoomView}
           />
         </ButtonWrapper>
       </ChartWrapper>
       <LegendContainer>
-        <CustomLegend>
+        <CustomLegend color={theme}>
           {LEGEND_DATA.map((d) => (
             <LegendRow key={d.label}>
               <LineColor color={d.color} />
@@ -199,10 +205,8 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 export default memo(forwardRef(MainChart));
 
 const Wrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  /* height: 100%; */
+  margin-bottom: 40px;
+  height: 100%;
 `;
 
 const DescriptionWrapper = styled.div`
@@ -215,40 +219,72 @@ const LineWrapper = styled.div`
 `;
 
 const LineDescriptionWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
+  height: 100%;
+  grid-area: 1 / 1 / 1 / 2;
+
+  @media (min-width: 744px) {
+    grid-area: 1 / 1 / 2 / 10;
+  }
+
+  @media (min-width: 1024px) {
+    grid-area: 1 / 1 / 2 / 18;
+  }
 `;
 
 const ChartWrapper = styled.div`
-  display: flex;
-  gap: 12px;
-  min-height: 300px;
+  width: 100%;
+  height: 100%;
 
   padding: 10px;
-  margin-bottom: 16px;
 
-  border: 1px solid #000;
+  border: 1px solid
+    ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   border-radius: 8px;
+
+  @media (min-width: 744px) {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    grid-template-rows: 1fr;
+    grid-column-gap: 20px;
+    grid-row-gap: 0px;
+
+    align-items: center;
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(18, 1fr);
+    grid-column-gap: 16px;
+  }
 `;
 
 const ButtonWrapper = styled.div`
-  padding: 12px 0;
-  min-height: 100%;
-  width: 40px;
+  height: 90%;
+  grid-area: 1 / 2 / 2 / 2;
+
+  @media (min-width: 744px) {
+    grid-area: 1 / 10 / 2 / 11;
+  }
+
+  @media (min-width: 1024px) {
+    grid-area: 1 / 18 / 2 / 19;
+  }
 `;
 
 const CustomLegend = styled.div`
   position: absolute;
-  top: -130px;
-  left: 60px;
+  top: -265px;
+  left: 50px;
   height: 65px;
   width: 100px;
   border: 1px solid;
   border-radius: 5px;
   background: rgba(255, 255, 255, 0.8);
   padding: 5px 8px;
+
+  @media (min-width: 744px) {
+    top: -130px;
+    left: 60px;
+  }
 `;
 
 const LegendContainer = styled.div`

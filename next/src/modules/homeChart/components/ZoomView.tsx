@@ -6,14 +6,19 @@ import showNotification from '../utils/helpers/showNotification';
 import Chart from './Chart';
 import Feedback from './Feedback';
 
+import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import { SelectedChartData, SelectedHistoryChartData } from '@/types/common';
+import {
+  SelectedChartData,
+  SelectedHistoryChartData,
+  ThemeType,
+} from '@/types/common';
 
 interface Props {
   zoomMode: boolean;
   chartData: SelectedChartData | SelectedHistoryChartData;
   isOpen: boolean;
-  isFetching: boolean;
+  isFetching?: boolean;
   onClose: () => void;
   addFeedback: (index: number | string, choice: Choice) => void;
 }
@@ -22,10 +27,12 @@ const ZoomView: React.FC<Props> = ({
   zoomMode,
   chartData,
   isOpen,
-  isFetching,
+  isFetching = false,
   onClose,
   addFeedback,
 }) => {
+  const { theme } = useTheme();
+
   const [isConfirmModal, setIsConfirmModal] = useState(false);
   const [selectedDecision, setSelectedDecision] = useState<Choice | null>(null);
 
@@ -159,7 +166,7 @@ const ZoomView: React.FC<Props> = ({
             </ButtonWrapper>
           </Wrapper>
 
-          <AdditionalWrapper>
+          <AdditionalWrapper color={theme}>
             <FragmentTitle>
               Label: <FragmentInfo>{label}</FragmentInfo>
             </FragmentTitle>
@@ -179,17 +186,24 @@ const ZoomView: React.FC<Props> = ({
 export default ZoomView;
 
 const ModalBody = styled.div`
-  display: flex;
-  flex-direction: column;
   width: 100%;
   height: 100%;
+  padding: 26px 0 26px 0;
+
+  display: flex;
+  flex-direction: column;
 `;
 
 const Wrapper = styled.div`
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
   align-items: center;
   gap: 12px;
+
+  @media (min-width: 744px) {
+    flex-direction: row;
+  }
 `;
 
 const ChartsWrapper = styled.div`
@@ -201,24 +215,39 @@ const ChartContainer = styled.div`
 `;
 
 const ButtonWrapper = styled.div`
-  height: 450px;
-  width: 60px;
+  height: 100%;
+  min-width: 300px;
+
+  @media (min-width: 744px) {
+    min-width: 60px;
+    height: 450px;
+  }
 `;
 
 const AdditionalWrapper = styled.div`
   margin-top: 20px;
-  padding-top: 20px;
-  padding-bottom: 20px;
+  padding: 20px;
+
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  align-items: space-between;
   gap: 20px;
-  border: 2px solid black;
+
+  border: 2px solid
+    ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   border-radius: 8px;
+
+  @media (min-width: 744px) {
+    flex-direction: row;
+  }
 `;
 
 const FragmentTitle = styled.b`
-  font-size: 20px;
+  font-size: 14px;
+
+  @media (min-width: 744px) {
+    font-size: 20px;
+  }
 `;
 
 const FragmentInfo = styled.span`

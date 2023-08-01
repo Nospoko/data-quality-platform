@@ -67,3 +67,14 @@ export enum UserRole {
   MEMBER = 'member',
   GUEST = 'guest',
 }
+
+export enum ThemeType {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
+
+export type ThemeContextType = {
+  isDarkMode: boolean;
+  theme: string;
+  handleChangeTheme: (state: boolean) => void;
+};

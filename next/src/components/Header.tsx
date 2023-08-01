@@ -1,11 +1,12 @@
-import { UserOutlined } from '@ant-design/icons';
-import { Avatar, Menu, Space } from 'antd';
+import { HistoryOutlined, HomeOutlined, UserOutlined } from '@ant-design/icons';
+import { Avatar, Menu, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { styled } from 'styled-components';
 
 import SignInBtn from './buttons/SignInBtn';
 import SignOutBtn from './buttons/SignOutBtn';
+import ThemeSwitcher from './buttons/ThemeSwitcher';
 
 const Header = () => {
   const { data: session } = useSession();
@@ -24,61 +25,77 @@ const Header = () => {
 
   return (
     <Wrapper>
-      <Menu
-        style={{ width: '100%' }}
-        theme="light"
-        mode="horizontal"
-        defaultSelectedKeys={[normalizedPath]}
-        onClick={(item) => {
-          handleNavClick(item.key);
-        }}
-        items={[
-          {
-            key: 'home',
-            label: 'Home',
-          },
-          {
-            key: 'history',
-            label: 'History/Review',
-          },
-        ]}
-      />
-      <SignWrapper>
-        {session ? (
-          <Space size={32}>
-            <UserInfo>
-              <Avatar
-                size="large"
-                icon={<UserOutlined />}
-                src={session.user?.image}
-              />
-              <span>{session.user?.name}</span>
-            </UserInfo>
-            <SignOutBtn />
-          </Space>
-        ) : (
-          <SignInBtn />
-        )}
-      </SignWrapper>
+      <NavItems>
+        <Menu
+          style={{
+            width: '100%',
+            border: 'none',
+          }}
+          mode="horizontal"
+          defaultSelectedKeys={[normalizedPath]}
+          onClick={(item) => {
+            handleNavClick(item.key);
+          }}
+        >
+          <Menu.Item key="home" icon={<HomeOutlined />}>
+            Home
+          </Menu.Item>
+          <Menu.Item key="history" icon={<HistoryOutlined />}>
+            History
+          </Menu.Item>
+          <Menu.Item key="theme" disabled>
+            <ThemeSwitcher />
+          </Menu.Item>
+          <Menu.Item key="login" disabled>
+            {session ? (
+              <HeaderLeftRight>
+                <UserInfo>
+                  <Avatar
+                    size="large"
+                    icon={<UserOutlined />}
+                    src={session.user?.image}
+                  />
+                  <Typography.Title level={5} style={{ margin: 0 }}>
+                    {session.user?.name}
+                  </Typography.Title>
+                </UserInfo>
+                <SignOutBtn />
+              </HeaderLeftRight>
+            ) : (
+              <>
+                <SignInBtn />
+              </>
+            )}
+          </Menu.Item>
+        </Menu>
+      </NavItems>
     </Wrapper>
   );
 };
 
+const NavItems = styled.div`
+  display: flex;
+  align-items: center;
+  width: 100%;
+`;
+
 const Wrapper = styled.div`
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   width: 100%;
   height: 64px;
 `;
 
-const SignWrapper = styled.div`
-  padding-right: 12px;
-  width: 500px;
+const HeaderLeftRight = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 const UserInfo = styled.div`
   display: flex;
+  gap: 8px;
   align-items: center;
+  margin-right: 30px;
 
   span {
     margin-left: 8px;

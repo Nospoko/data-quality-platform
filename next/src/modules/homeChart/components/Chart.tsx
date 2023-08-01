@@ -12,10 +12,11 @@ import { memo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { chartSettings } from '../models';
+import { getChartSettings } from '../models';
 import { getLimits } from '../utils/getRange';
 
-import { ChartData } from '@/types/common';
+import { useTheme } from '@/app/contexts/ThemeProvider';
+import { ChartData, ThemeType } from '@/types/common';
 
 interface Props {
   data: ChartData;
@@ -32,12 +33,15 @@ ChartJS.register(
 );
 
 const Chart: React.FC<Props> = ({ data }) => {
+  const { theme } = useTheme();
+  const chartSettings = getChartSettings(theme);
+
   const { borderColor, label, data: signal } = data.datasets[0];
   const limits = getLimits(signal);
 
   return (
     <>
-      <Wrapper>
+      <Wrapper color={theme}>
         <Line
           data={data}
           options={{
@@ -53,7 +57,7 @@ const Chart: React.FC<Props> = ({ data }) => {
           }}
         />
         <LegendContainer>
-          <CustomLegend>
+          <CustomLegend color={theme}>
             <LegendRow>
               <LineColor color={borderColor?.toString()} />
               <LegendValue>{label}</LegendValue>
@@ -73,7 +77,8 @@ const Wrapper = styled.div`
   flex-direction: column;
   justify-content: center;
 
-  border: 1px solid #1677ff;
+  border: 1px solid
+    ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   border-radius: 8px;
 `;
 
@@ -87,7 +92,10 @@ const CustomLegend = styled.div`
   left: 40px;
   border: 1px solid;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.8);
+  background: ${(props) =>
+    props.color === ThemeType.DARK
+      ? 'rgba(100, 100, 100, 0.8)'
+      : 'rgba(255, 255, 255, 0.8)'};
 `;
 
 const LegendContainer = styled.div`
@@ -97,7 +105,7 @@ const LegendContainer = styled.div`
 const LineColor = styled.div`
   width: 20px;
   height: 0;
-  border-: 1px solid ${(props) => props.color};
+  border: 1px solid ${(props) => props.color};
 `;
 
 const LegendRow = styled.div`
