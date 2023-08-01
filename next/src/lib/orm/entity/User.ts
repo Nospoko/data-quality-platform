@@ -9,7 +9,11 @@ import {
 import { DataCheck } from './DataCheck';
 import { OrganizationMembership } from './OrganizationMembership';
 
-import { UserRole } from '@/types/common';
+export enum UserRole {
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  GUEST = 'guest',
+}
 
 @Entity('users')
 export class User {
