@@ -8,8 +8,13 @@ import SignInBtn from './buttons/SignInBtn';
 import SignOutBtn from './buttons/SignOutBtn';
 import ThemeSwitcher from './buttons/ThemeSwitcher';
 
+import { UserRole } from '@/types/common';
+
 const Header = () => {
   const { data: session } = useSession();
+
+  const isAdmin = session?.user.role === UserRole.ADMIN;
+
   const router = useRouter();
   const { pathname } = router;
   const normalizedPath = pathname === '/' ? 'home' : pathname.slice(1);
@@ -46,6 +51,16 @@ const Header = () => {
           <Menu.Item key="theme" disabled>
             <ThemeSwitcher />
           </Menu.Item>
+          {isAdmin && (
+            <Menu.SubMenu
+              title="Admin"
+              key="admin"
+              onTitleClick={() => handleNavClick('admin')}
+            >
+              <Menu.Item key="admin/organizations">Organizations</Menu.Item>
+              <Menu.Item key="admin/users">Users</Menu.Item>
+            </Menu.SubMenu>
+          )}
           <Menu.Item key="login" disabled>
             {session ? (
               <HeaderLeftRight>

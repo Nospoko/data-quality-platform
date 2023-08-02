@@ -59,6 +59,7 @@ export const authOptions = {
 
         if (user) {
           session.user.id = user.id;
+          session.user.role = user.role;
         }
       } catch (err: any) {
         console.log(err.message);
