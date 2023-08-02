@@ -48,9 +48,6 @@ const Header = () => {
           <Menu.Item key="history" icon={<HistoryOutlined />}>
             History
           </Menu.Item>
-          <Menu.Item key="theme" disabled>
-            <ThemeSwitcher />
-          </Menu.Item>
           {isAdmin && (
             <Menu.SubMenu
               title="Admin"
@@ -61,12 +58,16 @@ const Header = () => {
               <Menu.Item key="admin/users">Users</Menu.Item>
             </Menu.SubMenu>
           )}
+          <Menu.Item key="theme" disabled>
+            <ThemeSwitcher />
+          </Menu.Item>
           <Menu.Item key="login" disabled>
             {session ? (
               <HeaderLeftRight>
                 <UserInfo>
                   <Avatar
                     size="large"
+                    style={{ marginLeft: 0 }}
                     icon={<UserOutlined />}
                     src={session.user?.image}
                   />
