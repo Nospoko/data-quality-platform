@@ -1,6 +1,7 @@
 import { ChartDataset } from 'chart.js';
 
 import { DataCheck } from '@/lib/orm/entity/DataCheck';
+import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { Record } from '@/lib/orm/entity/Record';
 
 export type UserData = {
@@ -77,4 +78,16 @@ export type ThemeContextType = {
   isDarkMode: boolean;
   theme: string;
   handleChangeTheme: (state: boolean) => void;
+};
+
+export interface OrganizationType {
+  id: string;
+  name: string;
+  organizationMemberships: OrganizationMembership[];
+}
+
+export type OrganizationDataResponse = {
+  data: OrganizationType[];
+  hasNextPage: boolean;
+  total: number;
 };

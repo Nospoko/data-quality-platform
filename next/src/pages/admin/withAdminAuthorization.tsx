@@ -9,18 +9,22 @@ const withAdminAuthorization = (
   getNestedLayout: (page: React.ReactElement) => React.ReactElement,
 ) => {
   return (props: any) => {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
+    const [loading, setLoading] = useState(true);
     const userRole = session?.user.role;
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+      if (status === 'loading') {
+        return;
+      }
+
       if (userRole !== UserRole.ADMIN) {
         router.push('/');
       } else {
         setLoading(false);
       }
-    }, [session?.user.role]);
+    }, [userRole, status]);
 
     return loading ? null : getNestedLayout(<WrappedComponent {...props} />);
   };
