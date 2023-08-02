@@ -12,7 +12,7 @@ import { memo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { getChartSettings } from '../models';
+import { darkTheme, getChartSettings, lightTheme } from '../models';
 import { getLimits } from '../utils/getRange';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
@@ -80,6 +80,11 @@ const Wrapper = styled.div`
   border: 1px solid
     ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   border-radius: 8px;
+
+  background-color: ${(props) =>
+    props.color === ThemeType.DARK
+      ? darkTheme.backgroundColorZoom
+      : lightTheme.backgroundColorZoom};
 `;
 
 const CustomLegend = styled.div`

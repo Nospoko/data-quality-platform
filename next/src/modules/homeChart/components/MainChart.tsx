@@ -14,7 +14,12 @@ import { forwardRef, memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { getChartSettings } from '../models';
+import {
+  darkTheme,
+  getChartSettings,
+  LEGEND_DATA,
+  lightTheme,
+} from '../models';
 import { getChartData } from '../utils/getChartData';
 import showNotification from '../utils/helpers/showNotification';
 import Feedback from './Feedback';
@@ -41,12 +46,6 @@ interface Props {
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
 }
-
-const LEGEND_DATA = [
-  { color: 'blue', label: 'lead 1' },
-  { color: 'orange', label: 'lead 2' },
-  { color: 'green', label: 'lead 3' },
-];
 
 ChartJS.register(
   CategoryScale,
@@ -240,6 +239,11 @@ const ChartWrapper = styled.div`
   border: 1px solid
     ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   border-radius: 8px;
+
+  background-color: ${(props) =>
+    props.color === ThemeType.DARK
+      ? darkTheme.backgroundColorMain
+      : lightTheme.backgroundColorMain};
 
   @media (min-width: 744px) {
     display: grid;

@@ -1,12 +1,8 @@
+import { LEGEND_DATA } from '../models';
 import { processSignal } from './processSignal';
 
 import { EcgFragment } from '@/types/common';
 
-const LEGEND_DATA = [
-  { color: 'blue', label: 'lead 1' },
-  { color: 'orange', label: 'lead 2' },
-  { color: 'green', label: 'lead 3' },
-];
 const samplingRate = 200;
 
 export const getChartData = (id: string, fragment: EcgFragment) => {
