@@ -49,14 +49,9 @@ const Header = () => {
             History
           </Menu.Item>
           {isAdmin && (
-            <Menu.SubMenu
-              title="Admin"
-              key="admin"
-              onTitleClick={() => handleNavClick('admin')}
-            >
-              <Menu.Item key="admin/organizations">Organizations</Menu.Item>
-              <Menu.Item key="admin/users">Users</Menu.Item>
-            </Menu.SubMenu>
+            <Menu.Item key="admin" icon={<UserOutlined />}>
+              Admin
+            </Menu.Item>
           )}
           <Menu.Item key="theme" disabled>
             <ThemeSwitcher />
