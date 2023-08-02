@@ -10,6 +10,10 @@ const GlobalStyle = createGlobalStyle`
   html,
   body {
     /* overflow-x: hidden; */
+    
+    .dark-theme {
+      background-color: #141414;
+    }
   }
 `;
 

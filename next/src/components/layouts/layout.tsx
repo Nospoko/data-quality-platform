@@ -54,62 +54,60 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
     });
   }, []);
 
-  return (
-    mounted && (
-      <ConfigProvider
-        theme={{
-          token: {
-            colorBgBase: isDarkMode ? '#141414' : '#fff',
-            colorText: isDarkMode ? '#fff' : '#000',
-          },
-          algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
-        }}
-      >
-        <Space direction="vertical" style={{ width: '100%' }}>
-          <Layout>
-            <Layout
-              style={{
-                ...layoutStyle,
-              }}
-            >
-              <HeaderContainer color={theme}>
-                <CustomHeader />
-              </HeaderContainer>
+  return mounted ? (
+    <ConfigProvider
+      theme={{
+        token: {
+          colorBgBase: isDarkMode ? '#141414' : '#fff',
+          colorText: isDarkMode ? '#fff' : '#000',
+        },
+        algorithm: isDarkMode ? darkAlgorithm : defaultAlgorithm,
+      }}
+    >
+      <Space direction="vertical" style={{ width: '100%' }}>
+        <Layout>
+          <Layout
+            style={{
+              ...layoutStyle,
+            }}
+          >
+            <HeaderContainer color={theme}>
+              <CustomHeader />
+            </HeaderContainer>
 
-              <Divider style={{ margin: '0 0 30px 0' }} />
+            <Divider style={{ margin: '0 0 30px 0' }} />
 
-              <Wrapper>
-                <ContentWrapper>
-                  {status === 'unauthenticated' ? (
-                    <Typography.Title
-                      style={{ textAlign: 'center', height: '100vh' }}
-                    >
-                      Please, sign in
-                    </Typography.Title>
-                  ) : (
-                    <>
-                      {children}
-                      {showTopBtn && (
-                        <ButtonWrapper>
-                          <StyledButton
-                            type="primary"
-                            danger
-                            onClick={handleScrollToTop}
-                          >
-                            Top
-                          </StyledButton>
-                        </ButtonWrapper>
-                      )}
-                    </>
-                  )}
-                </ContentWrapper>
-              </Wrapper>
-            </Layout>
+            <Wrapper>
+              <ContentWrapper>
+                {status === 'unauthenticated' ? (
+                  <Typography.Title
+                    style={{ textAlign: 'center', height: '100vh' }}
+                  >
+                    Please, sign in
+                  </Typography.Title>
+                ) : (
+                  <>
+                    {children}
+                    {showTopBtn && (
+                      <ButtonWrapper>
+                        <StyledButton
+                          type="primary"
+                          danger
+                          onClick={handleScrollToTop}
+                        >
+                          Top
+                        </StyledButton>
+                      </ButtonWrapper>
+                    )}
+                  </>
+                )}
+              </ContentWrapper>
+            </Wrapper>
           </Layout>
-        </Space>
-      </ConfigProvider>
-    )
-  );
+        </Layout>
+      </Space>
+    </ConfigProvider>
+  ) : null;
 };
 
 export default CustomLayout;

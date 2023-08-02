@@ -1,5 +1,5 @@
 import { getCookie, setCookie } from 'cookies-next';
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { disableAnimation } from '@/modules/homeChart/utils/helpers/disableAnimation';
 import { ThemeContextType, ThemeType } from '@/types/common';
@@ -21,7 +21,13 @@ const ThemeProvider = ({ children, clearTransition = false }) => {
 
     setIsDarkMode(state);
     setCookie('theme', selectedTheme, { maxAge });
+
+    document.body.classList.toggle('dark-theme', state);
   };
+
+  useEffect(() => {
+    document.body.classList.toggle('dark-theme', isDarkMode);
+  }, [isDarkMode]);
 
   return (
     <ThemeContext.Provider value={{ isDarkMode, handleChangeTheme, theme }}>
