@@ -36,14 +36,14 @@ services:
   web:
     build:
       context: ./next 
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
       args:
         EXTERNAL_API: ${NEXT_PUBLIC_API_URL}
     image: web-image:latest
     volumes:
       - ./next/src:/app/src
       - ./next/__test__:/app/__test__
-    command: sh -c  "yarn migrate && yarn dev"
+    command: sh -c  "yarn migrate && yarn start"
     networks:
       - app-network
     ports:
