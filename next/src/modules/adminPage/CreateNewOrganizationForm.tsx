@@ -1,38 +1,41 @@
-import {
-  Button,
-  Cascader,
-  DatePicker,
-  Form,
-  Input,
-  InputNumber,
-  Layout,
-  message,
-  Modal,
-  Radio,
-  Select,
-  Space,
-  Switch,
-  TreeSelect,
-} from 'antd';
-import React, { useState } from 'react';
+import { Form, Input, Layout, message, Modal } from 'antd';
+import React, { useCallback } from 'react';
 
 interface Props {
   isOpen: boolean;
-  // isFetching?: boolean;
+  organizationNames: string[];
   onClose: () => void;
   onCreate: ({ name }: { name: string }) => void;
 }
 
 const CreateNewOrganizationForm: React.FC<Props> = ({
   isOpen,
+  organizationNames,
   onClose,
   onCreate,
 }) => {
   const [form] = Form.useForm<{ name: string }>();
-  const nameValue = Form.useWatch('name', form);
 
-  // form Test
-  console.log('form:', nameValue);
+  const handleClose = useCallback(() => {
+    form.resetFields();
+    onClose();
+  }, [form, onClose]);
+
+  const handleSubmit = useCallback(() => {
+    form
+      .validateFields()
+      .then((values) => {
+        form.resetFields();
+        onCreate(values);
+      })
+      .catch((info) => {
+        console.log('Validate Failed:', info);
+        message.error('Submit failed!');
+      })
+      .finally(() => {
+        onClose();
+      });
+  }, [form]);
 
   return (
     <Layout>
@@ -42,20 +45,8 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
         title="Create a new organization"
         okText="Create"
         cancelText="Cancel"
-        onCancel={onClose}
-        onOk={() => {
-          form
-            .validateFields()
-            .then((values) => {
-              form.resetFields();
-              onCreate(values);
-              message.success('Submit success!');
-            })
-            .catch((info) => {
-              console.log('Validate Failed:', info);
-              message.error('Submit failed!');
-            });
-        }}
+        onCancel={handleClose}
+        onOk={handleSubmit}
       >
         <Form
           form={form}
@@ -70,9 +61,22 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
             rules={[
               {
                 required: true,
-                message: 'Please input the title of collection!',
+                message: 'Please input the name of Organization!',
               },
               { type: 'string', min: 3 },
+              () => ({
+                validator(_, value) {
+                  if (organizationNames.includes(value)) {
+                    return Promise.reject(
+                      new Error(
+                        'The Organization with the same name is exist!',
+                      ),
+                    );
+                  }
+
+                  return Promise.resolve();
+                },
+              }),
             ]}
           >
             <Input placeholder="Write name of organization" />

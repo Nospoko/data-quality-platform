@@ -9,6 +9,7 @@ import { OrganizationType } from '@/types/common';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
+// Code for pagination is commented, don't delete them
 router.get(authenticateUser, async (req, res) => {
   const onlyNames = req.query.onlyNames === 'true';
 
@@ -23,8 +24,8 @@ router.get(authenticateUser, async (req, res) => {
     return res.status(200).json(names);
   }
 
-  const limit = Number(req.query.limit) || 10;
-  const lastId = req.query.lastId;
+  // const limit = Number(req.query.limit) || 10;
+  // const lastId = req.query.lastId;
   const queryNames = req.query['names[]'];
   const names = Array.isArray(queryNames) ? queryNames : [queryNames];
   const onlyWithMembers = req.query.onlyWithMembers === 'true';
@@ -38,9 +39,9 @@ router.get(authenticateUser, async (req, res) => {
     .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
     .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
     .leftJoinAndSelect('organizationMembership.user', 'user')
-    .where('organization.id > :lastId', {
-      lastId: lastId || '00000000-0000-0000-0000-000000000000',
-    })
+    // .where('organization.id > :lastId', {
+    //   lastId: lastId || '00000000-0000-0000-0000-000000000000',
+    // })
     .orderBy('organization.id', 'ASC');
 
   if (queryNames) {
@@ -53,17 +54,19 @@ router.get(authenticateUser, async (req, res) => {
 
   const total = await query.getCount();
 
-  const organizations = await query.take(limit + 1).getMany();
+  const organizations = await query.getMany();
 
-  const hasNextPage = organizations.length > limit;
-  if (hasNextPage) {
-    organizations.pop();
-  }
+  // const organizations = await query.take(limit + 1).getMany();
+
+  // const hasNextPage = organizations.length > limit;
+  // if (hasNextPage) {
+  //   organizations.pop();
+  // }
 
   res.status(200).json({
     data: organizations as OrganizationType[],
     total,
-    hasNextPage,
+    // hasNextPage,
   });
 });
 

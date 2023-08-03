@@ -97,9 +97,9 @@ To change the colors of Lines and labels on the charts, follow these steps:
 
 1. Open the `index.ts` file located at `data-quality-platform\next\src\modules\homeChart\models\index.ts`.
 
-2. Look for the `LEGEND_DATA` constant in the file. It is an array of objects, where each object represents a Line on the chart.
+2. In this file, you will find two constants: LEGEND_DATA_LIGHT and LEGEND_DATA_DARK. Each constant is an array of objects representing lines on the chart with customizable colors and labels.
 
-3. To change the color of a Line, simply modify the `color` property of the corresponding object in the `LEGEND_DATA` array. You can use CSS-compatible color values such as 'red', '#00ff00', or 'rgba(0, 0, 255, 0.5)'.
+3. To change the color of a line, locate the corresponding object in the LEGEND_DATA_LIGHT or LEGEND_DATA_DARK array and modify the color property. You can use CSS-compatible color values such as 'red', '#00ff00', or 'rgba(0, 0, 255, 0.5)'.
 
 4. Save the changes to the `index.ts` file.
 

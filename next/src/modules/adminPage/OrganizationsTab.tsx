@@ -1,10 +1,23 @@
 import { BankOutlined } from '@ant-design/icons';
-import { Button, Layout } from 'antd';
+import { Button, Layout, message } from 'antd';
 import React, { useCallback, useState } from 'react';
 
 import CreateNewOrganizationForm from './CreateNewOrganizationForm';
+import TableOrganizations from './TableOrganizations';
 
-const OrganizationsTab = () => {
+import { OrganizationDataResponse } from '@/types/common';
+
+interface Props {
+  organizationNames: string[];
+  organizationsData?: OrganizationDataResponse;
+  onCreateOrganization: ({ name }: { name: string }) => void;
+}
+
+const OrganizationsTab: React.FC<Props> = ({
+  organizationNames,
+  organizationsData,
+  onCreateOrganization,
+}) => {
   const [createView, setCreateView] = useState(false);
 
   const handleOpenCreateView = useCallback(() => {
@@ -15,27 +28,31 @@ const OrganizationsTab = () => {
     setCreateView(false);
   }, []);
 
-  const createOrganization = ({ name }: { name: string }) => {
-    //
-  };
-
   return (
     <Layout>
       <Button
         type="primary"
-        size="large"
-        style={{ alignSelf: 'flex-end' }}
+        size="small"
+        style={{ alignSelf: 'flex-end', marginBottom: '16px' }}
         icon={<BankOutlined />}
         onClick={handleOpenCreateView}
+        disabled={!organizationNames}
       >
         Create New Organization
       </Button>
 
-      <CreateNewOrganizationForm
-        isOpen={createView}
-        onClose={handleCloseCreateView}
-        onCreate={createOrganization}
-      />
+      {organizationNames && (
+        <CreateNewOrganizationForm
+          isOpen={createView}
+          organizationNames={organizationNames}
+          onClose={handleCloseCreateView}
+          onCreate={onCreateOrganization}
+        />
+      )}
+
+      {organizationsData && (
+        <TableOrganizations organizationsData={organizationsData} />
+      )}
     </Layout>
   );
 };

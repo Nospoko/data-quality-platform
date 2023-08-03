@@ -9,6 +9,7 @@ import SearchingForm from '../components/SearchForm';
 import ModalCharts from '../components/ZoomView';
 import { getChartData } from '../utils/getChartData';
 
+import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 import {
@@ -19,6 +20,7 @@ import {
 import { Filter, SelectedChartData } from '@/types/common';
 
 const HomePage = () => {
+  const { isDarkMode } = useTheme();
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedChartData | null>(null);
@@ -116,7 +118,7 @@ const HomePage = () => {
     // use Context as a State manager
     try {
       const fragment = await getFragment(exam_uid, position);
-      const nextChartData = getChartData(id, fragment);
+      const nextChartData = getChartData(id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
     } catch (error) {
@@ -207,7 +209,7 @@ const HomePage = () => {
 
     try {
       const fragment = await getFragment(exam_uid, position);
-      const nextChartData = getChartData(id, fragment);
+      const nextChartData = getChartData(id, fragment, isDarkMode);
 
       handleOpenModal(nextChartData);
     } catch (error) {

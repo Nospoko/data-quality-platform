@@ -17,7 +17,8 @@ import { styled } from 'styled-components';
 import {
   darkTheme,
   getChartSettings,
-  LEGEND_DATA,
+  LEGEND_DATA_DARK,
+  LEGEND_DATA_LIGHT,
   lightTheme,
 } from '../models';
 import { getChartData } from '../utils/getChartData';
@@ -71,7 +72,9 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 ) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
 
-  const { theme } = useTheme();
+  const { theme, isDarkMode } = useTheme();
+  const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
+
   const chartSettings = getChartSettings(theme);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
@@ -106,10 +109,10 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
       return;
     }
 
-    const processedChartData = getChartData(record.id, fragment);
+    const processedChartData = getChartData(record.id, fragment, isDarkMode);
 
     setChartData({ ...processedChartData, decision: historyData });
-  }, [fragment, historyData]);
+  }, [fragment, historyData, isDarkMode]);
 
   useEffect(() => {
     if (!chartData || !isFirst || isFetching || isZoomView) {

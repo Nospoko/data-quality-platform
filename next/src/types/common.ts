@@ -1,6 +1,7 @@
 import { ChartDataset } from 'chart.js';
 
 import { DataCheck } from '@/lib/orm/entity/DataCheck';
+import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { Record } from '@/lib/orm/entity/Record';
 
@@ -84,6 +85,7 @@ export interface OrganizationType {
   id: string;
   name: string;
   organizationMemberships: OrganizationMembership[];
+  datasetAccess: DatasetAccess[];
 }
 
 export type OrganizationDataResponse = {

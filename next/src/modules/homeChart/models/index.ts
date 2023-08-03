@@ -14,10 +14,25 @@ export const RANGE_LARGE = [-4, 4];
  * @typedef {Object} LegendItem
  * @property {string} color - The color of the line in CSS-compatible format (e.g., 'blue', '#FFA500', 'rgb(0, 128, 0)').
  * @property {string} label - The label or name associated with the line.
+ */
+
+/**
+ * The light line colors configuration.
+ *
+ * @type {LightTheme}
+ */
+export const LEGEND_DATA_LIGHT = [
+  { color: 'blue', label: 'lead 1' },
+  { color: 'orange', label: 'lead 2' },
+  { color: 'green', label: 'lead 3' },
+];
+
+/**
+ * The dark line colors configuration.
  *
  * @type {LegendItem[]}
  */
-export const LEGEND_DATA = [
+export const LEGEND_DATA_DARK = [
   { color: 'blue', label: 'lead 1' },
   { color: 'orange', label: 'lead 2' },
   { color: 'green', label: 'lead 3' },

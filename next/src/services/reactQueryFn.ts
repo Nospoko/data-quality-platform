@@ -92,16 +92,17 @@ export const fetchExamIds = async (): Promise<string[]> => {
   return response.data;
 };
 
+// Code for pagination are commented, don't delete them
 export const fetchOrganizations = async (
-  lastId?: string,
+  // lastId?: string,
   names?: string[],
-  limit = 10,
+  // limit = 10,
 ): Promise<OrganizationDataResponse> => {
   const response = await axios.get('/api/organizations', {
     params: {
-      lastId,
+      // lastId,
       names,
-      limit,
+      // limit,
     },
   });
 
