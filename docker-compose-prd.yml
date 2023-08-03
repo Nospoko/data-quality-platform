@@ -1,0 +1,70 @@
+version: '3.4'
+
+networks:
+  app-network:
+    driver: bridge
+
+services:
+  db:
+    image: postgres:14.7
+    volumes:
+      - ./tmp/db_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    env_file: .env
+
+  data-api:
+    build: ./data-api/
+    volumes:
+      - ./data-api:/code
+      - ./tmp/dataset_cache:/root/.cache/huggingface/datasets/
+    ports:
+      - 8080:8080
+    env_file: .env
+    depends_on:
+      - web
+    networks:
+      - app-network
+
+  web:
+    build:
+      context: ./next 
+      dockerfile: Dockerfile.dev
+      args:
+        EXTERNAL_API: ${NEXT_PUBLIC_API_URL}
+    image: web-image:latest
+    volumes:
+      - ./next/src:/app/src
+      - ./next/__test__:/app/__test__
+    command: sh -c  "yarn migrate && yarn dev"
+    networks:
+      - app-network
+    ports:
+      - '3000:3000'
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  webserver:
+    image: nginx:alpine
+    container_name: webserver
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./next:/etc/app
+      - ./.config/nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - app-network
+    depends_on:
+      - web
