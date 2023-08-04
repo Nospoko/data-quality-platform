@@ -7,7 +7,8 @@ from app import config as C
 
 def prepare_database(dataset_name: str) -> Dataset:
     token = os.getenv("HF_TOKEN")
-    dataset = load_dataset(dataset_name, split="train[:200]", use_auth_token=token)
+    dataset = load_dataset(dataset_name, split="train", use_auth_token=token)
+    dataset = dataset.filter(lambda e: e['to_review'])
     engine = sa.create_engine(C.PG_DSN)
 
     query = sa.text("SELECT EXISTS(SELECT 1 FROM records WHERE dataset_name = :name)")
