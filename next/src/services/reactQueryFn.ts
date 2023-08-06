@@ -121,19 +121,29 @@ export const fetchOrganizationNames = async (): Promise<string[]> => {
 
 export const createOrganization = async (
   name: string,
+  selectedUsers: string[],
+  selectedDatasets: string[],
 ): Promise<Organization> => {
-  const response = await axios.post('/api/organizations', { name });
+  const response = await axios.post('/api/organizations', {
+    name,
+    userIds: selectedUsers,
+    datasetIds: selectedDatasets,
+  });
 
   return response.data;
 };
 
 export const changeOrganization = async (
   id: string,
-  newName: string,
+  userIds?: string[],
+  datasetIds?: string[],
+  newName?: string,
 ): Promise<Organization> => {
   const response = await axios.patch('/api/organizations', {
     id,
     newName,
+    userIds,
+    datasetIds,
   });
 
   return response.data;
@@ -161,18 +171,6 @@ export const createOrganizationMembership = async (
   return response.data;
 };
 
-export const changeOrganizationMembership = async (
-  memberShipId: string,
-  newOrganizationId: string,
-): Promise<OrganizationMembership> => {
-  const response = await axios.patch('/api/memberships', {
-    memberShipId,
-    newOrganizationId,
-  });
-
-  return response.data;
-};
-
 export const removeOrganizationMembership = async (
   userId: string,
   organizationId: string,
@@ -180,6 +178,32 @@ export const removeOrganizationMembership = async (
   const response = await axios.delete('/api/memberships', {
     params: {
       userId,
+      organizationId,
+    },
+  });
+
+  return response.data;
+};
+
+export const fetchAllUsers = async () => {
+  const response = await axios.get('/api/users');
+
+  return response.data;
+};
+
+export const fetchAllDatasets = async () => {
+  const response = await axios.get('/api/datasets');
+
+  return response.data;
+};
+
+export const removeDatasetAccess = async (
+  datasetId: string,
+  organizationId: string,
+) => {
+  const response = await axios.delete('/api/datasets', {
+    params: {
+      datasetId,
       organizationId,
     },
   });

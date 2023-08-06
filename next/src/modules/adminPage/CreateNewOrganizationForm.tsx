@@ -1,20 +1,37 @@
-import { Form, Input, Layout, message, Modal } from 'antd';
+import { Form, Input, Layout, message, Modal, Select } from 'antd';
 import React, { useCallback } from 'react';
+
+import { Dataset } from '@/lib/orm/entity/Dataset';
+import { User } from '@/lib/orm/entity/User';
 
 interface Props {
   isOpen: boolean;
   organizationNames: string[];
+  allUsers: User[];
+  allDatasets: Dataset[];
   onClose: () => void;
-  onCreate: ({ name }: { name: string }) => void;
+  onCreate: ({
+    name,
+  }: {
+    name: string;
+    selectedUsers: string[];
+    selectedDatasets: string[];
+  }) => void;
 }
 
 const CreateNewOrganizationForm: React.FC<Props> = ({
   isOpen,
   organizationNames,
+  allUsers,
+  allDatasets,
   onClose,
   onCreate,
 }) => {
-  const [form] = Form.useForm<{ name: string }>();
+  const [form] = Form.useForm<{
+    name: string;
+    selectedUsers: string[];
+    selectedDatasets: string[];
+  }>();
 
   const handleClose = useCallback(() => {
     form.resetFields();
@@ -37,6 +54,12 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
       });
   }, [form]);
 
+  const isNameFilled = useCallback(() => {
+    const name = Form.useWatch('name', form);
+
+    return name && name.trim().length > 2;
+  }, [form]);
+
   return (
     <Layout>
       <Modal
@@ -47,6 +70,7 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
         cancelText="Cancel"
         onCancel={handleClose}
         onOk={handleSubmit}
+        okButtonProps={{ disabled: !isNameFilled() }}
       >
         <Form
           form={form}
@@ -80,6 +104,55 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
             ]}
           >
             <Input placeholder="Write name of organization" />
+          </Form.Item>
+
+          <Form.Item
+            name="selectedUsers"
+            label="Users"
+            tooltip="Select users for the organization."
+          >
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Please select users..."
+              maxTagCount={2}
+              onChange={(selected: string[]) => {
+                form.setFieldsValue({
+                  selectedUsers: selected,
+                });
+              }}
+            >
+              {allUsers.map((user) => (
+                <Select.Option key={user.id} value={user.id}>
+                  {`${user.firstName} | ${user.lastName} | ${user.email}`}
+                </Select.Option>
+              ))}
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            style={{ marginBottom: '150px' }}
+            name="selectedDatasets"
+            label="Dataset Access"
+            tooltip="Select Datasets for the organization."
+          >
+            <Select
+              mode="multiple"
+              style={{ width: '100%' }}
+              placeholder="Please select datasets..."
+              maxTagCount={2}
+              onChange={(selected: string[]) => {
+                form.setFieldsValue({
+                  selectedDatasets: selected,
+                });
+              }}
+            >
+              {allDatasets.map((dataset) => (
+                <Select.Option key={dataset.id} value={dataset.id}>
+                  {dataset.name}
+                </Select.Option>
+              ))}
+            </Select>
           </Form.Item>
         </Form>
       </Modal>

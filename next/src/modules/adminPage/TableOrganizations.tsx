@@ -1,20 +1,65 @@
 import { DeleteOutlined } from '@ant-design/icons';
-import { Badge, Button, Collapse, Space, Table, Tag } from 'antd';
+import { Badge, Button, Modal, Space, Table, Tag } from 'antd';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
-import { OrganizationDataResponse, OrganizationType } from '@/types/common';
+import { AccordionOrganizations } from './AccordionOrganizations';
+
+import { Dataset } from '@/lib/orm/entity/Dataset';
+import { User } from '@/lib/orm/entity/User';
+import { OrganizationDataResponse } from '@/types/common';
 
 interface Props {
   organizationsData: OrganizationDataResponse;
+  allUsers: User[];
+  allDatasets: Dataset[];
+  onDeleteOrganization: (id: string) => void;
+  onDeleteMembership: (userId: string, organizationId: string) => void;
+  onDeleteDatasetAccess: (datasetId: string, organizationId: string) => void;
+  onAddData: (
+    organizationId: string,
+    usersIds?: string[],
+    datasetIds?: string[],
+    newName?: string,
+  ) => void;
 }
 
-const TableOrganizations: React.FC<Props> = ({ organizationsData }) => {
-  const [selectedRowKey, setSelectedRowKey] = useState(null);
+const TableOrganizations: React.FC<Props> = ({
+  organizationsData,
+  allUsers,
+  allDatasets,
+  onDeleteOrganization,
+  onDeleteMembership,
+  onDeleteDatasetAccess,
+  onAddData,
+}) => {
+  const [selectedRows, setSelectedRows] = useState<string[]>([]);
+  const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
+  const [isConfirmModal, setIsConfirmModal] = useState(false);
   const { data: organizations } = organizationsData;
 
-  const handleDelete = (id: string) => {
-    //
+  const handleOnDelete = (id: string) => {
+    if (!selectedRows.includes(id)) {
+      return;
+    }
+
+    setSelectedRowKey(id);
+    setIsConfirmModal(true);
+  };
+
+  const handleConfirm = () => {
+    if (!selectedRowKey) {
+      return;
+    }
+
+    onDeleteOrganization(selectedRowKey);
+
+    setIsConfirmModal(false);
+    setSelectedRowKey(null);
+  };
+
+  const handleCancel = () => {
+    setIsConfirmModal(false);
   };
 
   const columns = [
@@ -27,16 +72,22 @@ const TableOrganizations: React.FC<Props> = ({ organizationsData }) => {
           {name}
           <Button
             type="link"
+            style={{
+              color: selectedRows.includes(record.key) ? 'red' : 'transparent',
+            }}
             size="small"
             icon={<DeleteOutlined />}
-            onClick={() => handleDelete(record.key)}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOnDelete(record.key);
+            }}
             className="delete-button"
           />
         </Space>
       ),
     },
     {
-      title: 'Total Memberships',
+      title: 'Member Count',
       dataIndex: 'totalMemberships',
       key: 'totalMemberships',
       render: (text: number) => <Tag>{text}</Tag>,
@@ -46,13 +97,7 @@ const TableOrganizations: React.FC<Props> = ({ organizationsData }) => {
       dataIndex: 'datasets',
       key: 'datasets',
       render: (text: string, record: any) => (
-        // That element open a little window where we can open a modal window
-        // <Popover
-        //   content={<Button type="primary">Datasets</Button>}
-        //   trigger="hover"
-        // >
-
-        <Badge count={record.datasetCount}>
+        <Badge count={record.datasetCount ? `+${record.datasetCount}` : ''}>
           <Tag style={{ cursor: 'pointer' }} color="default">
             {record.datasetFirstName || 'No dataset access'}
           </Tag>
@@ -60,53 +105,6 @@ const TableOrganizations: React.FC<Props> = ({ organizationsData }) => {
       ),
     },
   ];
-
-  const getOrganizationMembershipsAndDatasetAccess = (
-    organization: OrganizationType,
-  ) => {
-    return (
-      <AccordionWrapper>
-        {getOrganizationMemberships(organization)}
-        {getDatasetAccess(organization)}
-      </AccordionWrapper>
-    );
-  };
-
-  const getOrganizationMemberships = (organization: OrganizationType) => {
-    const { organizationMemberships: memberships } = organization;
-
-    if (memberships.length === 0) {
-      return <Tag color="default">No memberships</Tag>;
-    }
-
-    return (
-      <Collapse>
-        <Collapse.Panel header="Organization Memberships" key="1">
-          {memberships.map((membership) => (
-            <div key={membership.id}>{JSON.stringify(membership.user)}</div>
-          ))}
-        </Collapse.Panel>
-      </Collapse>
-    );
-  };
-
-  const getDatasetAccess = (organization: OrganizationType) => {
-    const { datasetAccess } = organization;
-
-    if (datasetAccess.length === 0) {
-      return <Tag color="default">No dataset access</Tag>;
-    }
-
-    return (
-      <Collapse>
-        <Collapse.Panel header="Dataset Access" key="1">
-          {organization.datasetAccess.map((access) => (
-            <div key={access.id}>{JSON.stringify(access)}</div>
-          ))}
-        </Collapse.Panel>
-      </Collapse>
-    );
-  };
 
   const data = organizations.map((organization) => {
     const { id, name, organizationMemberships, datasetAccess } = organization;
@@ -122,43 +120,68 @@ const TableOrganizations: React.FC<Props> = ({ organizationsData }) => {
   });
 
   return (
-    <Table
-      size="middle"
-      pagination={false}
-      dataSource={data}
-      columns={columns}
-      expandRowByClick
-      expandable={{
-        expandedRowRender: (record) => {
-          const organization = organizations.find(
-            (org) => org.id === record.key,
-          );
-          return organization
-            ? getOrganizationMembershipsAndDatasetAccess(organization)
-            : null;
-        },
-        showExpandColumn: false,
-      }}
-      rowClassName={(record, index) =>
-        record.key === selectedRowKey ? 'selected-row' : ''
-      }
-      onRow={(record) => {
-        return {
-          onClick: () => setSelectedRowKey(record.key),
-        };
-      }}
-      components={{
-        body: {
-          row: StyledTableRow,
-        },
-      }}
-    />
+    <>
+      <Modal
+        title="Confirmation"
+        centered
+        open={isConfirmModal}
+        onOk={handleConfirm}
+        onCancel={handleCancel}
+      >
+        <p>Are you sure you want to delete the organization?</p>
+      </Modal>
+
+      <Table
+        size="middle"
+        pagination={false}
+        dataSource={data}
+        columns={columns}
+        expandRowByClick
+        expandable={{
+          expandedRowRender: (record) => {
+            const organization = organizations.find(
+              (org) => org.id === record.key,
+            );
+            return organization ? (
+              <AccordionOrganizations
+                organization={organization}
+                allUsers={allUsers}
+                allDatasets={allDatasets}
+                onDeleteMembership={onDeleteMembership}
+                onDeleteDatasetAccess={onDeleteDatasetAccess}
+                onAddData={onAddData}
+              />
+            ) : null;
+          },
+          showExpandColumn: false,
+        }}
+        rowClassName="row-table"
+        onRow={(record) => {
+          return {
+            onClick: () => {
+              setSelectedRows((prevK) => {
+                if (selectedRows.includes(record.key)) {
+                  return prevK.filter((key) => key !== record.key);
+                }
+
+                return [...prevK, record.key];
+              });
+            },
+          };
+        }}
+        components={{
+          body: {
+            row: StyledTableRow,
+          },
+        }}
+      />
+    </>
   );
 };
 
 export default TableOrganizations;
 
-const AccordionWrapper = styled.div`
+export const AccordionWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -186,20 +209,13 @@ const StyledTableRow = styled.tr`
     color: transparent;
   }
 
-  &:hover .delete-button {
+  cursor: pointer;
+
+  &:active .delete-button {
     color: red;
+
+    &:hover {
+      color: lightcoral;
+    }
   }
 `;
-
-// Stop here
-
-// const StyledDeleteButton = styled.button`
-//   color: red; // Set the default color for the delete button
-//   border: none;
-//   background: none;
-//   cursor: pointer;
-
-//   &:hover {
-//     color: lightcoral; // Set the color for the delete button on hover
-//   }
-// `;

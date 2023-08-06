@@ -14,6 +14,11 @@ const GlobalStyle = createGlobalStyle`
     .dark-theme {
       background-color: #141414;
     }
+
+    // RESET default style settings for Table
+    .ant-table-wrapper .ant-table.ant-table-middle .ant-table-tbody .ant-table-wrapper:only-child .ant-table {
+      margin-inline: 0;
+    }
   }
 `;
 

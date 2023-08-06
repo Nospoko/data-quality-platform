@@ -93,3 +93,7 @@ export type OrganizationDataResponse = {
   hasNextPage: boolean;
   total: number;
 };
+
+export type OnAddParams =
+  | { selectedUsers: string[] }
+  | { selectedDatasets: string[] };
