@@ -7,6 +7,13 @@ import {
 } from 'typeorm';
 
 import { DataCheck } from './DataCheck';
+import { OrganizationMembership } from './OrganizationMembership';
+
+export enum UserRole {
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  GUEST = 'guest',
+}
 
 @Entity('users')
 export class User {
@@ -25,6 +32,19 @@ export class User {
   @Column({ type: 'text', nullable: true })
   image: string | null;
 
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    default: UserRole.GUEST,
+  })
+  role: UserRole;
+
   @OneToMany(() => DataCheck, (dataCheck) => dataCheck.user)
   dataChecks: Relation<DataCheck>[];
+
+  @OneToMany(
+    () => OrganizationMembership,
+    (membership) => membership.organization,
+  )
+  organizationMemberships: Relation<OrganizationMembership>[];
 }

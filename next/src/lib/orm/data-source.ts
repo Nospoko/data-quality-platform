@@ -1,15 +1,19 @@
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+// import * as dotenv from 'dotenv';
+// import * as path from 'path';
 import { DataSource, ObjectLiteral, ObjectType, Repository } from 'typeorm';
 
 import { DataCheck } from './entity/DataCheck';
+import { Dataset } from './entity/Dataset';
+import { DatasetAccess } from './entity/DatasetAccess';
+import { Organization } from './entity/Organization';
+import { OrganizationMembership } from './entity/OrganizationMembership';
 import { Record } from './entity/Record';
 import { User } from './entity/User';
 
 // Don't remove next lines
-dotenv.config({
-  path: path.resolve(__dirname, '../../../.env.local'),
-});
+// dotenv.config({
+//   path: path.resolve(__dirname, '../../../.env.local'),
+// });
 
 export const dataSource = new DataSource({
   type: 'postgres',
@@ -27,7 +31,15 @@ const AppDataSource = new DataSource({
   synchronize: false,
   logging: false,
   migrationsRun: false,
-  entities: [User, Record, DataCheck],
+  entities: [
+    User,
+    Record,
+    DataCheck,
+    Dataset,
+    DatasetAccess,
+    Organization,
+    OrganizationMembership,
+  ],
 });
 
 export async function customGetRepository<Entity extends ObjectLiteral>(

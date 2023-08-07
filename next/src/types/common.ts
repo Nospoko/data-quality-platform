@@ -1,6 +1,8 @@
 import { ChartDataset } from 'chart.js';
 
 import { DataCheck } from '@/lib/orm/entity/DataCheck';
+import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
+import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { Record } from '@/lib/orm/entity/Record';
 
 export type UserData = {
@@ -61,3 +63,37 @@ export type HistoryDataResponse = {
 export interface Filter {
   exams: string[];
 }
+
+export enum UserRole {
+  ADMIN = 'admin',
+  MEMBER = 'member',
+  GUEST = 'guest',
+}
+
+export enum ThemeType {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
+
+export type ThemeContextType = {
+  isDarkMode: boolean;
+  theme: string;
+  handleChangeTheme: (state: boolean) => void;
+};
+
+export interface OrganizationType {
+  id: string;
+  name: string;
+  organizationMemberships: OrganizationMembership[];
+  datasetAccess: DatasetAccess[];
+}
+
+export type OrganizationDataResponse = {
+  data: OrganizationType[];
+  hasNextPage: boolean;
+  total: number;
+};
+
+export type OnAddParams =
+  | { selectedUsers: string[] }
+  | { selectedDatasets: string[] };

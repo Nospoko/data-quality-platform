@@ -86,3 +86,43 @@ To customize the signal processing settings, you can follow these steps:
 - In this file, you will find the `CONVERSION_FACTOR`, `SEGMENT_START`, and `SEGMENT_END` constants.
 - Modify the values of these constants according to your requirements. For example, you can change the conversion factor or adjust the segment range.
 - Additionally, if you want to customize the signal processing logic itself, you can open the file `next\src\modules\homeChart\utils\processSignal.ts`. In this file, you can find the implementation of the `processSignal` function.
+
+## Customizing Chart Colors
+
+You can easily customize the colors of Lines and labels on the charts. Additionally, you can manage the colors of the charts on both the main page and the zoom view by modifying the constants defined in the `index.ts` file.
+
+### Changing Lines and Labels Colors
+
+To change the colors of Lines and labels on the charts, follow these steps:
+
+1. Open the `index.ts` file located at `data-quality-platform\next\src\modules\homeChart\models\index.ts`.
+
+2. In this file, you will find two constants: LEGEND_DATA_LIGHT and LEGEND_DATA_DARK. Each constant is an array of objects representing lines on the chart with customizable colors and labels.
+
+3. To change the color of a line, locate the corresponding object in the LEGEND_DATA_LIGHT or LEGEND_DATA_DARK array and modify the color property. You can use CSS-compatible color values such as 'red', '#00ff00', or 'rgba(0, 0, 255, 0.5)'.
+
+4. Save the changes to the `index.ts` file.
+
+### Managing Chart Colors on Main Page and Zoom View
+
+To manage the colors of the charts on both the main page and the zoom view, you can customize the themes for both light mode and dark mode. The themes are defined in the same `index.ts` file.
+
+#### Light Theme or Dark Theme
+
+The light theme is defined under the `lightTheme` constant. The dark theme is defined under the `darkTheme` constant. It contains customizable color properties that affect the appearance of the charts in light or dark mode.
+
+To modify the light or dark theme colors, follow these steps:
+
+1. Open the `index.ts` file located at `data-quality-platform\next\src\modules\homeChart\models\index.ts`.
+
+2. Locate the `lightTheme` or `darkTheme` object in the file.
+
+3. Update the color values of the properties within the `lightTheme` or `darkTheme` object. You can change the following properties:
+
+   - `primaryScaleColor`: The color of the primary scale on the charts.
+   - `secondaryScaleColor`: The color of the secondary (in the middle) scale on the charts.
+   - `gridColor`: The color of the grid lines on the charts.
+   - `backgroundColorMain`: The main background color of the charts on the main page.
+   - `backgroundColorZoom`: The background color of the charts on the zoom view.
+
+4. Save the changes to the `index.ts` file.

@@ -27,10 +27,17 @@ const Feedback: React.FC<Props> = ({
   decision,
   isFetching,
 }) => {
+  const isApproved = decision === Choice.APPROVED;
+
   return (
     <Wrapper>
       <Button
-        style={{ ...ButtonStyle, color: 'green', border: '1px solid green' }}
+        style={{
+          ...ButtonStyle,
+          color: isApproved ? 'white' : 'green',
+          backgroundColor: isApproved ? 'green' : 'transparent',
+          border: '1px solid green',
+        }}
         type="primary"
         ghost={decision !== Choice.APPROVED}
         size="large"
@@ -72,6 +79,7 @@ const Wrapper = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
+  min-height: 160px;
   height: 100%;
   width: 100%;
 `;
