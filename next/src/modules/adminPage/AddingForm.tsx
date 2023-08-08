@@ -2,13 +2,14 @@ import { Form, Layout, message, Modal, Select } from 'antd';
 import React, { useCallback } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
+import { Organization } from '@/lib/orm/entity/Organization';
 import { User } from '@/lib/orm/entity/User';
-import { OnAddParams } from '@/types/common';
+import { AddingFormTypes, OnAddParams, SubTableTypes } from '@/types/common';
 
 interface Props {
-  type: 'memberships' | 'datasetAccess';
+  type: SubTableTypes;
   isOpen: boolean;
-  allData: (User | Dataset)[];
+  allData: (User | Dataset | Organization)[];
   onClose: () => void;
   onAdd: (params: OnAddParams) => void;
 }
@@ -21,6 +22,8 @@ const AddingForm: React.FC<Props> = ({
   onAdd,
 }) => {
   const [form] = Form.useForm<OnAddParams>();
+  const isMembershipType = type === SubTableTypes.MEMBERSHIPS;
+  const isDatasetAccessType = type === SubTableTypes.DATASETACCESS;
 
   const handleClose = useCallback(() => {
     form.resetFields();
@@ -43,16 +46,35 @@ const AddingForm: React.FC<Props> = ({
       });
   }, [form]);
 
+  const isFieldEmpty = useCallback(() => {
+    const nameField = isMembershipType
+      ? AddingFormTypes.USERS
+      : isDatasetAccessType
+      ? AddingFormTypes.DATASETS
+      : AddingFormTypes.ORGANIZATIONS;
+
+    const value = Form.useWatch(nameField, form);
+
+    return value;
+  }, [form]);
+
   return (
     <Layout>
       <Modal
         open={isOpen}
         centered
-        title="Add a new members"
+        title={
+          isMembershipType
+            ? 'Add a new members'
+            : isDatasetAccessType
+            ? 'Add a Dataset access'
+            : 'Add an organizations'
+        }
         okText="Add"
         cancelText="Cancel"
         onCancel={handleClose}
         onOk={handleSubmit}
+        okButtonProps={{ disabled: !isFieldEmpty() }}
       >
         <Form
           form={form}
@@ -60,10 +82,10 @@ const AddingForm: React.FC<Props> = ({
           name="form_adding"
           initialValues={{ modifier: 'public' }}
         >
-          {type === 'memberships' ? (
+          {isMembershipType ? (
             <Form.Item
               style={{ marginBottom: '150px' }}
-              name="selectedUsers"
+              name={AddingFormTypes.USERS}
               label="Users"
               tooltip="Select users for the organization."
             >
@@ -84,10 +106,10 @@ const AddingForm: React.FC<Props> = ({
                 ))}
               </Select>
             </Form.Item>
-          ) : (
+          ) : isDatasetAccessType ? (
             <Form.Item
               style={{ marginBottom: '150px' }}
-              name="selectedDatasets"
+              name={AddingFormTypes.DATASETS}
               label="Dataset Access"
               tooltip="Select Datasets for the organization."
             >
@@ -98,6 +120,30 @@ const AddingForm: React.FC<Props> = ({
                 onChange={(selected: string[]) => {
                   form.setFieldsValue({
                     selectedDatasets: selected,
+                  });
+                }}
+              >
+                {allData.map((dataset: Dataset) => (
+                  <Select.Option key={dataset.id} value={dataset.id}>
+                    {dataset.name}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          ) : (
+            <Form.Item
+              style={{ marginBottom: '150px' }}
+              name={AddingFormTypes.ORGANIZATIONS}
+              label="Organizations"
+              tooltip="Select organizations"
+            >
+              <Select
+                mode="multiple"
+                style={{ width: '100%' }}
+                placeholder="Please select organizations..."
+                onChange={(selected: string[]) => {
+                  form.setFieldsValue({
+                    selectedOrganizations: selected,
                   });
                 }}
               >

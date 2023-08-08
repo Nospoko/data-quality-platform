@@ -10,7 +10,18 @@ const router = createRouter<NextApiRequest, NextApiResponse>();
 router.get(authenticateUser, async (req, res) => {
   const usersRepo = await customGetRepository(User);
 
-  const users = await usersRepo.find();
+  const query = usersRepo
+    .createQueryBuilder('users')
+    .leftJoinAndSelect(
+      'users.organizationMemberships',
+      'organizationMemberships',
+    )
+    .leftJoinAndSelect('organizationMemberships.organization', 'organization')
+    .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
+    .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
+    .addOrderBy('users.firstName', 'ASC');
+
+  const users = await query.getMany();
 
   if (users) {
     return res.status(200).json(users);

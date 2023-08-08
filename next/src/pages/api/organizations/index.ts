@@ -29,7 +29,7 @@ router.get(authenticateUser, async (req, res) => {
       .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
       .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
       .leftJoinAndSelect('organizationMembership.user', 'user')
-      .orderBy('organization.id', 'ASC');
+      .orderBy('organization.name', 'ASC');
 
     if (queryNames) {
       query.andWhere('organization.name IN (:...names)', { names });
@@ -241,7 +241,7 @@ router.delete(authenticateUser, async (req, res) => {
 
     await userRepo.save(updatedUsers);
   }
-  return res.status(204);
+  return res.status(204).end();
 });
 
 export default router.handler({

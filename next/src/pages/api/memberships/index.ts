@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
+import { In } from 'typeorm';
 
 import { customGetRepository } from '@/lib/orm/data-source';
 import { Organization } from '@/lib/orm/entity/Organization';
@@ -10,50 +11,66 @@ import { authenticateUser } from '@/modules/homeChart/pages/middleware/authAdmin
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
 router.post(authenticateUser, async (req, res) => {
-  const { organizationId, userId } = req.body;
+  const { userId, organizationIds } = req.body;
 
-  if (!organizationId || !userId) {
+  if (!organizationIds.length || !userId) {
     return res
       .status(400)
-      .json({ error: 'Organization ID and User ID are required.' });
+      .json({ error: 'Organization IDs and User ID are required.' });
   }
 
   const userRepo = await customGetRepository(User);
   const organizationRepo = await customGetRepository(Organization);
   const membershipRepo = await customGetRepository(OrganizationMembership);
 
-  const existingMembership = await membershipRepo.findOne({
-    where: { user: { id: userId }, organization: { id: organizationId } },
+  const allOrganizations = await organizationRepo.find({
+    where: { id: In(organizationIds) },
   });
 
-  if (existingMembership) {
+  if (allOrganizations.length !== organizationIds.length) {
     return res
-      .status(409)
-      .json({ error: 'Organization membership already exists for this user.' });
+      .status(404)
+      .json({ error: 'Organization(s) is(are) not found.' });
   }
 
   const foundUser = await userRepo.findOne({ where: { id: userId } });
-  const foundOrganization = await organizationRepo.findOne({
-    where: { id: organizationId },
-  });
 
-  if (!foundUser || !foundOrganization) {
-    return res.status(404).json({ error: 'User or Organization not found.' });
+  if (!foundUser) {
+    return res.status(404).json({ error: 'User is not found.' });
   }
 
-  const newMembership = membershipRepo.create({
-    organization: organizationId,
-    user: userId,
+  const existingMemberships = await membershipRepo.findOne({
+    where: {
+      user: { id: userId },
+      organization: { id: In(organizationIds) },
+    },
   });
 
-  const createdMembership = await membershipRepo.save(newMembership);
+  if (existingMemberships) {
+    return res.status(409).json({
+      error: 'Organization membership already exists for this user.',
+    });
+  }
 
-  if (createdMembership) {
-    return res.status(201).json(createdMembership); // Return the created membership
+  const newOrganizationMemberships = organizationIds.map((orgId) => ({
+    organization: orgId,
+    user: userId,
+  }));
+
+  const createdMemberships = await membershipRepo.insert(
+    newOrganizationMemberships,
+  );
+
+  if (createdMemberships.generatedMaps.length > 0) {
+    if (foundUser.role === UserRole.GUEST) {
+      foundUser.role = UserRole.MEMBER;
+
+      await userRepo.save(foundUser);
+    }
+
+    return res.status(201).json(createdMemberships);
   } else {
-    return res
-      .status(500)
-      .json({ error: 'Failed to create organization membership.' });
+    return res.status(500).json({ error: 'Internal server error.' });
   }
 });
 

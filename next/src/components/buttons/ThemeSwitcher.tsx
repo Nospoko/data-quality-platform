@@ -1,5 +1,4 @@
 import { Switch } from 'antd';
-import { getCookie } from 'cookies-next';
 import React from 'react';
 import { BsMoon, BsSun } from 'react-icons/bs';
 

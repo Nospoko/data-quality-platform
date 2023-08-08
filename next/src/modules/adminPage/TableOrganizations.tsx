@@ -1,13 +1,12 @@
 import { DeleteOutlined } from '@ant-design/icons';
 import { Badge, Button, Modal, Space, Table, Tag } from 'antd';
 import React, { useState } from 'react';
-import styled from 'styled-components';
 
-import { AccordionOrganizations } from './AccordionOrganizations';
+import { Accordion } from './Accordion';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
-import { OrganizationDataResponse } from '@/types/common';
+import { OrganizationDataResponse, SubTableTypes } from '@/types/common';
 
 interface Props {
   organizationsData: OrganizationDataResponse;
@@ -81,7 +80,6 @@ const TableOrganizations: React.FC<Props> = ({
               e.stopPropagation();
               handleOnDelete(record.key);
             }}
-            className="delete-button"
           />
         </Space>
       ),
@@ -143,8 +141,9 @@ const TableOrganizations: React.FC<Props> = ({
               (org) => org.id === record.key,
             );
             return organization ? (
-              <AccordionOrganizations
-                organization={organization}
+              <Accordion
+                typeTab={SubTableTypes.ORGANIZATIONS}
+                data={organization}
                 allUsers={allUsers}
                 allDatasets={allDatasets}
                 onDeleteMembership={onDeleteMembership}
@@ -169,53 +168,9 @@ const TableOrganizations: React.FC<Props> = ({
             },
           };
         }}
-        components={{
-          body: {
-            row: StyledTableRow,
-          },
-        }}
       />
     </>
   );
 };
 
 export default TableOrganizations;
-
-export const AccordionWrapper = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-width: 350px;
-
-  @media (min-width: 744px) {
-    max-width: 700px;
-  }
-
-  @media (min-width: 1000px) {
-    max-width: 880px;
-  }
-
-  @media (min-width: 1200px) {
-    max-width: 1080px;
-  }
-
-  @media (min-width: 1400px) {
-    max-width: 100%;
-  }
-`;
-
-const StyledTableRow = styled.tr`
-  .delete-button {
-    color: transparent;
-  }
-
-  cursor: pointer;
-
-  &:active .delete-button {
-    color: red;
-
-    &:hover {
-      color: lightcoral;
-    }
-  }
-`;

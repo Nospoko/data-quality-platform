@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
+import { AddingFormTypes } from '@/types/common';
 
 interface Props {
   isOpen: boolean;
@@ -107,7 +108,7 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
           </Form.Item>
 
           <Form.Item
-            name="selectedUsers"
+            name={AddingFormTypes.USERS}
             label="Users"
             tooltip="Select users for the organization."
           >
@@ -132,7 +133,7 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
 
           <Form.Item
             style={{ marginBottom: '150px' }}
-            name="selectedDatasets"
+            name={AddingFormTypes.DATASETS}
             label="Dataset Access"
             tooltip="Select Datasets for the organization."
           >

@@ -10,9 +10,9 @@ import UsersTab from '@/modules/adminPage/UsersTab';
 import {
   changeOrganization,
   createOrganization,
+  createOrganizationMembership,
   fetchAllDatasets,
   fetchAllUsers,
-  fetchOrganizationNames,
   fetchOrganizations,
   removeDatasetAccess,
   removeOrganization,
@@ -146,6 +146,25 @@ const AdminPage = () => {
     [],
   );
 
+  const addUserToOrganizations = useCallback(
+    async (userId: string, organizationIds: string[]) => {
+      if (!userId) {
+        return;
+      }
+
+      try {
+        await createOrganizationMembership(userId, organizationIds);
+
+        queryClient.invalidateQueries(['users']);
+        queryClient.invalidateQueries(['organizations']);
+        queryClient.invalidateQueries(['organizationNames']);
+      } catch (error) {
+        console.log(error);
+      }
+    },
+    [],
+  );
+
   const deleteMembership = useCallback(
     async (userId: string, organizationId: string) => {
       if (!userId || !organizationId) {
@@ -155,6 +174,7 @@ const AdminPage = () => {
       try {
         await removeOrganizationMembership(userId, organizationId);
 
+        queryClient.invalidateQueries(['users']);
         queryClient.invalidateQueries(['organizations']);
         queryClient.invalidateQueries(['organizationNames']);
       } catch (error) {
@@ -220,7 +240,14 @@ const AdminPage = () => {
                 Users
               </>
             ),
-            children: <UsersTab />,
+            children: (
+              <UsersTab
+                users={users}
+                allOrganizations={organizationsData?.data || []}
+                onAddOrganizations={addUserToOrganizations}
+                onDeleteMembership={deleteMembership}
+              />
+            ),
           },
         ]}
       />

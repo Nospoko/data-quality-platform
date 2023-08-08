@@ -13,7 +13,7 @@ router.get(authenticateUser, async (req, res) => {
 
   const datasets = await datasetRepo.find();
 
-  if (datasets && datasets.length > 0) {
+  if (datasets) {
     return res.status(200).json(datasets);
   }
 
@@ -40,9 +40,7 @@ router.delete(authenticateUser, async (req, res) => {
     })
     .execute();
 
-  return res
-    .status(204)
-    .json({ message: 'Dataset Access successfully deleted.' });
+  return res.status(204).end();
 });
 
 export default router.handler({

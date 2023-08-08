@@ -161,11 +161,11 @@ export const removeOrganization = async (id: string): Promise<Organization> => {
 
 export const createOrganizationMembership = async (
   userId: string,
-  organizationId: string,
+  organizationIds: string[],
 ): Promise<OrganizationMembership> => {
   const response = await axios.post('/api/memberships', {
     userId,
-    organizationId,
+    organizationIds,
   });
 
   return response.data;

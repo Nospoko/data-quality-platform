@@ -1,88 +1,127 @@
-import { Button, Collapse, Modal, Table } from 'antd';
+import { Badge, Button, Collapse, Modal, Table, Tag } from 'antd';
 import React, { useCallback, useState } from 'react';
-import styled from 'styled-components';
 
 import AddingForm from './AddingForm';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
+import { Organization } from '@/lib/orm/entity/Organization';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { User } from '@/lib/orm/entity/User';
-import { OnAddParams } from '@/types/common';
+import { OnAddParams, SubTableTypes } from '@/types/common';
 
 interface SubTableProps<T> {
-  type: 'memberships' | 'datasetAccess';
-  organizationId: string;
+  type:
+    | SubTableTypes.MEMBERSHIPS
+    | SubTableTypes.DATASETACCESS
+    | SubTableTypes.ORGANIZATIONS;
+  mainId: string;
   data: T[];
   allData: (User | Dataset)[];
-  onDelete: (id: string, organizationId: string) => void;
+  onDelete: (id: string, mainId: string) => void;
   onAddData: (
     organizationId: string,
     usersIds?: string[],
     datasetIds?: string[],
     newName?: string,
-  ) => void;
+  ) => void | ((userId: string, organizationIds: string[]) => void);
 }
 
 const SubTable: React.FC<
-  SubTableProps<OrganizationMembership | DatasetAccess>
-> = ({ type, organizationId, data, allData, onDelete, onAddData }) => {
-  const columns =
-    type === 'memberships'
-      ? [
-          {
-            title: 'First Name',
-            dataIndex: 'firstName',
-            key: 'firstName',
-          },
-          {
-            title: 'Last Name',
-            dataIndex: 'lastName',
-            key: 'lastName',
-          },
-          {
-            title: 'Email',
-            dataIndex: 'email',
-            key: 'email',
-          },
-          {
-            title: 'Actions',
-            dataIndex: 'actions',
-            key: 'actions',
-            render: (_, record) => (
-              <Button
-                type="link"
-                style={{ color: 'red' }}
-                size="small"
-                onClick={() => handleDelete(record.key)}
-              >
-                Delete
-              </Button>
-            ),
-          },
-        ]
-      : [
-          {
-            title: 'Dataset Name',
-            dataIndex: 'datasetName',
-            key: 'datasetName',
-          },
-          {
-            title: 'Actions',
-            dataIndex: 'actions',
-            key: 'actions',
-            render: (_, record) => (
-              <Button
-                type="link"
-                style={{ color: 'red' }}
-                size="small"
-                onClick={() => handleDelete(record.key)}
-              >
-                Delete
-              </Button>
-            ),
-          },
-        ];
+  SubTableProps<OrganizationMembership | DatasetAccess | Organization>
+> = ({ type, mainId, data, allData, onDelete, onAddData }) => {
+  const isMembershipType = type === SubTableTypes.MEMBERSHIPS;
+  const isDatasetAccessType = type === SubTableTypes.DATASETACCESS;
+  const columns = isMembershipType
+    ? [
+        {
+          title: 'First Name',
+          dataIndex: 'firstName',
+          key: 'firstName',
+        },
+        {
+          title: 'Last Name',
+          dataIndex: 'lastName',
+          key: 'lastName',
+        },
+        {
+          title: 'Email',
+          dataIndex: 'email',
+          key: 'email',
+        },
+        {
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+          render: (_, record) => (
+            <Button
+              type="link"
+              style={{ color: 'red' }}
+              size="small"
+              onClick={() => handleDelete(record.key)}
+            >
+              Delete
+            </Button>
+          ),
+        },
+      ]
+    : isDatasetAccessType
+    ? [
+        {
+          title: 'Dataset Name',
+          dataIndex: 'datasetName',
+          key: 'datasetName',
+        },
+        {
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+          render: (_, record) => (
+            <Button
+              type="link"
+              style={{ color: 'red' }}
+              size="small"
+              onClick={() => handleDelete(record.key)}
+            >
+              Delete
+            </Button>
+          ),
+        },
+      ]
+    : [
+        {
+          title: 'Name',
+          dataIndex: 'organizationName',
+          key: 'organizationName',
+        },
+        {
+          title: 'Dataset Access',
+          dataIndex: SubTableTypes.DATASETACCESS,
+          key: SubTableTypes.DATASETACCESS,
+          render: (text: string, record: any) => (
+            <Badge count={record.totalDatasetLeft}>
+              <Tag color="default">
+                {record.firstDatasetName || 'No dataset access'}
+              </Tag>
+            </Badge>
+          ),
+        },
+        {
+          title: 'Actions',
+          dataIndex: 'actions',
+          key: 'actions',
+          render: (_, record) => (
+            <Button
+              type="link"
+              style={{ color: 'red' }}
+              size="small"
+              onClick={() => handleDelete(record.key)}
+            >
+              Delete
+            </Button>
+          ),
+        },
+      ];
 
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
   const [isConfirmModal, setIsConfirmModal] = useState(false);
@@ -106,7 +145,9 @@ const SubTable: React.FC<
       return;
     }
 
-    onDelete(selectedRowKey, organizationId);
+    isMembershipType || isDatasetAccessType
+      ? onDelete(selectedRowKey, mainId)
+      : onDelete(mainId, selectedRowKey);
 
     setIsConfirmModal(false);
     setSelectedRowKey(null);
@@ -117,56 +158,86 @@ const SubTable: React.FC<
   };
 
   const handleAdd = (params: OnAddParams) => {
-    if (type === 'memberships') {
+    if (isMembershipType) {
       const { selectedUsers: userIds } = params as { selectedUsers: string[] };
 
-      onAddData(organizationId, userIds);
+      onAddData(mainId, userIds);
 
       return;
     }
 
-    const { selectedDatasets: datasetIds } = params as {
-      selectedDatasets: string[];
-    };
-    const userIds = [];
+    if (isDatasetAccessType) {
+      const { selectedDatasets: datasetIds } = params as {
+        selectedDatasets: string[];
+      };
+      const userIds = [];
 
-    onAddData(organizationId, userIds, datasetIds);
+      onAddData(mainId, userIds, datasetIds);
+
+      return;
+    }
+
+    const { selectedOrganizations: organizationIds } = params as {
+      selectedOrganizations: string[];
+    };
+
+    onAddData(mainId, organizationIds);
   };
 
-  const dataSource =
-    type === 'memberships'
-      ? data.map((item) => {
-          if ('user' in item) {
-            const { user } = item as OrganizationMembership;
-            return {
-              key: user.id,
-              firstName: user.firstName,
-              lastName: user.lastName,
-              email: user.email,
-            };
-          }
-          return {};
-        })
-      : data.map((item) => {
-          if ('dataset' in item) {
-            const { dataset } = item as DatasetAccess;
-            return {
-              key: dataset.id,
-              datasetName: dataset.name,
-            };
-          }
-          return {};
-        });
+  const dataSource = isMembershipType
+    ? data.map((item) => {
+        if ('user' in item) {
+          const { user } = item as OrganizationMembership;
+          return {
+            key: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+          };
+        }
+        return {};
+      })
+    : isDatasetAccessType
+    ? data.map((item) => {
+        if ('dataset' in item) {
+          const { dataset } = item as DatasetAccess;
+          return {
+            key: dataset.id,
+            datasetName: dataset.name,
+          };
+        }
+        return {};
+      })
+    : data.map((item) => {
+        if ('organization' in item) {
+          const { organization } = item;
+          return {
+            key: organization.id,
+            organizationName: organization.name,
+            firstDatasetName: organization.datasetAccess[0]?.dataset.name,
+            totalDatasetLeft:
+              organization.datasetAccess.length &&
+              organization.datasetAccess.length - 1,
+          };
+        }
+        return {};
+      });
 
-  const existedIds =
-    type === 'memberships'
-      ? data.map((membership: OrganizationMembership) => membership.user.id)
-      : data.map((datasetAccess: DatasetAccess) => datasetAccess.dataset.id);
+  const existedIds = isMembershipType
+    ? data.map((membership: OrganizationMembership) => membership.user.id)
+    : isDatasetAccessType
+    ? data.map((datasetAccess: DatasetAccess) => datasetAccess.dataset.id)
+    : data.map((organizationMemberships: OrganizationMembership) => {
+        return organizationMemberships.organization.id;
+      });
 
-  const filteredAllData =
-    type === 'memberships'
-      ? allData.filter((user: User) => !existedIds.includes(user.id))
-      : allData.filter((dataset: Dataset) => !existedIds.includes(dataset.id));
+  const filteredAllData = isMembershipType
+    ? allData.filter((user: User) => !existedIds.includes(user.id))
+    : isDatasetAccessType
+    ? allData.filter((dataset: Dataset) => !existedIds.includes(dataset.id))
+    : allData.filter(
+        (organization: Organization) => !existedIds.includes(organization.id),
+      );
 
   return (
     <>
@@ -181,9 +252,11 @@ const SubTable: React.FC<
       <Collapse>
         <Collapse.Panel
           header={
-            type === 'memberships'
+            isMembershipType
               ? 'Organization Memberships'
-              : 'Dataset Access'
+              : isDatasetAccessType
+              ? 'Dataset Access'
+              : 'Organizations'
           }
           key="1"
         >
@@ -192,14 +265,14 @@ const SubTable: React.FC<
             onClick={handleOpenCreateView}
             style={{ marginBottom: 16 }}
           >
-            {type === 'memberships' ? 'Add New Membership' : 'Add New Dataset'}
+            {isMembershipType
+              ? 'Add New Membership'
+              : isDatasetAccessType
+              ? 'Add New Dataset'
+              : 'Add organization'}
           </Button>
 
-          <StyledTable
-            dataSource={dataSource}
-            columns={columns}
-            pagination={false}
-          />
+          <Table dataSource={dataSource} columns={columns} pagination={false} />
         </Collapse.Panel>
       </Collapse>
       <Modal
@@ -211,21 +284,16 @@ const SubTable: React.FC<
       >
         <p>
           Are you sure you want to delete the{' '}
-          {type === 'memberships' ? 'membership' : 'access'}?
+          {isMembershipType
+            ? 'membership'
+            : isDatasetAccessType
+            ? 'access'
+            : 'organization'}
+          ?
         </p>
       </Modal>
     </>
   );
 };
-
-const StyledTable = styled(Table)`
-  .ant-table-cell {
-    padding: 8px 16px;
-  }
-
-  .ant-table-tbody > tr.ant-table-row:hover > td {
-    background-color: transparent;
-  }
-`;
 
 export default SubTable;
