@@ -1,7 +1,7 @@
 import { ClusterOutlined, TeamOutlined } from '@ant-design/icons';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Divider, Layout, Tabs } from 'antd';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
@@ -9,6 +9,7 @@ import OrganizationsTab from '@/modules/adminPage/OrganizationsTab';
 import UsersTab from '@/modules/adminPage/UsersTab';
 import {
   changeOrganization,
+  changeUsersRole,
   createOrganization,
   createOrganizationMembership,
   fetchAllDatasets,
@@ -27,6 +28,9 @@ interface CreateOrganizationArgs {
 }
 
 const AdminPage = () => {
+  const [activeTabKey, setActiveTabKey] = useState(
+    localStorage.getItem('activeTabKey') || '1',
+  );
   const queryClient = useQueryClient();
 
   // Fetch all organizations
@@ -58,6 +62,7 @@ const AdminPage = () => {
       createOrganization(newOrganizationName, selectedUsers, selectedDatasets),
     {
       onSuccess: () => {
+        queryClient.invalidateQueries(['users']);
         queryClient.invalidateQueries(['organizations']);
         queryClient.invalidateQueries(['organizationNames']);
       },
@@ -68,6 +73,7 @@ const AdminPage = () => {
     (id: string) => removeOrganization(id),
     {
       onSuccess: () => {
+        queryClient.invalidateQueries(['users']);
         queryClient.invalidateQueries(['organizations']);
         queryClient.invalidateQueries(['organizationNames']);
       },
@@ -137,6 +143,7 @@ const AdminPage = () => {
       try {
         await changeOrganization(organizationId, userIds, datasetIds, newName);
 
+        queryClient.invalidateQueries(['users']);
         queryClient.invalidateQueries(['organizations']);
         queryClient.invalidateQueries(['organizationNames']);
       } catch (error) {
@@ -193,6 +200,7 @@ const AdminPage = () => {
       try {
         await removeDatasetAccess(datasetId, organizationId);
 
+        queryClient.invalidateQueries(['users']);
         queryClient.invalidateQueries(['organizations']);
         queryClient.invalidateQueries(['organizationNames']);
       } catch (error) {
@@ -202,10 +210,33 @@ const AdminPage = () => {
     [],
   );
 
+  const changeRole = useCallback(async (userId: string, role: string) => {
+    if (!userId) {
+      return;
+    }
+
+    try {
+      await changeUsersRole(userId, role);
+
+      queryClient.invalidateQueries(['users']);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const handleTabChange = (key: string) => {
+    setActiveTabKey(key);
+    localStorage.setItem('activeTabKey', key);
+  };
+
+  useEffect(() => {
+    localStorage.setItem('activeTabKey', activeTabKey);
+  }, [activeTabKey]);
+
   return (
     <Layout>
       <Tabs
-        defaultActiveKey="1"
+        defaultActiveKey={activeTabKey}
         centered
         size="middle"
         type="card"
@@ -246,10 +277,12 @@ const AdminPage = () => {
                 allOrganizations={organizationsData?.data || []}
                 onAddOrganizations={addUserToOrganizations}
                 onDeleteMembership={deleteMembership}
+                onChangeRole={changeRole}
               />
             ),
           },
         ]}
+        onChange={handleTabChange}
       />
 
       <Divider />

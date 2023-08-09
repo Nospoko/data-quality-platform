@@ -92,17 +92,12 @@ export const fetchExamIds = async (): Promise<string[]> => {
   return response.data;
 };
 
-// Code for pagination are commented, don't delete them
 export const fetchOrganizations = async (
-  // lastId?: string,
   names?: string[],
-  // limit = 10,
 ): Promise<OrganizationDataResponse> => {
   const response = await axios.get('/api/organizations', {
     params: {
-      // lastId,
       names,
-      // limit,
     },
   });
 
@@ -187,6 +182,15 @@ export const removeOrganizationMembership = async (
 
 export const fetchAllUsers = async () => {
   const response = await axios.get('/api/users');
+
+  return response.data;
+};
+
+export const changeUsersRole = async (userId: string, role: string) => {
+  const response = await axios.patch('/api/users', {
+    userId,
+    role,
+  });
 
   return response.data;
 };

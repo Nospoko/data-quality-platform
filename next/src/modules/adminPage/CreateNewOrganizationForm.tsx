@@ -1,5 +1,5 @@
 import { Form, Input, Layout, message, Modal, Select } from 'antd';
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
@@ -28,11 +28,30 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
   onClose,
   onCreate,
 }) => {
+  const [isExist, setIsExist] = useState(false);
   const [form] = Form.useForm<{
     name: string;
     selectedUsers: string[];
     selectedDatasets: string[];
   }>();
+  const name = Form.useWatch('name', form);
+  // const normalizedName = name?.trim().toLowerCase();
+  const normalizedOrganizationNames = organizationNames.map((orgName) =>
+    orgName.trim().toLowerCase(),
+  );
+  // const isExist = normalizedOrganizationNames.includes(normalizedName);
+
+  useEffect(() => {
+    const normalizedName = name?.trim().toLowerCase();
+
+    if (normalizedOrganizationNames.includes(normalizedName)) {
+      setIsExist(true);
+
+      return;
+    }
+
+    setIsExist(false);
+  }, [name, normalizedOrganizationNames, isExist]);
 
   const handleClose = useCallback(() => {
     form.resetFields();
@@ -56,10 +75,8 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
   }, [form]);
 
   const isNameFilled = useCallback(() => {
-    const name = Form.useWatch('name', form);
-
     return name && name.trim().length > 2;
-  }, [form]);
+  }, [name]);
 
   return (
     <Layout>
@@ -71,7 +88,7 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
         cancelText="Cancel"
         onCancel={handleClose}
         onOk={handleSubmit}
-        okButtonProps={{ disabled: !isNameFilled() }}
+        okButtonProps={{ disabled: !isNameFilled() || isExist }}
       >
         <Form
           form={form}
@@ -91,7 +108,11 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
               { type: 'string', min: 3 },
               () => ({
                 validator(_, value) {
-                  if (organizationNames.includes(value)) {
+                  if (
+                    normalizedOrganizationNames.includes(
+                      value?.trim().toLowerCase(),
+                    )
+                  ) {
                     return Promise.reject(
                       new Error(
                         'The Organization with the same name is exist!',

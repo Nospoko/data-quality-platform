@@ -80,6 +80,7 @@ const OrganizationsTab: React.FC<Props> = ({
       {organizationsData && (
         <TableOrganizations
           organizationsData={organizationsData}
+          organizationNames={organizationNames}
           allUsers={allUsers}
           allDatasets={allDatasets}
           onDeleteOrganization={onDeleteOrganization}

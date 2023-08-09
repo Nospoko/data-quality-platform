@@ -1,8 +1,8 @@
-import { DeleteOutlined } from '@ant-design/icons';
-import { Badge, Button, Modal, Space, Table, Tag } from 'antd';
+import { Badge, Modal, Space, Table, Tag } from 'antd';
 import React, { useState } from 'react';
 
 import { Accordion } from './Accordion';
+import EditableName from './EditableName';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
@@ -10,6 +10,7 @@ import { OrganizationDataResponse, SubTableTypes } from '@/types/common';
 
 interface Props {
   organizationsData: OrganizationDataResponse;
+  organizationNames: string[];
   allUsers: User[];
   allDatasets: Dataset[];
   onDeleteOrganization: (id: string) => void;
@@ -25,6 +26,7 @@ interface Props {
 
 const TableOrganizations: React.FC<Props> = ({
   organizationsData,
+  organizationNames,
   allUsers,
   allDatasets,
   onDeleteOrganization,
@@ -38,10 +40,6 @@ const TableOrganizations: React.FC<Props> = ({
   const { data: organizations } = organizationsData;
 
   const handleOnDelete = (id: string) => {
-    if (!selectedRows.includes(id)) {
-      return;
-    }
-
     setSelectedRowKey(id);
     setIsConfirmModal(true);
   };
@@ -61,6 +59,16 @@ const TableOrganizations: React.FC<Props> = ({
     setIsConfirmModal(false);
   };
 
+  const handleChangeNameOrganization = (
+    organizationId: string,
+    newName: string,
+  ) => {
+    const userIds = [];
+    const datasetIds = [];
+
+    onAddData(organizationId, userIds, datasetIds, newName);
+  };
+
   const columns = [
     {
       title: 'Name',
@@ -68,27 +76,23 @@ const TableOrganizations: React.FC<Props> = ({
       key: 'name',
       render: (name, record) => (
         <Space>
-          {name}
-          <Button
-            type="link"
-            style={{
-              color: selectedRows.includes(record.key) ? 'red' : 'transparent',
-            }}
-            size="small"
-            icon={<DeleteOutlined />}
-            onClick={(e) => {
-              e.stopPropagation();
-              handleOnDelete(record.key);
-            }}
+          <EditableName
+            name={name}
+            record={record}
+            handleOnDelete={handleOnDelete}
+            handleNameChange={handleChangeNameOrganization}
+            organizationNames={organizationNames}
           />
         </Space>
       ),
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Member Count',
       dataIndex: 'totalMemberships',
       key: 'totalMemberships',
       render: (text: number) => <Tag>{text}</Tag>,
+      sorter: (a, b) => a.totalMemberships - b.totalMemberships,
     },
     {
       title: 'Datasets',
@@ -101,6 +105,7 @@ const TableOrganizations: React.FC<Props> = ({
           </Tag>
         </Badge>
       ),
+      sorter: (a, b) => a.datasetCount - b.datasetCount,
     },
   ];
 

@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 
 import { customGetRepository } from '@/lib/orm/data-source';
 import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
@@ -230,14 +230,24 @@ router.delete(authenticateUser, async (req, res) => {
     const userToUpdate = await userRepo.find({
       where: {
         id: In(userIds),
-        role: UserRole.MEMBER,
-        organizationMemberships: [],
+        role: Not(UserRole.ADMIN),
       },
+      relations: ['organizationMemberships'],
     });
-    const updatedUsers = userToUpdate.map((user) => ({
-      ...user,
-      role: UserRole.GUEST,
-    }));
+
+    const updatedUsers = userToUpdate.map((user) => {
+      if (user.organizationMemberships.length > 0) {
+        return {
+          ...user,
+          role: UserRole.MEMBER,
+        };
+      }
+
+      return {
+        ...user,
+        role: UserRole.GUEST,
+      };
+    });
 
     await userRepo.save(updatedUsers);
   }
