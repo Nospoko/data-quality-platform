@@ -1,7 +1,7 @@
 import {
   convertToMv,
   shiftSignal,
-} from '@/modules/homeChart/utils/processSignal';
+} from '@/modules/dashboardPage/utils/processSignal';
 
 test('Converts signal values to millivolts', () => {
   const signal = [100, 200, 300, 400];

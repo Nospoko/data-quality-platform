@@ -4,6 +4,7 @@ import axiosApi from './axios';
 
 import { Organization } from '@/lib/orm/entity/Organization';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
+import { User } from '@/lib/orm/entity/User';
 import {
   EcgFragment,
   Filter,
@@ -190,6 +191,16 @@ export const changeUsersRole = async (userId: string, role: string) => {
   const response = await axios.patch('/api/users', {
     userId,
     role,
+  });
+
+  return response.data;
+};
+
+export const fetchUserById = async (userId: string): Promise<User> => {
+  const response = await axios.get('/api/users', {
+    params: {
+      userId,
+    },
   });
 
   return response.data;

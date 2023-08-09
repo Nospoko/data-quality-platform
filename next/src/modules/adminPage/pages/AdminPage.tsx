@@ -1,5 +1,5 @@
 import { ClusterOutlined, TeamOutlined } from '@ant-design/icons';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Divider, Layout, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -19,13 +19,10 @@ import {
   removeOrganization,
   removeOrganizationMembership,
 } from '@/services/reactQueryFn';
-import { OrganizationDataResponse } from '@/types/common';
-
-interface CreateOrganizationArgs {
-  newOrganizationName: string;
-  selectedUsers: string[];
-  selectedDatasets: string[];
-}
+import {
+  CreateOrganizationArgs,
+  OrganizationDataResponse,
+} from '@/types/common';
 
 const AdminPage = () => {
   const [activeTabKey, setActiveTabKey] = useState(
@@ -59,20 +56,20 @@ const AdminPage = () => {
 
   const createNewOrganization = useCallback(
     async ({
-      name,
+      newOrganizationName,
       selectedUsers,
       selectedDatasets,
-    }: {
-      name: string;
-      selectedUsers: string[];
-      selectedDatasets: string[];
-    }) => {
-      if (!name.trim()) {
+    }: CreateOrganizationArgs) => {
+      if (!newOrganizationName.trim()) {
         return;
       }
 
       try {
-        await createOrganization(name, selectedUsers, selectedDatasets);
+        await createOrganization(
+          newOrganizationName,
+          selectedUsers,
+          selectedDatasets,
+        );
 
         invalidateData();
       } catch (error) {

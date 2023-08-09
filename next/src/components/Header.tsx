@@ -1,7 +1,13 @@
-import { HistoryOutlined, HomeOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  HistoryOutlined,
+  LineChartOutlined,
+  ReadOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { Avatar, Menu, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import React from 'react';
 import { styled } from 'styled-components';
 
 import SignInBtn from './buttons/SignInBtn';
@@ -12,19 +18,17 @@ import { UserRole } from '@/types/common';
 
 const Header = () => {
   const { data: session } = useSession();
+  const userRole = session?.user.role;
 
-  const isAdmin = session?.user.role === UserRole.ADMIN;
+  const isAdmin = userRole === UserRole.ADMIN;
+  const isMember = userRole === UserRole.MEMBER;
+  const isAccess = isMember || isAdmin;
 
   const router = useRouter();
   const { pathname } = router;
-  const normalizedPath = pathname === '/' ? 'home' : pathname.slice(1);
+  const normalizedPath = pathname.slice(1);
+  const isDashboard = normalizedPath.includes('dashboard');
   const handleNavClick = (path: string) => {
-    if (path === 'home') {
-      router.push('/');
-
-      return;
-    }
-
     router.push(`/${path}`);
   };
 
@@ -35,24 +39,47 @@ const Header = () => {
           style={{
             width: '100%',
             border: 'none',
+            justifyContent: 'flex-start',
           }}
           mode="horizontal"
-          defaultSelectedKeys={[normalizedPath]}
+          defaultSelectedKeys={[isDashboard ? 'dashboard' : normalizedPath]}
           onClick={(item) => {
             handleNavClick(item.key);
           }}
         >
-          <Menu.Item key="home" icon={<HomeOutlined />}>
-            Home
-          </Menu.Item>
-          <Menu.Item key="history" icon={<HistoryOutlined />}>
-            History
-          </Menu.Item>
+          {isAccess && (
+            <Menu.Item key="history" icon={<HistoryOutlined />}>
+              History
+            </Menu.Item>
+          )}
+          {isAccess && (
+            <Menu.Item key="dashboard" icon={<LineChartOutlined />}>
+              Dashboard
+            </Menu.Item>
+          )}
+          {session && (
+            <Menu.Item key="guide" icon={<ReadOutlined />}>
+              Guide
+            </Menu.Item>
+          )}
           {isAdmin && (
             <Menu.Item key="admin" icon={<UserOutlined />}>
               Admin
             </Menu.Item>
           )}
+        </Menu>
+      </NavItems>
+
+      <NavItems>
+        <Menu
+          mode="horizontal"
+          style={{
+            width: '100%',
+            border: 'none',
+            justifyContent: 'flex-end',
+          }}
+          overflowedIndicator={<UserOutlined />}
+        >
           <Menu.Item key="theme" disabled>
             <ThemeSwitcher />
           </Menu.Item>
@@ -87,7 +114,8 @@ const Header = () => {
 const NavItems = styled.div`
   display: flex;
   align-items: center;
-  width: 100%;
+  flex: auto;
+  min-width: 0;
 `;
 
 const Wrapper = styled.div`

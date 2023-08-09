@@ -111,3 +111,18 @@ export enum AddingFormTypes {
   DATASETS = 'selectedDatasets',
   ORGANIZATIONS = 'selectedOrganizations',
 }
+
+export type DatasetInfo = {
+  organizations: {
+    id: string;
+    name: string;
+  }[];
+  id: string;
+  name: string;
+};
+
+export interface CreateOrganizationArgs {
+  newOrganizationName: string;
+  selectedUsers: string[];
+  selectedDatasets: string[];
+}

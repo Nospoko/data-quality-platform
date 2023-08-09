@@ -2,12 +2,12 @@ import { Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import showNotification from '../utils/helpers/showNotification';
 import Chart from './Chart';
 import Feedback from './Feedback';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
+import showNotification from '@/modules/dashboardPage/utils/helpers/showNotification';
 import {
   SelectedChartData,
   SelectedHistoryChartData,

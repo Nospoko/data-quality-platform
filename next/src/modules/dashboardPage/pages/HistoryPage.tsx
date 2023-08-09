@@ -3,11 +3,10 @@ import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
-import MainChart from '../components/MainChart';
-import SearchingForm from '../components/SearchForm';
-import ModalCharts from '../components/ZoomView';
-
 import { Choice } from '@/lib/orm/entity/DataCheck';
+import MainChart from '@/modules/dashboardPage/components/MainChart';
+import SearchingForm from '@/modules/dashboardPage/components/SearchForm';
+import ZoomView from '@/modules/dashboardPage/components/ZoomView';
 import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 
@@ -100,7 +99,6 @@ const History = () => {
     if (selectedDataCheck) {
       const { dataCheckId, choice } = selectedDataCheck;
       await changeChoice({ dataCheckId, choice });
-      // refetch all data
       await refetchAndReplaceHistoryData(recordsToDisplay.length);
     }
 
@@ -126,7 +124,6 @@ const History = () => {
     refetchAndReplaceHistoryData(0, newFilters);
   };
 
-  // initial fetch
   useEffect(() => {
     refetchAndReplaceHistoryData(5);
   }, []);
@@ -148,7 +145,7 @@ const History = () => {
       </SearchingFormWrapper>
 
       {selectedChartData && (
-        <ModalCharts
+        <ZoomView
           chartData={selectedChartData}
           isOpen={isZoomModal}
           onClose={handleCloseModal}

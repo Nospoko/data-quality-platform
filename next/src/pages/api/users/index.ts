@@ -7,7 +7,9 @@ import { authenticateUser } from '@/modules/adminPage/pages/middleware/authAdmin
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
-router.get(authenticateUser, async (req, res) => {
+router.get(async (req, res) => {
+  const { userId } = req.query;
+
   const usersRepo = await customGetRepository(User);
 
   const query = usersRepo
@@ -20,6 +22,20 @@ router.get(authenticateUser, async (req, res) => {
     .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
     .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
     .addOrderBy('users.firstName', 'ASC');
+
+  if (userId) {
+    query.andWhere('users.id = :userId', { userId });
+
+    const user = await query.getOne();
+
+    if (user) {
+      return res.status(200).json(user);
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User is not found.' });
+    }
+  }
 
   const users = await query.getMany();
 

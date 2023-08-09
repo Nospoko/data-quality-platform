@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 
 import { UserRole } from '@/types/common';
 
-const withAdminAuthorization = (
+const withNecessaryUserRoleAuth = (
   WrappedComponent: React.ComponentType,
   getNestedLayout: (page: React.ReactElement) => React.ReactElement,
+  roleAccess: UserRole[],
 ) => {
   return (props: any) => {
     const { data: session, status } = useSession();
@@ -19,7 +20,7 @@ const withAdminAuthorization = (
         return;
       }
 
-      if (userRole !== UserRole.ADMIN) {
+      if (!roleAccess.includes(userRole)) {
         router.push('/');
       } else {
         setLoading(false);
@@ -30,4 +31,4 @@ const withAdminAuthorization = (
   };
 };
 
-export default withAdminAuthorization;
+export default withNecessaryUserRoleAuth;

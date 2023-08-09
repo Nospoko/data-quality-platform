@@ -3,21 +3,14 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
-import { AddingFormTypes } from '@/types/common';
-
+import { AddingFormTypes, CreateOrganizationArgs } from '@/types/common';
 interface Props {
   isOpen: boolean;
   organizationNames: string[];
   allUsers: User[];
   allDatasets: Dataset[];
   onClose: () => void;
-  onCreate: ({
-    name,
-  }: {
-    name: string;
-    selectedUsers: string[];
-    selectedDatasets: string[];
-  }) => void;
+  onCreate: (createObj: CreateOrganizationArgs) => void;
 }
 
 const CreateNewOrganizationForm: React.FC<Props> = ({
@@ -29,11 +22,7 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
   onCreate,
 }) => {
   const [isExist, setIsExist] = useState(false);
-  const [form] = Form.useForm<{
-    name: string;
-    selectedUsers: string[];
-    selectedDatasets: string[];
-  }>();
+  const [form] = Form.useForm<CreateOrganizationArgs>();
   const name = Form.useWatch('name', form);
   const normalizedOrganizationNames = organizationNames.map((orgName) =>
     orgName.trim().toLowerCase(),

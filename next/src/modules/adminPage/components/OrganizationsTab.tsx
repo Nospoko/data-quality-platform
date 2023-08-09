@@ -7,20 +7,17 @@ import TableOrganizations from './TableOrganizations';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
-import { OrganizationDataResponse } from '@/types/common';
+import {
+  CreateOrganizationArgs,
+  OrganizationDataResponse,
+} from '@/types/common';
 
 interface Props {
   organizationNames: string[];
   organizationsData?: OrganizationDataResponse;
   allUsers: User[];
   allDatasets: Dataset[];
-  onCreateOrganization: ({
-    name,
-  }: {
-    name: string;
-    selectedUsers: string[];
-    selectedDatasets: string[];
-  }) => void;
+  onCreateOrganization: (createObj: CreateOrganizationArgs) => void;
   onDeleteOrganization: (id: string) => void;
   onDeleteMembership: (userId: string, organizationId: string) => void;
   onDeleteDatasetAccess: (datasetId: string, organizationId: string) => void;
