@@ -5,8 +5,8 @@ import React, { useCallback, useEffect, useState } from 'react';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
-import OrganizationsTab from '@/modules/adminPage/OrganizationsTab';
-import UsersTab from '@/modules/adminPage/UsersTab';
+import OrganizationsTab from '@/modules/adminPage/components/OrganizationsTab';
+import UsersTab from '@/modules/adminPage/components/UsersTab';
 import {
   changeOrganization,
   changeUsersRole,
@@ -33,7 +33,6 @@ const AdminPage = () => {
   );
   const queryClient = useQueryClient();
 
-  // Fetch all organizations
   const { data: organizationsData } = useQuery<OrganizationDataResponse, Error>(
     ['organizations'],
     () => fetchOrganizations(),
@@ -41,47 +40,22 @@ const AdminPage = () => {
 
   const organizationNames =
     organizationsData?.data?.map((org) => org.name) || [];
-  // Fetch all Users
+
   const { data: users = [] } = useQuery<User[], Error>(
     ['users'],
     fetchAllUsers,
   );
 
-  // Fetch all Datasets
   const { data: datasets = [] } = useQuery<Dataset[], Error>(
     ['datasets'],
     fetchAllDatasets,
   );
 
-  const createOrganizationMutation = useMutation(
-    ({
-      newOrganizationName,
-      selectedUsers,
-      selectedDatasets,
-    }: CreateOrganizationArgs) =>
-      createOrganization(newOrganizationName, selectedUsers, selectedDatasets),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
-      },
-    },
-  );
-
-  const removeOrganizationMutation = useMutation(
-    (id: string) => removeOrganization(id),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
-      },
-      onError: (error) => {
-        console.error('Mutation Error:', error);
-      },
-    },
-  );
+  const invalidateData = () => {
+    queryClient.invalidateQueries(['users']);
+    queryClient.invalidateQueries(['organizations']);
+    queryClient.invalidateQueries(['organizationNames']);
+  };
 
   const createNewOrganization = useCallback(
     async ({
@@ -98,16 +72,14 @@ const AdminPage = () => {
       }
 
       try {
-        await createOrganizationMutation.mutateAsync({
-          newOrganizationName: name,
-          selectedUsers,
-          selectedDatasets,
-        });
+        await createOrganization(name, selectedUsers, selectedDatasets);
+
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
     },
-    [createOrganizationMutation],
+    [organizationsData],
   );
 
   const deleteOrganization = useCallback(
@@ -117,12 +89,14 @@ const AdminPage = () => {
       }
 
       try {
-        await removeOrganizationMutation.mutateAsync(id);
+        await removeOrganization(id);
+
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
     },
-    [removeOrganizationMutation],
+    [organizationsData],
   );
 
   const addToOrganization = useCallback(
@@ -143,9 +117,7 @@ const AdminPage = () => {
       try {
         await changeOrganization(organizationId, userIds, datasetIds, newName);
 
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
@@ -162,9 +134,7 @@ const AdminPage = () => {
       try {
         await createOrganizationMembership(userId, organizationIds);
 
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
@@ -181,9 +151,7 @@ const AdminPage = () => {
       try {
         await removeOrganizationMembership(userId, organizationId);
 
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
@@ -200,9 +168,7 @@ const AdminPage = () => {
       try {
         await removeDatasetAccess(datasetId, organizationId);
 
-        queryClient.invalidateQueries(['users']);
-        queryClient.invalidateQueries(['organizations']);
-        queryClient.invalidateQueries(['organizationNames']);
+        invalidateData();
       } catch (error) {
         console.log(error);
       }
@@ -226,6 +192,7 @@ const AdminPage = () => {
 
   const handleTabChange = (key: string) => {
     setActiveTabKey(key);
+
     localStorage.setItem('activeTabKey', key);
   };
 

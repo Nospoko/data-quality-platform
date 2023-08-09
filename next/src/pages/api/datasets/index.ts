@@ -4,7 +4,7 @@ import { createRouter } from 'next-connect';
 import { customGetRepository } from '@/lib/orm/data-source';
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
-import { authenticateUser } from '@/modules/homeChart/pages/middleware/authAdminMiddleware';
+import { authenticateUser } from '@/modules/adminPage/pages/middleware/authAdminMiddleware';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 

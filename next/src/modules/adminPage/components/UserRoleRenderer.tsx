@@ -51,6 +51,7 @@ const UserRoleRenderer: React.FC<Props> = ({
       {isNotCurrentUser ? (
         <Button
           type="primary"
+          style={{ margin: '6px 0 6px 0' }}
           size="small"
           onClick={(e) => {
             e.stopPropagation();
@@ -64,7 +65,7 @@ const UserRoleRenderer: React.FC<Props> = ({
       <Modal
         centered
         title={modalTitle}
-        visible={isModalVisible}
+        open={isModalVisible}
         onOk={(e) => {
           e.stopPropagation();
           handleConfirmRoleChange();

@@ -3,7 +3,7 @@ import { ReactElement } from 'react';
 import withAdminAuthorization from './withAdminAuthorization';
 
 import CustomLayout from '@/components/layouts/layout';
-import AdminPage from '@/modules/homeChart/pages/AdminPage';
+import AdminPage from '@/modules/adminPage/pages/AdminPage';
 
 const Admin = () => {
   return <AdminPage></AdminPage>;

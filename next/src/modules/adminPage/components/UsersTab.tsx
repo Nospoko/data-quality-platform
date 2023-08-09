@@ -2,13 +2,13 @@ import { RotateRightOutlined } from '@ant-design/icons';
 import { Layout, Space, Typography } from 'antd';
 import React, { ChangeEvent, useState } from 'react';
 
-import { getFilteredUsers } from '../homeChart/utils/helpers/UsersFiltering';
-import useScreenWidth from '../homeChart/utils/hooks/useScreenWidth';
 import { FilteringForm } from './FilteringForm';
 import TableUsers from './TableUsers';
 
 import { Organization } from '@/lib/orm/entity/Organization';
 import { User } from '@/lib/orm/entity/User';
+import { getFilteredUsers } from '@/modules/adminPage/utils/helpers/UsersFiltering';
+import useScreenWidth from '@/modules/adminPage/utils/hooks/useScreenWidth';
 import { UserRole } from '@/types/common';
 
 interface Props {

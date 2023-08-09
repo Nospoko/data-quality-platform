@@ -35,11 +35,9 @@ const CreateNewOrganizationForm: React.FC<Props> = ({
     selectedDatasets: string[];
   }>();
   const name = Form.useWatch('name', form);
-  // const normalizedName = name?.trim().toLowerCase();
   const normalizedOrganizationNames = organizationNames.map((orgName) =>
     orgName.trim().toLowerCase(),
   );
-  // const isExist = normalizedOrganizationNames.includes(normalizedName);
 
   useEffect(() => {
     const normalizedName = name?.trim().toLowerCase();
