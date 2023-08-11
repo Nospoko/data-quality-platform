@@ -21,7 +21,7 @@ import { Filter, SelectedChartData } from '@/types/common';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { datasetId } = router.query;
+  const { datasetName } = router.query;
 
   const { isDarkMode } = useTheme();
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
@@ -112,7 +112,11 @@ const DashboardPage = () => {
 
     const { id, exam_uid, position } = record;
     try {
-      const fragment = await getFragment(exam_uid, position);
+      const fragment = await getFragment(
+        exam_uid,
+        position,
+        datasetName as string,
+      );
       const nextChartData = getChartData(id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
@@ -198,7 +202,11 @@ const DashboardPage = () => {
     const { id, exam_uid, position } = recordsToDisplay[0];
 
     try {
-      const fragment = await getFragment(exam_uid, position);
+      const fragment = await getFragment(
+        exam_uid,
+        position,
+        datasetName as string,
+      );
       const nextChartData = getChartData(id, fragment, isDarkMode);
 
       handleOpenModal(nextChartData);
@@ -211,7 +219,7 @@ const DashboardPage = () => {
     <Layout>
       <Typography.Title style={{ margin: 0 }}>Dashboard</Typography.Title>
       <Typography.Title style={{ marginBottom: '16px' }} level={5}>
-        Dataset ID: {datasetId}
+        Dataset Name: {datasetName}
       </Typography.Title>
 
       <SearchingFormWrapper>
@@ -272,6 +280,7 @@ const DashboardPage = () => {
                 isZoomView={isZoomModal}
                 isFetching={isFetching}
                 record={record}
+                datasetName={datasetName as string}
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
               />

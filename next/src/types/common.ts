@@ -122,7 +122,7 @@ export type DatasetInfo = {
 };
 
 export interface CreateOrganizationArgs {
-  newOrganizationName: string;
+  name: string;
   selectedUsers: string[];
   selectedDatasets: string[];
 }

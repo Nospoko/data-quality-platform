@@ -40,6 +40,7 @@ import {
 
 interface Props {
   record: Record;
+  datasetName: string;
   isFirst: boolean;
   isZoomView: boolean;
   isFetching?: boolean;
@@ -61,6 +62,7 @@ ChartJS.register(
 const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   {
     record,
+    datasetName,
     historyData,
     addFeedback,
     onClickChart,
@@ -79,7 +81,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
-    () => getFragment(record.exam_uid, record.position),
+    () => getFragment(record.exam_uid, record.position, datasetName),
   );
 
   const handleSelect = (choice: Choice) => {

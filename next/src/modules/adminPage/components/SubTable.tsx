@@ -17,7 +17,7 @@ interface SubTableProps<T> {
     | SubTableTypes.ORGANIZATIONS;
   mainId: string;
   data: T[];
-  allData: (User | Dataset)[];
+  allData: (User | Dataset | Organization)[];
   onDelete: (id: string, mainId: string) => void;
   onAddData: (
     organizationId: string,
@@ -231,10 +231,15 @@ const SubTable: React.FC<
         return organizationMemberships.organization.id;
       });
 
+  // The filteredAllData array is created by filtering the allData array to exclude already existing data entries.
   const filteredAllData = isMembershipType
     ? allData.filter((user: User) => !existedIds.includes(user.id))
     : isDatasetAccessType
-    ? allData.filter((dataset: Dataset) => !existedIds.includes(dataset.id))
+    ? allData.filter(
+        (dataset: Dataset) =>
+          // And only dataset isActive
+          !existedIds.includes(dataset.id) && dataset.isActive,
+      )
     : allData.filter(
         (organization: Organization) => !existedIds.includes(organization.id),
       );

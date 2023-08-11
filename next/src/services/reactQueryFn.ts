@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import axiosApi from './axios';
 
+import { Dataset } from '@/lib/orm/entity/Dataset';
 import { Organization } from '@/lib/orm/entity/Organization';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { User } from '@/lib/orm/entity/User';
@@ -13,12 +14,15 @@ import {
   RecordsResponse,
 } from '@/types/common';
 
+// I added a new parameter called datasetName of type string to the function getFragment.
+// This parameter represents the name of selected dataset.
 export const getFragment = async (
   exam_uuid: string,
   position: number,
+  datasetName: string,
 ): Promise<EcgFragment> => {
   const { data } = await axiosApi.get<EcgFragment>(
-    `data?exam_uid=${exam_uuid}&position=${position}`,
+    `data?exam_uid=${exam_uuid}&position=${position}&datasetName=${datasetName}`,
   );
   return data;
 };
@@ -216,12 +220,72 @@ export const removeDatasetAccess = async (
   datasetId: string,
   organizationId: string,
 ) => {
-  const response = await axios.delete('/api/datasets', {
+  const response = await axios.delete('/api/dataset-access', {
     params: {
       datasetId,
       organizationId,
     },
   });
+
+  return response.data;
+};
+
+// This function sends a POST request to the /api/datasets endpoint with the
+// provided dataset name in the request body. It expects the response to
+// contain data about the newly created dataset
+export const createNewDataset = async (name: string): Promise<Dataset> => {
+  const response = await axios.post('/api/datasets', {
+    name,
+  });
+
+  return response.data;
+};
+
+// This function sends a PATCH request to the /api/datasets endpoint to update
+// the name of a dataset. It takes the datasetId and newName as parameters and
+// expects the response to contain the updated dataset information
+export const changeDatasetName = async (datasetId: string, newName: string) => {
+  const response = await axios.patch('/api/datasets', {
+    datasetId,
+    newName,
+  });
+
+  return response.data;
+};
+
+// This function sends a PATCH request to the /api/datasets endpoint to update
+// the status (active or not active) of a dataset. It takes the datasetId and
+// isActive status as parameters and expects the response to contain
+// the updated dataset information
+export const changeDatasetIsActiveStatus = async (
+  datasetId: string,
+  isActive: boolean,
+) => {
+  const response = await axios.patch('/api/datasets', {
+    datasetId,
+    isActive,
+  });
+
+  return response.data;
+};
+
+// This function sends a DELETE request to the /api/datasets endpoint to delete a dataset.
+// It takes the datasetId as a parameter and expects a successful response with no data
+export const removeDataset = async (datasetId: string) => {
+  const response = await axios.delete('/api/datasets', {
+    params: {
+      datasetId,
+    },
+  });
+
+  return response.data;
+};
+
+// This function sends a POST request to the /datasets endpoint to synchronize active datasets.
+// It takes an array of datasetNames and expects the response to contain data related
+// to the synchronization process
+export const syncActiveDatasets = async (datasetNames: string[]) => {
+  const response = await axios.post('datasets', { datasetNames });
 
   return response.data;
 };

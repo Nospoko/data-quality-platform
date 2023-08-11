@@ -9,15 +9,17 @@ interface Props {
   };
   handleOnDelete: (key: string) => void;
   handleNameChange: (key: string, newName: string) => void;
-  organizationNames: string[];
+  allNames: string[];
 }
 
+// this component provides an interactive way to edit and manage names
+// with options to save, cancel, edit, and delete.
 const EditableName: React.FC<Props> = ({
   name,
   record,
   handleOnDelete,
   handleNameChange,
-  organizationNames,
+  allNames,
 }) => {
   const [editing, setEditing] = useState(false);
   const [editedName, setEditedName] = useState(name);
@@ -32,8 +34,11 @@ const EditableName: React.FC<Props> = ({
   const handleNameInputChange = (e) => {
     const newName = e.target.value;
 
+    // This normalization process is used to check if the edited name
+    //  (newName) or existing organization names (allNames) already
+    // exist in the list of normalized names.
     const normalizedNewName = newName.trim().toLowerCase();
-    const normalizedOrganizationNames = organizationNames.map((orgName) =>
+    const normalizedOrganizationNames = allNames.map((orgName) =>
       orgName.trim().toLowerCase(),
     );
 

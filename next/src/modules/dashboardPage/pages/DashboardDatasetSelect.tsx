@@ -26,10 +26,10 @@ const DashboardDatasetSelect = () => {
   const datasetsInfo = userData && getDatasetsInfo(userData);
 
   const data = datasetsInfo?.map((datasetInfo) => {
-    const { id, name, organizations } = datasetInfo;
+    const { name, organizations } = datasetInfo;
 
     return {
-      key: id,
+      key: name,
       title: name,
       body: (
         <List
@@ -49,12 +49,12 @@ const DashboardDatasetSelect = () => {
     };
   });
 
-  const handleOnClickCard = (datasetId: string) => {
-    if (!datasetId) {
+  const handleOnClickCard = (datasetName: string) => {
+    if (!datasetName) {
       return;
     }
 
-    router.push(`/dashboard/${datasetId}`);
+    router.push(`/dashboard/${datasetName}`);
   };
 
   return (

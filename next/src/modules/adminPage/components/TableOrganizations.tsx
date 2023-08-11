@@ -81,7 +81,7 @@ const TableOrganizations: React.FC<Props> = ({
             record={record}
             handleOnDelete={handleOnDelete}
             handleNameChange={handleChangeNameOrganization}
-            organizationNames={organizationNames}
+            allNames={organizationNames}
           />
         </Space>
       ),

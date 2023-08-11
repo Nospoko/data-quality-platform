@@ -1,23 +1,34 @@
-import { ClusterOutlined, TeamOutlined } from '@ant-design/icons';
+import {
+  ClusterOutlined,
+  DatabaseOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Divider, Layout, Tabs } from 'antd';
 import React, { useCallback, useEffect, useState } from 'react';
+
+import DatasetTab from '../components/DatasetTab';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
 import OrganizationsTab from '@/modules/adminPage/components/OrganizationsTab';
 import UsersTab from '@/modules/adminPage/components/UsersTab';
 import {
+  changeDatasetIsActiveStatus,
+  changeDatasetName,
   changeOrganization,
   changeUsersRole,
+  createNewDataset,
   createOrganization,
   createOrganizationMembership,
   fetchAllDatasets,
   fetchAllUsers,
   fetchOrganizations,
+  removeDataset,
   removeDatasetAccess,
   removeOrganization,
   removeOrganizationMembership,
+  syncActiveDatasets,
 } from '@/services/reactQueryFn';
 import {
   CreateOrganizationArgs,
@@ -50,26 +61,23 @@ const AdminPage = () => {
 
   const invalidateData = () => {
     queryClient.invalidateQueries(['users']);
+    queryClient.invalidateQueries(['datasets']);
     queryClient.invalidateQueries(['organizations']);
     queryClient.invalidateQueries(['organizationNames']);
   };
 
   const createNewOrganization = useCallback(
     async ({
-      newOrganizationName,
+      name,
       selectedUsers,
       selectedDatasets,
     }: CreateOrganizationArgs) => {
-      if (!newOrganizationName.trim()) {
+      if (!name.trim()) {
         return;
       }
 
       try {
-        await createOrganization(
-          newOrganizationName,
-          selectedUsers,
-          selectedDatasets,
-        );
+        await createOrganization(name, selectedUsers, selectedDatasets);
 
         invalidateData();
       } catch (error) {
@@ -187,6 +195,85 @@ const AdminPage = () => {
     }
   }, []);
 
+  // Create a new dataset
+  const createDataset = useCallback(async (name: string) => {
+    if (!name) {
+      return;
+    }
+
+    try {
+      await createNewDataset(name);
+
+      queryClient.invalidateQueries(['datasets']);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  // Change a name of dataset by dataset id
+  const changeNameDataset = useCallback(
+    async (datasetId: string, newName: string) => {
+      if (!datasetId || !newName) {
+        return;
+      }
+
+      try {
+        await changeDatasetName(datasetId, newName);
+
+        invalidateData();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [],
+  );
+
+  // Changing dataset status
+  const changeDatasetStatus = useCallback(
+    async (datasetId: string, isActive: boolean) => {
+      if (!datasetId || isActive === undefined) {
+        return;
+      }
+
+      try {
+        await changeDatasetIsActiveStatus(datasetId, isActive);
+
+        invalidateData();
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [],
+  );
+
+  // Remove selected dataset
+  const deleteDataset = useCallback(async (datasetId: string) => {
+    if (!datasetId) {
+      return;
+    }
+
+    try {
+      await removeDataset(datasetId);
+
+      invalidateData();
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  // Synchronize the active dataset names
+  const synchronizeDatasetNames = async (datasetNames: string[]) => {
+    if (datasetNames.length === 0) {
+      return;
+    }
+
+    try {
+      await syncActiveDatasets(datasetNames);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   const handleTabChange = (key: string) => {
     setActiveTabKey(key);
 
@@ -242,6 +329,25 @@ const AdminPage = () => {
                 onAddOrganizations={addUserToOrganizations}
                 onDeleteMembership={deleteMembership}
                 onChangeRole={changeRole}
+              />
+            ),
+          },
+          {
+            key: '3',
+            label: (
+              <>
+                <DatabaseOutlined />
+                Datasets
+              </>
+            ),
+            children: (
+              <DatasetTab
+                datasets={datasets}
+                onCreateNewDataset={createDataset}
+                onChangeStatus={changeDatasetStatus}
+                onChangeDatasetName={changeNameDataset}
+                onDeleteDataset={deleteDataset}
+                onSync={synchronizeDatasetNames}
               />
             ),
           },
