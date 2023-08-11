@@ -1,4 +1,5 @@
 import { Button, Modal, Spin } from 'antd';
+import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -11,6 +12,9 @@ import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 
 const History = () => {
+  const router = useRouter();
+  const { datasetName } = router.query;
+
   const [recordsToDisplay, setRecordsToDisplay] = useState<HistoryData[]>([]);
   const [selectedChartData, setSelectedChartData] =
     useState<SelectedHistoryChartData | null>(null);
@@ -164,6 +168,7 @@ const History = () => {
       {recordsToDisplay
         ? recordsToDisplay.map((history) => (
             <MainChart
+              datasetName={datasetName as string}
               key={history.record.index}
               record={history.record}
               isFirst={false}

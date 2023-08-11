@@ -41,6 +41,8 @@ const OrganizationsTab: React.FC<Props> = ({
   onAddData,
 }) => {
   const [createView, setCreateView] = useState(false);
+  // Filter the dataset by active status to get access to add to a new organization only active datasets
+  const onlyActiveDatasets = allDatasets.filter(({ isActive }) => isActive);
 
   const handleOpenCreateView = useCallback(() => {
     setCreateView(true);
@@ -68,7 +70,7 @@ const OrganizationsTab: React.FC<Props> = ({
           isOpen={createView}
           organizationNames={organizationNames}
           allUsers={allUsers}
-          allDatasets={allDatasets}
+          allDatasets={onlyActiveDatasets}
           onClose={handleCloseCreateView}
           onCreate={onCreateOrganization}
         />

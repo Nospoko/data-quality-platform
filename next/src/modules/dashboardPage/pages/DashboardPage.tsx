@@ -40,9 +40,9 @@ const DashboardPage = () => {
   const { status } = useSession();
   const loading = status === 'loading';
 
-  const fetchAndUpdateHistoryData = async (skip: number) => {
+  const fetchAndUpdateHistoryData = async () => {
     try {
-      const response = await fetchRecords(skip, filters);
+      const response = await fetchRecords(filters);
 
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
@@ -75,7 +75,7 @@ const DashboardPage = () => {
     paramFilters?: Filter,
   ) => {
     try {
-      const response = await fetchRecords(0, paramFilters ?? filters, limit);
+      const response = await fetchRecords(paramFilters ?? filters, limit);
 
       setRecordsToDisplay(response.data);
       if (response.total > recordsToDisplay.length + 5) {
@@ -90,7 +90,7 @@ const DashboardPage = () => {
   };
 
   const fetchNextPage = () => {
-    fetchAndUpdateHistoryData(recordsToDisplay.length);
+    fetchAndUpdateHistoryData();
   };
 
   const handleOpenModal = useCallback((chartData: SelectedChartData) => {

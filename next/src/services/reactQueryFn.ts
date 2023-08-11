@@ -28,14 +28,12 @@ export const getFragment = async (
 };
 
 export const fetchRecords = async (
-  skip: number,
   filters: Filter,
   limit = 5,
 ): Promise<RecordsResponse> => {
   const { exams } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
-      skip,
       exams,
       limit,
     },
