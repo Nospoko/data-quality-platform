@@ -13,44 +13,27 @@ import { OrganizationType } from '@/types/common';
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
 router.get(authenticateUser, async (req, res) => {
-  try {
-    const organizationRepo = await customGetRepository(Organization);
+  const organizationRepo = await customGetRepository(Organization);
 
-    const queryNames = req.query['names[]'];
-    const names = Array.isArray(queryNames) ? queryNames : [queryNames];
-    const onlyWithMembers = req.query.onlyWithMembers === 'true';
+  const query = organizationRepo
+    .createQueryBuilder('organization')
+    .leftJoinAndSelect(
+      'organization.organizationMemberships',
+      'organizationMembership',
+    )
+    .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
+    .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
+    .leftJoinAndSelect('organizationMembership.user', 'user')
+    .orderBy('organization.name', 'ASC');
 
-    const query = organizationRepo
-      .createQueryBuilder('organization')
-      .leftJoinAndSelect(
-        'organization.organizationMemberships',
-        'organizationMembership',
-      )
-      .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
-      .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
-      .leftJoinAndSelect('organizationMembership.user', 'user')
-      .orderBy('organization.name', 'ASC');
+  const total = await query.getCount();
 
-    if (queryNames) {
-      query.andWhere('organization.name IN (:...names)', { names });
-    }
+  const organizations = await query.getMany();
 
-    if (onlyWithMembers) {
-      query.andWhere('organizationMembership.id IS NOT NULL');
-    }
-
-    const total = await query.getCount();
-
-    const organizations = await query.getMany();
-
-    res.status(200).json({
-      data: organizations as OrganizationType[],
-      total,
-    });
-  } catch (error) {
-    console.error('Error fetching organizations:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  res.status(200).json({
+    data: organizations as OrganizationType[],
+    total,
+  });
 });
 
 router.post(authenticateUser, async (req, res) => {

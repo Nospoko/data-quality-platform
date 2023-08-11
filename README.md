@@ -126,3 +126,7 @@ To modify the light or dark theme colors, follow these steps:
    - `backgroundColorZoom`: The background color of the charts on the zoom view.
 
 4. Save the changes to the `index.ts` file.
+
+## Configuration maximum number of active datasets
+
+To manage the number of active datasets, we've defined a maximum limit using the environment variable `NEXT_PUBLIC_MAX_ACTIVE_DATASETS`. This variable is used to ensure that the system does not exceed the specified number of active datasets at any given time.

@@ -95,27 +95,12 @@ export const fetchExamIds = async (): Promise<string[]> => {
   return response.data;
 };
 
-export const fetchOrganizations = async (
-  names?: string[],
-): Promise<OrganizationDataResponse> => {
-  const response = await axios.get('/api/organizations', {
-    params: {
-      names,
-    },
-  });
+export const fetchOrganizations =
+  async (): Promise<OrganizationDataResponse> => {
+    const response = await axios.get('/api/organizations');
 
-  return response.data;
-};
-
-export const fetchOrganizationNames = async (): Promise<string[]> => {
-  const response = await axios.get('/api/organizations', {
-    params: {
-      onlyNames: true,
-    },
-  });
-
-  return response.data;
-};
+    return response.data;
+  };
 
 export const createOrganization = async (
   name: string,
@@ -283,7 +268,7 @@ export const removeDataset = async (datasetId: string) => {
 // It takes an array of datasetNames and expects the response to contain data related
 // to the synchronization process
 export const syncActiveDatasets = async (datasetNames: string[]) => {
-  const response = await axios.post('datasets', { datasetNames });
+  const response = await axiosApi.post('/datasets', { datasetNames });
 
   return response.data;
 };

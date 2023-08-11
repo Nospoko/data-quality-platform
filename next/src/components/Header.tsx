@@ -1,6 +1,7 @@
 import {
   HistoryOutlined,
   LineChartOutlined,
+  MenuOutlined,
   ReadOutlined,
   UserOutlined,
 } from '@ant-design/icons';
@@ -43,31 +44,41 @@ const Header = () => {
           }}
           mode="horizontal"
           defaultSelectedKeys={[isDashboard ? 'dashboard' : normalizedPath]}
+          overflowedIndicator={<MenuOutlined />}
           onClick={(item) => {
             handleNavClick(item.key);
           }}
-        >
-          {isAccess && (
-            <Menu.Item key="history" icon={<HistoryOutlined />}>
-              History
-            </Menu.Item>
-          )}
-          {isAccess && (
-            <Menu.Item key="dashboard" icon={<LineChartOutlined />}>
-              Dashboard
-            </Menu.Item>
-          )}
-          {session && (
-            <Menu.Item key="guide" icon={<ReadOutlined />}>
-              Guide
-            </Menu.Item>
-          )}
-          {isAdmin && (
-            <Menu.Item key="admin" icon={<UserOutlined />}>
-              Admin
-            </Menu.Item>
-          )}
-        </Menu>
+          items={[
+            isAccess
+              ? {
+                  key: 'history',
+                  icon: <HistoryOutlined />,
+                  label: 'History',
+                }
+              : null,
+            isAccess
+              ? {
+                  key: 'dashboard',
+                  icon: <LineChartOutlined />,
+                  label: 'Dashboard',
+                }
+              : null,
+            session
+              ? {
+                  key: 'guide',
+                  icon: <ReadOutlined />,
+                  label: 'Guide',
+                }
+              : null,
+            isAdmin
+              ? {
+                  key: 'admin',
+                  icon: <UserOutlined />,
+                  label: 'Admin',
+                }
+              : null,
+          ]}
+        />
       </NavItems>
 
       <NavItems>
@@ -79,33 +90,35 @@ const Header = () => {
             justifyContent: 'flex-end',
           }}
           overflowedIndicator={<UserOutlined />}
-        >
-          <Menu.Item key="theme" disabled>
-            <ThemeSwitcher />
-          </Menu.Item>
-          <Menu.Item key="login" disabled>
-            {session ? (
-              <HeaderLeftRight>
-                <UserInfo>
-                  <Avatar
-                    size="large"
-                    style={{ marginLeft: 0 }}
-                    icon={<UserOutlined />}
-                    src={session.user?.image}
-                  />
-                  <Typography.Title level={5} style={{ margin: 0 }}>
-                    {session.user?.name}
-                  </Typography.Title>
-                </UserInfo>
-                <SignOutBtn />
-              </HeaderLeftRight>
-            ) : (
-              <>
-                <SignInBtn />
-              </>
-            )}
-          </Menu.Item>
-        </Menu>
+          items={[
+            { key: 'theme', icon: <ThemeSwitcher />, disabled: true },
+            {
+              key: 'login',
+              icon: session ? (
+                <HeaderLeftRight>
+                  <UserInfo>
+                    <Avatar
+                      size="large"
+                      style={{ marginLeft: 0 }}
+                      icon={<UserOutlined />}
+                      src={session.user?.image}
+                    />
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {session.user?.name}
+                    </Typography.Title>
+                  </UserInfo>
+                  <SignOutBtn />
+                </HeaderLeftRight>
+              ) : (
+                <>
+                  <SignInBtn />
+                </>
+              ),
+              disabled: true,
+              style: { display: 'flex', justifyContent: 'center' },
+            },
+          ]}
+        />
       </NavItems>
     </Wrapper>
   );
