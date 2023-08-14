@@ -1,9 +1,34 @@
+# Instructions to Set Up the Application
 ```
 # Right now there are no additional secrets required
 cp .env.example .env
 docker-compose build
 docker-compose up
 ```
+
+1. Run the command `docker-compose build`.
+2. Run the command `docker-compose up`.
+3. Open `http://localhost:3000/` in your browser
+4. Register a new user.
+5. Use pgAdmin or another similar tool, and in the 'users' table, set the value of the 'role' field to 'admin'.
+6. Refresh the page.
+7. Navigate to the admin page.
+
+   7.1.1. Go to the 'datasets' tab.
+
+   7.1.2. Add a new dataset.
+   
+   7.1.3. Change the status of at least one dataset to 'active'.
+
+   7.2.1. Go to the 'organizations' tab.
+
+   7.2.2. Create a new organization and add users (including yourself) and one of the active datasets (IMPORTANT: only datasets marked as active are available for selection).
+
+8. Navigate to the dashboard page.
+9. Select one of the available datasets (IMPORTANT: only datasets marked as active are available for selection).
+10. The application is ready to use.
+
+
 
 Python application will populate a `records` table in the `POSTGRES_DB` database:
 
