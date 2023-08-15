@@ -26,31 +26,39 @@ const DashboardDatasetSelect = () => {
   const datasetsInfo = userData && getDatasetsInfo(userData);
 
   const data = datasetsInfo?.map((datasetInfo) => {
-    const { name, organizations } = datasetInfo;
+    const { name, organizations, isActive } = datasetInfo;
 
     return {
       key: name,
       title: name,
+      isActive: isActive,
       body: (
-        <List
-          grid={{ gutter: 16 }}
-          style={{ display: 'flex', justifyContent: 'center' }}
-          dataSource={organizations}
-          renderItem={(organization) => (
-            <List.Item
-              key={organization.id}
-              style={{ display: 'flex', justifyContent: 'center' }}
-            >
-              <Tag style={{ margin: 0 }}>{organization.name}</Tag>
-            </List.Item>
+        <div>
+          <List
+            grid={{ gutter: 16 }}
+            style={{ display: 'flex', justifyContent: 'center' }}
+            dataSource={organizations}
+            renderItem={(organization) => (
+              <List.Item
+                key={organization.id}
+                style={{ display: 'flex', justifyContent: 'center' }}
+              >
+                <Tag style={{ margin: 0 }}>{organization.name}</Tag>
+              </List.Item>
+            )}
+          />
+          {!datasetInfo.isActive && (
+            <Tag style={{ margin: 0, color: 'red' }}>
+              {'Dataset inactive, concat admin to activate'}
+            </Tag>
           )}
-        />
+        </div>
       ),
     };
   });
 
-  const handleOnClickCard = (datasetName: string) => {
-    if (!datasetName) {
+  const handleOnClickCard = (datasetName: string, isActive: boolean) => {
+    if (!datasetName || !isActive) {
       return;
     }
 
@@ -81,11 +89,15 @@ const DashboardDatasetSelect = () => {
                 padding: '12px',
                 display: 'flex',
                 justifyContent: 'center',
+                cursor: item.isActive ? 'pointer' : 'not-allowed',
+              }}
+              headStyle={{
+                cursor: item.isActive ? 'pointer' : 'not-allowed',
               }}
               style={{ textAlign: 'center' }}
               title={item.title}
               hoverable
-              onClick={() => handleOnClickCard(item.key)}
+              onClick={() => handleOnClickCard(item.key, item.isActive)}
             >
               {item.body}
             </Card>

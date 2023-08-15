@@ -54,7 +54,6 @@ router.patch(authenticateUser, async (req, res) => {
   }
 
   const datasetRepo = await customGetRepository(Dataset);
-  const accessRepo = await customGetRepository(DatasetAccess);
 
   const foundDataset = await datasetRepo.findOne({ where: { id } });
 
@@ -91,11 +90,6 @@ router.patch(authenticateUser, async (req, res) => {
   const changedDataset = await datasetRepo.save(foundDataset);
 
   if (changedDataset) {
-    // delete access from organizations when dataset status switched to false
-    if (!foundDataset.isActive) {
-      await accessRepo.delete({ dataset: id });
-    }
-
     return res.status(200).json(changedDataset);
   }
 });

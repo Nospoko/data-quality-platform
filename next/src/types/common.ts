@@ -119,6 +119,7 @@ export type DatasetInfo = {
   }[];
   id: string;
   name: string;
+  isActive: boolean;
 };
 
 export interface CreateOrganizationArgs {

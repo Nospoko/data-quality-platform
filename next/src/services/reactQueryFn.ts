@@ -22,7 +22,7 @@ export const getFragment = async (
   datasetName: string,
 ): Promise<EcgFragment> => {
   const { data } = await axiosApi.get<EcgFragment>(
-    `data?exam_uid=${exam_uuid}&position=${position}&datasetName=${datasetName}`,
+    `data?exam_uid=${exam_uuid}&position=${position}&dataset_name=${datasetName}`,
   );
   return data;
 };
@@ -268,7 +268,9 @@ export const removeDataset = async (datasetId: string) => {
 // It takes an array of datasetNames and expects the response to contain data related
 // to the synchronization process
 export const syncActiveDatasets = async (datasetNames: string[]) => {
-  const response = await axiosApi.post('/datasets', { datasetNames });
+  const response = await axiosApi.post('/datasets', {
+    dataset_names: datasetNames,
+  });
 
   return response.data;
 };

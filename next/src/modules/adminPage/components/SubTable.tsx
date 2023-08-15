@@ -234,12 +234,6 @@ const SubTable: React.FC<
   // The filteredAllData array is created by filtering the allData array to exclude already existing data entries.
   const filteredAllData = isMembershipType
     ? allData.filter((user: User) => !existedIds.includes(user.id))
-    : isDatasetAccessType
-    ? allData.filter(
-        (dataset: Dataset) =>
-          // And only dataset isActive
-          !existedIds.includes(dataset.id) && dataset.isActive,
-      )
     : allData.filter(
         (organization: Organization) => !existedIds.includes(organization.id),
       );
@@ -273,7 +267,7 @@ const SubTable: React.FC<
             {isMembershipType
               ? 'Add New Membership'
               : isDatasetAccessType
-              ? 'Add New Dataset'
+              ? 'Add Dataset Access'
               : 'Add organization'}
           </Button>
 

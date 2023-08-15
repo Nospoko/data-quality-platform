@@ -34,7 +34,7 @@ async def record(record_id: int):
 
 
 @app.get("/data")
-async def get_record(exam_uid: str, position: int):
+async def get_record(exam_uid: str, position: int, dataset_name: str):
     # This is guaranteed to be unique
     r = dataset.filter(lambda r: r["position"] == position and r["exam_uid"] == exam_uid)
     r = r[0]
