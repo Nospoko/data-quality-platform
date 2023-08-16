@@ -264,12 +264,14 @@ export const removeDataset = async (datasetId: string) => {
   return response.data;
 };
 
-// This function sends a POST request to the /datasets endpoint to synchronize active datasets.
-// It takes an array of datasetNames and expects the response to contain data related
-// to the synchronization process
-export const syncActiveDatasets = async (datasetNames: string[]) => {
+// This function sends a POST request to the /datasets endpoint to synchronize datasets.
+// It takes an array of datasets names and statuses  as parameters,
+// and expects the response to contain data related to the synchronization process
+export const syncDatasets = async (
+  datasets: { dataset_name: string; state: string }[],
+) => {
   const response = await axiosApi.post('/datasets', {
-    dataset_names: datasetNames,
+    datasets,
   });
 
   return response.data;

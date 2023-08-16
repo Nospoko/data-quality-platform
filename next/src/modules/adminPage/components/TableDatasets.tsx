@@ -11,7 +11,7 @@ interface Props {
   onChangeStatus: (datasetId: string, isActive: boolean) => void;
   onChangeDatasetName: (datasetId: string, newName: string) => void;
   onDeleteDataset: (datasetId: string) => void;
-  onSelectedDatasetNames: (datasetNames: string[]) => void;
+  onSelectedDatasets: (datasets: { name: string; isActive: boolean }[]) => void;
 }
 
 // This component provides a way to display and manage datasets in a tabular format,
@@ -21,7 +21,7 @@ const TableDatasets: React.FC<Props> = ({
   onChangeStatus,
   onChangeDatasetName,
   onDeleteDataset,
-  onSelectedDatasetNames,
+  onSelectedDatasets,
 }) => {
   const [isDisableAction, setIsDisableAction] = useState(false);
   const [selectedRowKey, setSelectedRowKey] = useState<string | null>(null);
@@ -35,25 +35,19 @@ const TableDatasets: React.FC<Props> = ({
   const allDatasetNames = datasets.map(({ name }) => name);
 
   useEffect(() => {
-    if (allActiveDatasets === maxActiveDatasets) {
+    if (allActiveDatasets >= maxActiveDatasets) {
       setIsDisableAction(true);
 
       return;
     }
 
-    if (allActiveDatasets < maxActiveDatasets) {
-      setIsDisableAction(false);
-    }
+    setIsDisableAction(false);
   }, [allActiveDatasets]);
 
   const handleStatusChange = (datasetId: string, isActive: boolean) => {
     onChangeStatus(datasetId, !isActive);
 
-    const selectedDatasetNames = datasets
-      .filter((dataset) => dataset.id === datasetId)
-      .map((dataset) => dataset.name);
-
-    onSelectedDatasetNames(selectedDatasetNames);
+    onSelectedDatasets(datasets);
   };
 
   const handleOnDelete = (id: string) => {
@@ -116,12 +110,12 @@ const TableDatasets: React.FC<Props> = ({
       key: 'actions',
       render: (_, record) => (
         <Button
-          type="primary"
+          type={record.isActive ? 'default' : 'primary'}
           size="small"
           disabled={isDisableAction && record.isActive === false}
           onClick={() => handleStatusChange(record.key, record.isActive)}
         >
-          Change status
+          {record.isActive ? 'Deactivate' : 'Activate'}
         </Button>
       ),
     },

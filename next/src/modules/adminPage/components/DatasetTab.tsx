@@ -13,7 +13,7 @@ interface Props {
   onChangeStatus: (datasetId: string, isActive: boolean) => void;
   onChangeDatasetName: (datasetId: string, newName: string) => void;
   onDeleteDataset: (datasetId: string) => void;
-  onSync: (datasetNames: string[]) => void;
+  onSync: (datasetsToSync: { name: string; isActive: boolean }[]) => void;
 }
 
 // his component provides a user interface for managing datasets, allowing users to
@@ -27,8 +27,10 @@ const DatasetTab: React.FC<Props> = ({
   onSync,
 }) => {
   const [createView, setCreateView] = useState(false);
-  // Save dataset names for synchronize
-  const [activeDatasetNames, setActiveDatasetNames] = useState<string[]>([]);
+  // Save datasets to synchronize
+  const [datasetsToSynchronize, setDatasetsToSynchronize] = useState<
+    { name: string; isActive: boolean }[]
+  >([]);
 
   const handleOpenCreateView = useCallback(() => {
     setCreateView(true);
@@ -38,13 +40,15 @@ const DatasetTab: React.FC<Props> = ({
     setCreateView(false);
   }, []);
 
-  const handleSelectedDatasetNames = (datasetNames: string[]) => {
-    setActiveDatasetNames(datasetNames);
+  const handleSelectedDatasets = (
+    datasetsToSync: { name: string; isActive: boolean }[],
+  ) => {
+    setDatasetsToSynchronize(datasetsToSync);
   };
 
   const handleSyncData = () => {
-    onSync(activeDatasetNames);
-    setActiveDatasetNames([]);
+    onSync(datasetsToSynchronize);
+    setDatasetsToSynchronize([]);
   };
 
   return (
@@ -56,7 +60,7 @@ const DatasetTab: React.FC<Props> = ({
           style={{ marginBottom: '16px' }}
           icon={<SyncOutlined />}
           onClick={handleSyncData}
-          disabled={activeDatasetNames.length === 0}
+          disabled={datasetsToSynchronize.length === 0}
         >
           Synchronize API
         </Button>
@@ -87,7 +91,7 @@ const DatasetTab: React.FC<Props> = ({
           onChangeStatus={onChangeStatus}
           onChangeDatasetName={onChangeDatasetName}
           onDeleteDataset={onDeleteDataset}
-          onSelectedDatasetNames={handleSelectedDatasetNames}
+          onSelectedDatasets={handleSelectedDatasets}
         />
       )}
     </Layout>

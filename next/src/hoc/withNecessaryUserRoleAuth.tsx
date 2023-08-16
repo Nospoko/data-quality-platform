@@ -8,6 +8,7 @@ const withNecessaryUserRoleAuth = (
   WrappedComponent: React.ComponentType,
   getNestedLayout: (page: React.ReactElement) => React.ReactElement,
   roleAccess: UserRole[],
+  redirectTo = '/',
 ) => {
   return (props: any) => {
     const { data: session, status } = useSession();
@@ -21,7 +22,7 @@ const withNecessaryUserRoleAuth = (
       }
 
       if (!roleAccess.includes(userRole)) {
-        router.push('/');
+        router.push(redirectTo);
       } else {
         setLoading(false);
       }

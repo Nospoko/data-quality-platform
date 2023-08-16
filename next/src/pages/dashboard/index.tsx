@@ -17,4 +17,5 @@ export default withNecessaryUserRoleAuth(
   DashboardIndex,
   DashboardIndex.getNestedLayout,
   [UserRole.MEMBER, UserRole.ADMIN],
+  '/guide',
 );

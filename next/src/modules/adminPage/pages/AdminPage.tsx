@@ -28,7 +28,7 @@ import {
   removeDatasetAccess,
   removeOrganization,
   removeOrganizationMembership,
-  syncActiveDatasets,
+  syncDatasets,
 } from '@/services/reactQueryFn';
 import {
   CreateOrganizationArgs,
@@ -229,22 +229,19 @@ const AdminPage = () => {
   );
 
   // Changing dataset status
-  const changeDatasetStatus = useCallback(
-    async (datasetId: string, isActive: boolean) => {
-      if (!datasetId || isActive === undefined) {
-        return;
-      }
+  const changeDatasetStatus = async (datasetId: string, isActive: boolean) => {
+    if (!datasetId || isActive === undefined) {
+      return;
+    }
 
-      try {
-        await changeDatasetIsActiveStatus(datasetId, isActive);
+    try {
+      await changeDatasetIsActiveStatus(datasetId, isActive);
 
-        invalidateData();
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [],
-  );
+      invalidateData();
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // Remove selected dataset
   const deleteDataset = useCallback(async (datasetId: string) => {
@@ -261,14 +258,15 @@ const AdminPage = () => {
     }
   }, []);
 
-  // Synchronize the active dataset names
-  const synchronizeDatasetNames = async (datasetNames: string[]) => {
-    if (datasetNames.length === 0) {
-      return;
-    }
-
+  // Synchronize datasets
+  const synchronizeDatasets = async () => {
     try {
-      await syncActiveDatasets(datasetNames);
+      const normalizeDatasets = datasets.map((dataset) => ({
+        dataset_name: dataset.name,
+        state: dataset.isActive ? 'active' : 'inactive',
+      }));
+
+      await syncDatasets(normalizeDatasets);
     } catch (error) {
       console.error(error);
     }
@@ -347,7 +345,7 @@ const AdminPage = () => {
                 onChangeStatus={changeDatasetStatus}
                 onChangeDatasetName={changeNameDataset}
                 onDeleteDataset={deleteDataset}
-                onSync={synchronizeDatasetNames}
+                onSync={synchronizeDatasets}
               />
             ),
           },
