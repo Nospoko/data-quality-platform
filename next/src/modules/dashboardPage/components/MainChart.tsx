@@ -172,36 +172,40 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
             <Spin size="large" />
           </Loader>
         ) : (
-          <LineDescriptionWrapper>
-            <DescriptionWrapper>
-              <RecordInfo record={record} />
-            </DescriptionWrapper>
+          <>
+            <LineDescriptionWrapper>
+              <DescriptionWrapper>
+                <RecordInfo record={record} />
+              </DescriptionWrapper>
 
-            <LineWrapper>
-              <Line data={chartData.data} options={chartSettings} />
-            </LineWrapper>
-          </LineDescriptionWrapper>
+              <LineWrapper>
+                <Line data={chartData.data} options={chartSettings} />
+              </LineWrapper>
+            </LineDescriptionWrapper>
+            <ButtonWrapper>
+              <Feedback
+                handleSelect={handleSelect}
+                onOpenZoomView={handleClickChart}
+                decision={historyData?.choice}
+                isFetching={isFetching}
+                isZoomView={isZoomView}
+              />
+            </ButtonWrapper>
+          </>
         )}
-        <ButtonWrapper>
-          <Feedback
-            handleSelect={handleSelect}
-            onOpenZoomView={handleClickChart}
-            decision={historyData?.choice}
-            isFetching={isFetching}
-            isZoomView={isZoomView}
-          />
-        </ButtonWrapper>
       </ChartWrapper>
-      <LegendContainer>
-        <CustomLegend color={theme}>
-          {LEGEND_DATA.map((d) => (
-            <LegendRow key={d.label}>
-              <LineColor color={d.color} />
-              <LegendValue>{d.label}</LegendValue>
-            </LegendRow>
-          ))}
-        </CustomLegend>
-      </LegendContainer>
+      {!isLoading && chartData?.data && (
+        <LegendContainer>
+          <CustomLegend color={theme}>
+            {LEGEND_DATA.map((d) => (
+              <LegendRow key={d.label}>
+                <LineColor color={d.color} />
+                <LegendValue>{d.label}</LegendValue>
+              </LegendRow>
+            ))}
+          </CustomLegend>
+        </LegendContainer>
+      )}
     </Wrapper>
   );
 };
@@ -236,8 +240,10 @@ const LineDescriptionWrapper = styled.div`
 `;
 
 const ChartWrapper = styled.div`
+  position: relative;
   width: 100%;
   height: 100%;
+  min-height: 300px;
 
   padding: 10px;
 
@@ -316,9 +322,9 @@ const LegendValue = styled.div`
 `;
 
 const Loader = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border: solid 1px;
+  position: absolute;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+  /* border: solid 1px; */
 `;
