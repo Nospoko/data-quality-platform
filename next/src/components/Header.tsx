@@ -1,7 +1,14 @@
-import { HistoryOutlined, HomeOutlined, UserOutlined } from '@ant-design/icons';
+import {
+  HistoryOutlined,
+  LineChartOutlined,
+  MenuOutlined,
+  ReadOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { Avatar, Menu, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import React from 'react';
 import { styled } from 'styled-components';
 
 import SignInBtn from './buttons/SignInBtn';
@@ -12,19 +19,17 @@ import { UserRole } from '@/types/common';
 
 const Header = () => {
   const { data: session } = useSession();
+  const userRole = session?.user.role;
 
-  const isAdmin = session?.user.role === UserRole.ADMIN;
+  const isAdmin = userRole === UserRole.ADMIN;
+  const isMember = userRole === UserRole.MEMBER;
+  const isAccess = isMember || isAdmin;
 
   const router = useRouter();
   const { pathname } = router;
-  const normalizedPath = pathname === '/' ? 'home' : pathname.slice(1);
+  const normalizedPath = pathname.slice(1);
+  const isDashboard = normalizedPath.includes('dashboard');
   const handleNavClick = (path: string) => {
-    if (path === 'home') {
-      router.push('/');
-
-      return;
-    }
-
     router.push(`/${path}`);
   };
 
@@ -35,50 +40,85 @@ const Header = () => {
           style={{
             width: '100%',
             border: 'none',
+            justifyContent: 'flex-start',
           }}
           mode="horizontal"
-          defaultSelectedKeys={[normalizedPath]}
+          defaultSelectedKeys={[isDashboard ? 'dashboard' : normalizedPath]}
+          overflowedIndicator={<MenuOutlined />}
           onClick={(item) => {
             handleNavClick(item.key);
           }}
-        >
-          <Menu.Item key="home" icon={<HomeOutlined />}>
-            Home
-          </Menu.Item>
-          <Menu.Item key="history" icon={<HistoryOutlined />}>
-            History
-          </Menu.Item>
-          {isAdmin && (
-            <Menu.Item key="admin" icon={<UserOutlined />}>
-              Admin
-            </Menu.Item>
-          )}
-          <Menu.Item key="theme" disabled>
-            <ThemeSwitcher />
-          </Menu.Item>
-          <Menu.Item key="login" disabled>
-            {session ? (
-              <HeaderLeftRight>
-                <UserInfo>
-                  <Avatar
-                    size="large"
-                    style={{ marginLeft: 0 }}
-                    icon={<UserOutlined />}
-                    src={session.user?.image}
-                  />
-                  <Typography.Title level={5} style={{ margin: 0 }}>
-                    {session.user?.name}
-                  </Typography.Title>
-                </UserInfo>
-                <SignOutBtn />
-              </HeaderLeftRight>
-            ) : (
-              <>
-                <SignInBtn />
-              </>
-            )}
-          </Menu.Item>
-        </Menu>
+          items={[
+            isAccess
+              ? {
+                  key: 'history',
+                  icon: <HistoryOutlined />,
+                  label: 'History',
+                }
+              : null,
+            isAccess
+              ? {
+                  key: 'dashboard',
+                  icon: <LineChartOutlined />,
+                  label: 'Dashboard',
+                }
+              : null,
+            session
+              ? {
+                  key: 'guide',
+                  icon: <ReadOutlined />,
+                  label: 'Guide',
+                }
+              : null,
+            isAdmin
+              ? {
+                  key: 'admin',
+                  icon: <UserOutlined />,
+                  label: 'Admin',
+                }
+              : null,
+          ]}
+        />
+      </NavItems>
+
+      <NavItems>
+        <Menu
+          mode="horizontal"
+          style={{
+            width: '100%',
+            border: 'none',
+            justifyContent: 'flex-end',
+          }}
+          overflowedIndicator={<UserOutlined />}
+          items={[
+            { key: 'theme', icon: <ThemeSwitcher />, disabled: true },
+            {
+              key: 'login',
+              icon: session ? (
+                <HeaderLeftRight>
+                  <UserInfo>
+                    <Avatar
+                      size="large"
+                      style={{ marginLeft: 0 }}
+                      icon={<UserOutlined />}
+                      src={session.user?.image}
+                    />
+                    <Typography.Title level={5} style={{ margin: 0 }}>
+                      {session.user?.name}
+                    </Typography.Title>
+                  </UserInfo>
+                  <SignOutBtn />
+                </HeaderLeftRight>
+              ) : (
+                <>
+                  <SignInBtn />
+                </>
+              ),
+              disabled: true,
+              style: { display: 'flex', justifyContent: 'center' },
+            },
+          ]}
+        />
       </NavItems>
     </Wrapper>
   );
@@ -87,7 +127,8 @@ const Header = () => {
 const NavItems = styled.div`
   display: flex;
   align-items: center;
-  width: 100%;
+  flex: auto;
+  min-width: 0;
 `;
 
 const Wrapper = styled.div`

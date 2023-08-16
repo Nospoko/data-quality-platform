@@ -16,7 +16,6 @@ router.get(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
   const limit = Number(req.query.limit) || 10;
-  const skip = Number(req.query.skip) || 0;
   const exams = req.query['exams[]'];
   const examIds = Array.isArray(exams) ? exams : [exams];
 
@@ -45,10 +44,13 @@ router.get(async (req, res) => {
 
   const total = await query.getCount();
 
-  const recordsWithoutUserCheck = await query.skip(skip).take(limit).getMany();
+  // I've added the orderBy('RANDOM()') clause to the query,
+  // which orders the records randomly.
+  const recordsWithoutUserCheck = await query.orderBy('RANDOM()').getMany();
+  const randomRecordsWithoutUserCheck = recordsWithoutUserCheck.slice(0, limit);
 
   res.status(200).json({
-    data: recordsWithoutUserCheck,
+    data: randomRecordsWithoutUserCheck,
     total,
     limit,
   });

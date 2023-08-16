@@ -1,7 +1,7 @@
 import { ReactElement } from 'react';
 
 import CustomLayout from '@/components/layouts/layout';
-import HistoryPage from '@/modules/homeChart/pages/HistoryPage';
+import HistoryPage from '@/modules/dashboardPage/pages/HistoryPage';
 
 const History = () => {
   return <HistoryPage></HistoryPage>;

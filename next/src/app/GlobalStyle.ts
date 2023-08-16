@@ -19,6 +19,10 @@ const GlobalStyle = createGlobalStyle`
     .ant-table-wrapper .ant-table.ant-table-middle .ant-table-tbody .ant-table-wrapper:only-child .ant-table {
       margin-inline: 0;
     }
+
+    .row-table {
+      cursor: pointer;
+    }
   }
 `;
 

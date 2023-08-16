@@ -96,4 +96,34 @@ export type OrganizationDataResponse = {
 
 export type OnAddParams =
   | { selectedUsers: string[] }
-  | { selectedDatasets: string[] };
+  | { selectedDatasets: string[] }
+  | { selectedOrganizations: string[] };
+
+export enum SubTableTypes {
+  USERS = 'users',
+  MEMBERSHIPS = 'memberships',
+  DATASETACCESS = 'datasetAccess',
+  ORGANIZATIONS = 'organizations',
+}
+
+export enum AddingFormTypes {
+  USERS = 'selectedUsers',
+  DATASETS = 'selectedDatasets',
+  ORGANIZATIONS = 'selectedOrganizations',
+}
+
+export type DatasetInfo = {
+  organizations: {
+    id: string;
+    name: string;
+  }[];
+  id: string;
+  name: string;
+  isActive: boolean;
+};
+
+export interface CreateOrganizationArgs {
+  name: string;
+  selectedUsers: string[];
+  selectedDatasets: string[];
+}

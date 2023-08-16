@@ -1,10 +1,9 @@
 import { getCookie, setCookie } from 'cookies-next';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-import { disableAnimation } from '@/modules/homeChart/utils/helpers/disableAnimation';
 import { ThemeContextType, ThemeType } from '@/types/common';
+import { disableAnimation } from '@/utils/helpers/disableAnimation';
 
-// expires time through (one week)
 export const maxAge = 60 * 60 * 24 * 7;
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);

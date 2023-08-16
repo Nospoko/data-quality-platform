@@ -42,9 +42,12 @@ export class User {
   @OneToMany(() => DataCheck, (dataCheck) => dataCheck.user)
   dataChecks: Relation<DataCheck>[];
 
-  @OneToMany(
-    () => OrganizationMembership,
-    (membership) => membership.organization,
-  )
+  @OneToMany(() => OrganizationMembership, (membership) => membership.user)
   organizationMemberships: Relation<OrganizationMembership>[];
+
+  @Column('timestamp', {
+    name: 'created_at',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
 }

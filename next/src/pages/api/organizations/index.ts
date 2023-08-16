@@ -1,56 +1,39 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createRouter } from 'next-connect';
-import { In } from 'typeorm';
+import { In, Not } from 'typeorm';
 
 import { customGetRepository } from '@/lib/orm/data-source';
 import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
 import { Organization } from '@/lib/orm/entity/Organization';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { User, UserRole } from '@/lib/orm/entity/User';
-import { authenticateUser } from '@/modules/homeChart/pages/middleware/authAdminMiddleware';
+import { authenticateUser } from '@/modules/adminPage/pages/middleware/authAdminMiddleware';
 import { OrganizationType } from '@/types/common';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 
 router.get(authenticateUser, async (req, res) => {
-  try {
-    const organizationRepo = await customGetRepository(Organization);
+  const organizationRepo = await customGetRepository(Organization);
 
-    const queryNames = req.query['names[]'];
-    const names = Array.isArray(queryNames) ? queryNames : [queryNames];
-    const onlyWithMembers = req.query.onlyWithMembers === 'true';
+  const query = organizationRepo
+    .createQueryBuilder('organization')
+    .leftJoinAndSelect(
+      'organization.organizationMemberships',
+      'organizationMembership',
+    )
+    .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
+    .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
+    .leftJoinAndSelect('organizationMembership.user', 'user')
+    .orderBy('organization.name', 'ASC');
 
-    const query = organizationRepo
-      .createQueryBuilder('organization')
-      .leftJoinAndSelect(
-        'organization.organizationMemberships',
-        'organizationMembership',
-      )
-      .leftJoinAndSelect('organization.datasetAccess', 'datasetAccess')
-      .leftJoinAndSelect('datasetAccess.dataset', 'dataset')
-      .leftJoinAndSelect('organizationMembership.user', 'user')
-      .orderBy('organization.id', 'ASC');
+  const total = await query.getCount();
 
-    if (queryNames) {
-      query.andWhere('organization.name IN (:...names)', { names });
-    }
+  const organizations = await query.getMany();
 
-    if (onlyWithMembers) {
-      query.andWhere('organizationMembership.id IS NOT NULL');
-    }
-
-    const total = await query.getCount();
-
-    const organizations = await query.getMany();
-
-    res.status(200).json({
-      data: organizations as OrganizationType[],
-      total,
-    });
-  } catch (error) {
-    console.error('Error fetching organizations:', error);
-    return res.status(500).json({ error: 'Internal server error' });
-  }
+  res.status(200).json({
+    data: organizations as OrganizationType[],
+    total,
+  });
 });
 
 router.post(authenticateUser, async (req, res) => {
@@ -230,18 +213,28 @@ router.delete(authenticateUser, async (req, res) => {
     const userToUpdate = await userRepo.find({
       where: {
         id: In(userIds),
-        role: UserRole.MEMBER,
-        organizationMemberships: [],
+        role: Not(UserRole.ADMIN),
       },
+      relations: ['organizationMemberships'],
     });
-    const updatedUsers = userToUpdate.map((user) => ({
-      ...user,
-      role: UserRole.GUEST,
-    }));
+
+    const updatedUsers = userToUpdate.map((user) => {
+      if (user.organizationMemberships.length > 0) {
+        return {
+          ...user,
+          role: UserRole.MEMBER,
+        };
+      }
+
+      return {
+        ...user,
+        role: UserRole.GUEST,
+      };
+    });
 
     await userRepo.save(updatedUsers);
   }
-  return res.status(204);
+  return res.status(204).end();
 });
 
 export default router.handler({

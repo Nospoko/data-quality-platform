@@ -25,7 +25,6 @@ const layoutStyle: React.CSSProperties = {
 };
 
 const CustomLayout = ({ children }: { children: JSX.Element }) => {
-  // next line avoids hydration mismatch
   const [mounted, setMounted] = useState(false);
 
   const { defaultAlgorithm, darkAlgorithm } = themeSettings;
@@ -35,7 +34,6 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
   const [showTopBtn, setShowTopBtn] = useState(false);
 
   useEffect(() => {
-    // next line avoids hydration mismatch
     setMounted(true);
 
     window.addEventListener('scroll', () => {
@@ -90,13 +88,20 @@ const CustomLayout = ({ children }: { children: JSX.Element }) => {
                     {children}
                     {showTopBtn && (
                       <ButtonWrapper>
-                        <StyledButton
+                        <Button
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            height: '36px',
+                            width: '40px',
+                          }}
                           type="primary"
                           danger
                           onClick={handleScrollToTop}
                         >
                           Top
-                        </StyledButton>
+                        </Button>
                       </ButtonWrapper>
                     )}
                   </>
@@ -139,14 +144,4 @@ const ButtonWrapper = styled.div`
   position: fixed;
   left: 16px;
   bottom: 80px;
-`;
-
-const StyledButton = styled(Button)`
-  &&& {
-    display: flex;
-    justify-content: center;
-    align-item: center;
-    height: 36px;
-    width: 40px;
-  }
 `;
