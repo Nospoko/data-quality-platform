@@ -8,7 +8,12 @@ import { Choice } from '@/lib/orm/entity/DataCheck';
 import SearchingForm from '@/modules/dashboard/components/common/SearchForm';
 import MainChart from '@/modules/dashboard/components/ecg/MainChart';
 import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
-import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
+import {
+  changeChoice,
+  changeFeedbackMidi,
+  fetchUserRecords,
+  MidiFeedback,
+} from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 
 const History = () => {
@@ -82,6 +87,11 @@ const History = () => {
   const changeFeedback = (dataCheckId: string, choice: Choice) => {
     setSelectedDataCheck({ dataCheckId, choice });
     setIsConfirmModal(true);
+  };
+
+  const changeFeedbackForMidi = async (midiFeedback: MidiFeedback) => {
+    await changeFeedbackMidi(midiFeedback);
+    await refetchAndReplaceHistoryData(recordsToDisplay.length);
   };
 
   const changeFeedbackOnZoomView = async (
@@ -173,10 +183,14 @@ const History = () => {
               record={history.record}
               isFirst={false}
               addFeedback={changeFeedback}
+              addFeedbackMidi={changeFeedbackForMidi}
               onClickChart={handleOpenModal}
               historyData={history}
               isZoomView={false}
               isFetching={false}
+              comment={history.comment}
+              rhythm={history.score1}
+              quality={history.score2}
             />
           ))
         : null}

@@ -57,6 +57,43 @@ export const sendFeedback = async ({
   return response.data;
 };
 
+export type MidiFeedback = {
+  id: string;
+  comment: string | null;
+  rhythm: number;
+  quality: number;
+};
+export const sendFeedbackMidi = async ({
+  id,
+  comment,
+  rhythm,
+  quality,
+}: MidiFeedback): Promise<RecordsResponse> => {
+  const response = await axios.post('/api/data-check/midi', {
+    id,
+    comment,
+    rhythm,
+    quality,
+  });
+
+  return response.data;
+};
+export const changeFeedbackMidi = async ({
+  id,
+  comment,
+  rhythm,
+  quality,
+}: MidiFeedback) => {
+  const response = await axios.patch('/api/data-check/midi', {
+    id,
+    comment,
+    rhythm,
+    quality,
+  });
+
+  return response.data;
+};
+
 export const fetchUserRecords = async (
   skip: number,
   filters: Filter,

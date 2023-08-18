@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Input, Rate, Spin, Typography } from 'antd';
+import { Button, Input, Rate, Spin, Typography } from 'antd';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { forwardRef, memo, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, memo, useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
@@ -29,7 +29,7 @@ import Feedback from './Feedback';
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
-import { getFragment } from '@/services/reactQueryFn';
+import { getFragment, MidiFeedback } from '@/services/reactQueryFn';
 import {
   EcgFragment,
   HistoryData,
@@ -49,8 +49,12 @@ interface Props {
   isZoomView: boolean;
   isFetching?: boolean;
   addFeedback: (index: number | string, choice: Choice) => void;
+  addFeedbackMidi: (midiFeedback: MidiFeedback) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
+  comment?: string;
+  rhythm?: number;
+  quality?: number;
 }
 
 ChartJS.register(
@@ -69,10 +73,14 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     datasetName,
     historyData,
     addFeedback,
+    addFeedbackMidi,
     onClickChart,
     isFirst,
     isZoomView,
     isFetching = false,
+    comment,
+    rhythm,
+    quality,
   },
   ref,
 ) => {
@@ -100,6 +108,18 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     }
 
     addFeedback(record.id, choice);
+  };
+
+  const handleClickRate = (midiFeedback: Omit<MidiFeedback, 'id'>) => {
+    if (historyData) {
+      addFeedbackMidi({
+        ...midiFeedback,
+        id: historyData.id,
+      });
+
+      return;
+    }
+    addFeedbackMidi({ id: record.id, ...midiFeedback });
   };
 
   const handleClickChart = () => {
@@ -169,10 +189,10 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   ]);
 
   const [rate, setRate] = useState<{ rhythm: number; quality: number }>({
-    rhythm: 0,
-    quality: 0,
+    rhythm: rhythm ?? 0,
+    quality: quality ?? 0,
   });
-  const [comment, setComment] = useState('');
+  const [commentValue, setCommentValue] = useState(comment || '');
 
   const desc = useMemo(
     () => ['Terrible', 'Bad', 'Average', 'Good', 'Wonderful'],
@@ -230,8 +250,8 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 <Input
                   style={{ width: 'full' }}
                   placeholder="Enter your comment here..."
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  value={commentValue}
+                  onChange={(e) => setCommentValue(e.target.value)}
                 />
               </label>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
@@ -250,6 +270,20 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                   value={rate?.quality}
                 />
               </div>
+              <Button
+                onClick={() => {
+                  const midiFeedback: Omit<MidiFeedback, 'id'> = {
+                    comment: commentValue ? commentValue : null,
+                    rhythm: rate?.rhythm,
+                    quality: rate?.quality,
+                  };
+                  handleClickRate(midiFeedback);
+                }}
+                disabled={!rate?.quality || !rate?.rhythm}
+                type="primary"
+              >
+                {historyData ? 'Update' : 'Submit'}
+              </Button>
             </RateContainer>
           )}
         </>

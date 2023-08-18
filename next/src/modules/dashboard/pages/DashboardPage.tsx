@@ -16,7 +16,9 @@ import { getChartData } from '@/modules/dashboard/utils/getChartData';
 import {
   fetchRecords,
   getFragment,
+  MidiFeedback,
   sendFeedback,
+  sendFeedbackMidi,
 } from '@/services/reactQueryFn';
 import { Filter, SelectedChartData } from '@/types/common';
 
@@ -134,6 +136,35 @@ const DashboardPage = () => {
 
       const nextIndex = recordsToDisplay.findIndex((r) => r.id === id);
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
+
+      setRecordsToDisplay(newRecords);
+
+      if (isZoomModal && !zoomMode) {
+        handleCloseModal();
+      }
+
+      if (zoomMode) {
+        handleChangeNextChartData(newRecords[nextIndex]);
+      }
+    },
+    [
+      setRecordsToDisplay,
+      handleChangeNextChartData,
+      recordsToDisplay,
+      zoomMode,
+    ],
+  );
+
+  const addFeedbackMidi = useCallback(
+    async (midiFeedback: MidiFeedback) => {
+      await sendFeedbackMidi(midiFeedback);
+
+      const nextIndex = recordsToDisplay.findIndex(
+        (r) => r.id === midiFeedback.id,
+      );
+      const newRecords = recordsToDisplay.filter(
+        (r) => r.id !== midiFeedback.id,
+      );
 
       setRecordsToDisplay(newRecords);
 
@@ -283,6 +314,7 @@ const DashboardPage = () => {
                 record={record}
                 datasetName={datasetName as string}
                 addFeedback={addFeedback}
+                addFeedbackMidi={addFeedbackMidi}
                 onClickChart={handleOpenModal}
               />
             ))
