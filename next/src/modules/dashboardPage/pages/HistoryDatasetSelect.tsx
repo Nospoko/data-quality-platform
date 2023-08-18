@@ -9,7 +9,7 @@ import { getDatasetsInfo } from '../utils/helpers/getDatasetsInfo';
 import { User } from '@/lib/orm/entity/User';
 import { fetchUserById } from '@/services/reactQueryFn';
 
-const DashboardDatasetSelect = () => {
+export default function HistoryDatasetSelect() {
   const { data: session } = useSession();
   const userId = session?.user.id;
 
@@ -62,20 +62,20 @@ const DashboardDatasetSelect = () => {
       return;
     }
 
-    router.push(`/dashboard/${encodeURIComponent(datasetName)}`);
+    router.push(`/history/${encodeURIComponent(datasetName)}`);
   };
 
   return (
     <Layout>
       <Typography.Title style={{ textAlign: 'center', marginBottom: '16px' }}>
-        Welcome to the Dashboard
+        Welcome to the History
       </Typography.Title>
 
       <Typography.Title
         level={4}
         style={{ textAlign: 'center', margin: '0 0 30px 0' }}
       >
-        Select a dataset to view a collection.
+        Select a dataset to view its history records.
       </Typography.Title>
 
       <List
@@ -106,6 +106,4 @@ const DashboardDatasetSelect = () => {
       />
     </Layout>
   );
-};
-
-export default DashboardDatasetSelect;
+}

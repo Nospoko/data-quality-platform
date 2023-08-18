@@ -16,6 +16,7 @@ router.get(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
+  const datasetName = req.query.datasetName as string;
   const limit = Number(req.query.limit) || 10;
   const skip = Number(req.query.skip) || 0;
   const exams = req.query['exams[]'];
@@ -28,7 +29,10 @@ router.get(async (req, res) => {
     .createQueryBuilder('dataCheck')
     .innerJoinAndSelect('dataCheck.record', 'record')
     .innerJoinAndSelect('dataCheck.user', 'user')
-    .where('user.id = :userId', { userId });
+    .where('user.id = :userId AND record.dataset_name = :datasetName', {
+      userId,
+      datasetName,
+    });
 
   if (exams) {
     await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
