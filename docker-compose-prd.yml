@@ -49,6 +49,8 @@ services:
     ports:
       - '3000:3000'
     env_file: .env
+    environment:
+      NEXT_PUBLIC_DATA_PROBLEM: ${DATA_PROBLEM}
     depends_on:
       db:
         condition: service_healthy
