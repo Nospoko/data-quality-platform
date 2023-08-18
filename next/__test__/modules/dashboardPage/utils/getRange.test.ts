@@ -1,4 +1,4 @@
-import { getLimits } from '@/modules/dashboardPage/utils/getRange';
+import { getLimits } from '@/modules/dashboard/utils/getRange';
 
 test('getLimits returns correct range for small signals', () => {
   const smallSignal = [0.1, -0.5, 0.8, -1.0, 0.3];

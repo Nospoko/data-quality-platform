@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 
+import withNecessaryUserRoleAuth from '@/components/hoc/withNecessaryUserRoleAuth';
 import CustomLayout from '@/components/layouts/layout';
-import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
-import DashboardDatasetSelect from '@/modules/dashboardPage/pages/DashboardDatasetSelect';
+import DashboardDatasetSelect from '@/modules/dashboard/pages/DashboardDatasetSelect';
 import { UserRole } from '@/types/common';
 
 const DashboardIndex = () => {

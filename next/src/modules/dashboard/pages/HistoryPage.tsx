@@ -5,9 +5,9 @@ import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import MainChart from '@/modules/dashboardPage/components/MainChart';
-import SearchingForm from '@/modules/dashboardPage/components/SearchForm';
-import ZoomView from '@/modules/dashboardPage/components/ZoomView';
+import SearchingForm from '@/modules/dashboard/components/common/SearchForm';
+import MainChart from '@/modules/dashboard/components/ecg/MainChart';
+import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
 import { changeChoice, fetchUserRecords } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 

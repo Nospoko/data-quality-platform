@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 
+import withNecessaryUserRoleAuth from '@/components/hoc/withNecessaryUserRoleAuth';
 import CustomLayout from '@/components/layouts/layout';
-import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
-import DashboardPage from '@/modules/dashboardPage/pages/DashboardPage';
+import DashboardPage from '@/modules/dashboard/pages/DashboardPage';
 import { UserRole } from '@/types/common';
 
 const Dashboard = () => {

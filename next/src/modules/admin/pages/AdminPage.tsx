@@ -11,8 +11,8 @@ import DatasetTab from '../components/DatasetTab';
 
 import { Dataset } from '@/lib/orm/entity/Dataset';
 import { User } from '@/lib/orm/entity/User';
-import OrganizationsTab from '@/modules/adminPage/components/OrganizationsTab';
-import UsersTab from '@/modules/adminPage/components/UsersTab';
+import OrganizationsTab from '@/modules/admin/components/OrganizationsTab';
+import UsersTab from '@/modules/admin/components/UsersTab';
 import {
   changeDatasetIsActiveStatus,
   changeDatasetName,

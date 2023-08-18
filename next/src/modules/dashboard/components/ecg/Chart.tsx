@@ -12,8 +12,8 @@ import { memo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { darkTheme, getChartSettings, lightTheme } from '../models';
-import { getLimits } from '../utils/getRange';
+import { darkTheme, getChartSettings, lightTheme } from '../../models';
+import { getLimits } from '../../utils/getRange';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { ChartData, ThemeType } from '@/types/common';

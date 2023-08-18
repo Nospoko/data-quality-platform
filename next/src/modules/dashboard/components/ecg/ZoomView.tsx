@@ -7,7 +7,7 @@ import Feedback from './Feedback';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
-import showNotification from '@/modules/dashboardPage/utils/helpers/showNotification';
+import showNotification from '@/modules/dashboard/utils/helpers/showNotification';
 import {
   SelectedChartData,
   SelectedHistoryChartData,
