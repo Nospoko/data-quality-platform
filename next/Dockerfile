@@ -5,6 +5,8 @@ COPY package.json yarn.lock ./
 RUN  yarn --frozen-lockfile
 
 COPY . /app
+COPY start-prod.sh /start.sh.sh
+RUN chmod +x /start.sh
 
 ARG EXTERNAL_API
 ENV NEXT_PUBLIC_API_URL=$EXTERNAL_API
@@ -16,4 +18,4 @@ RUN yarn next build
 EXPOSE 3000
 
 # Start the application
-CMD ["yarn", "start" ]
+CMD [ "/bin/sh", "/start.sh" ]

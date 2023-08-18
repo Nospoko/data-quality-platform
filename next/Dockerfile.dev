@@ -10,6 +10,8 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
@@ -17,4 +19,4 @@ ENV NEXT_TELEMETRY_DISABLED 1
 EXPOSE 3000
 
 # Start the application
-CMD [ "yarn", "dev" ]
+CMD [ "/bin/sh", "/start.sh" ]
