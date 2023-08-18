@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Spin } from 'antd';
+import { Input, Rate, Spin, Typography } from 'antd';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import { forwardRef, memo, useEffect, useState } from 'react';
+import { forwardRef, memo, useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
@@ -37,6 +37,10 @@ import {
   SelectedHistoryChartData,
   ThemeType,
 } from '@/types/common';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
+  | 'ecg_classification'
+  | 'midi_review';
 
 interface Props {
   record: Record;
@@ -164,6 +168,17 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isFetching,
   ]);
 
+  const [rate, setRate] = useState<{ rhythm: number; quality: number }>({
+    rhythm: 0,
+    quality: 0,
+  });
+  const [comment, setComment] = useState('');
+
+  const desc = useMemo(
+    () => ['Terrible', 'Bad', 'Average', 'Good', 'Wonderful'],
+    [],
+  );
+
   return (
     <Wrapper ref={ref}>
       <ChartWrapper color={theme}>
@@ -182,29 +197,62 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 <Line data={chartData.data} options={chartSettings} />
               </LineWrapper>
             </LineDescriptionWrapper>
-            <ButtonWrapper>
-              <Feedback
-                handleSelect={handleSelect}
-                onOpenZoomView={handleClickChart}
-                decision={historyData?.choice}
-                isFetching={isFetching}
-                isZoomView={isZoomView}
-              />
-            </ButtonWrapper>
+            {DATA_PROBLEM === 'ecg_classification' && (
+              <ButtonWrapper>
+                <Feedback
+                  handleSelect={handleSelect}
+                  onOpenZoomView={handleClickChart}
+                  decision={historyData?.choice}
+                  isFetching={isFetching}
+                  isZoomView={isZoomView}
+                />
+              </ButtonWrapper>
+            )}
           </>
         )}
       </ChartWrapper>
       {!isLoading && chartData?.data && (
-        <LegendContainer>
-          <CustomLegend color={theme}>
-            {LEGEND_DATA.map((d) => (
-              <LegendRow key={d.label}>
-                <LineColor color={d.color} />
-                <LegendValue>{d.label}</LegendValue>
-              </LegendRow>
-            ))}
-          </CustomLegend>
-        </LegendContainer>
+        <>
+          <LegendContainer>
+            <CustomLegend color={theme}>
+              {LEGEND_DATA.map((d) => (
+                <LegendRow key={d.label}>
+                  <LineColor color={d.color} />
+                  <LegendValue>{d.label}</LegendValue>
+                </LegendRow>
+              ))}
+            </CustomLegend>
+          </LegendContainer>
+          {DATA_PROBLEM === 'midi_review' && (
+            <RateContainer>
+              <label style={{ flexGrow: 1 }}>
+                <Typography.Text>Comment</Typography.Text>
+                <Input
+                  style={{ width: 'full' }}
+                  placeholder="Enter your comment here..."
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                />
+              </label>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography.Text>Rhythm</Typography.Text>
+                <Rate
+                  tooltips={desc}
+                  onChange={(n) => setRate({ ...rate, rhythm: n })}
+                  value={rate?.rhythm}
+                />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography.Text>Quality</Typography.Text>
+                <Rate
+                  tooltips={desc}
+                  onChange={(n) => setRate({ ...rate, quality: n })}
+                  value={rate?.quality}
+                />
+              </div>
+            </RateContainer>
+          )}
+        </>
       )}
     </Wrapper>
   );
@@ -304,6 +352,14 @@ const CustomLegend = styled.div`
 
 const LegendContainer = styled.div`
   position: relative;
+`;
+
+const RateContainer = styled.div`
+  display: flex;
+  margin-top: 4px;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 24px;
 `;
 
 const LineColor = styled.div`
