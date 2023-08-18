@@ -20,11 +20,11 @@ import {
   LEGEND_DATA_DARK,
   LEGEND_DATA_LIGHT,
   lightTheme,
-} from '../models';
-import { getChartData } from '../utils/getChartData';
-import showNotification from '../utils/helpers/showNotification';
+} from '../../models';
+import { getChartData } from '../../utils/getChartData';
+import showNotification from '../../utils/helpers/showNotification';
+import RecordInfo from '../common/RecordInfo';
 import Feedback from './Feedback';
-import RecordInfo from './RecordInfo';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';

@@ -5,13 +5,14 @@ import QueueAnim from 'rc-queue-anim';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import SearchingForm from '../components/common/SearchForm';
+
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
-import MainChart from '@/modules/dashboardPage/components/MainChart';
-import SearchingForm from '@/modules/dashboardPage/components/SearchForm';
-import ZoomView from '@/modules/dashboardPage/components/ZoomView';
-import { getChartData } from '@/modules/dashboardPage/utils/getChartData';
+import MainChart from '@/modules/dashboard/components/ecg/MainChart';
+import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
+import { getChartData } from '@/modules/dashboard/utils/getChartData';
 import {
   fetchRecords,
   getFragment,

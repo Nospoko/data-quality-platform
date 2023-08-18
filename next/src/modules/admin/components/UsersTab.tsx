@@ -7,8 +7,8 @@ import TableUsers from './TableUsers';
 
 import { Organization } from '@/lib/orm/entity/Organization';
 import { User } from '@/lib/orm/entity/User';
-import { getFilteredUsers } from '@/modules/adminPage/utils/helpers/UsersFiltering';
-import useScreenWidth from '@/modules/adminPage/utils/hooks/useScreenWidth';
+import { getFilteredUsers } from '@/modules/admin/utils/helpers/UsersFiltering';
+import useScreenWidth from '@/modules/admin/utils/hooks/useScreenWidth';
 import { UserRole } from '@/types/common';
 
 interface Props {
