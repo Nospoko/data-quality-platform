@@ -6,7 +6,6 @@ RUN  yarn --frozen-lockfile
 
 COPY . /app
 COPY start-prod.sh /start.sh.sh
-RUN chmod +x /start.sh
 
 ARG EXTERNAL_API
 ENV NEXT_PUBLIC_API_URL=$EXTERNAL_API

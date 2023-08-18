@@ -11,7 +11,7 @@ COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
+# RUN chmod +x /start.sh
 
 ENV NEXT_TELEMETRY_DISABLED 1
 
