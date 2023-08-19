@@ -58,6 +58,7 @@ export const sendFeedback = async ({
 };
 
 export const fetchUserRecords = async (
+  datasetName: string,
   skip: number,
   filters: Filter,
   limit = 5,
@@ -65,6 +66,7 @@ export const fetchUserRecords = async (
   const { exams } = filters;
   const response = await axios.get('/api/records/history', {
     params: {
+      datasetName,
       skip,
       exams,
       limit,

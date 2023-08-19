@@ -41,6 +41,7 @@ const DashboardPage = () => {
   const loading = status === 'loading';
 
   const fetchAndUpdateHistoryData = async () => {
+    setIsFetching(true);
     try {
       const response = await fetchRecords(filters);
 
@@ -74,6 +75,7 @@ const DashboardPage = () => {
     limit: number,
     paramFilters?: Filter,
   ) => {
+    setIsFetching(true);
     try {
       const response = await fetchRecords(paramFilters ?? filters, limit);
 
@@ -165,8 +167,6 @@ const DashboardPage = () => {
     ) {
       return;
     }
-
-    setIsFetching(true);
 
     const timeoutId = setTimeout(() => {
       fetchNextPage();

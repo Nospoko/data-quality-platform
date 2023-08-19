@@ -1,14 +1,21 @@
 import { ReactElement } from 'react';
 
 import CustomLayout from '@/components/layouts/layout';
-import HistoryPage from '@/modules/dashboardPage/pages/HistoryPage';
+import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
+import HistoryDatasetSelect from '@/modules/dashboardPage/pages/HistoryDatasetSelect';
+import { UserRole } from '@/types/common';
 
-const History = () => {
-  return <HistoryPage></HistoryPage>;
+const HistoryIndex = () => {
+  return <HistoryDatasetSelect></HistoryDatasetSelect>;
 };
 
-History.getNestedLayout = function getNestedLayout(page: ReactElement) {
+HistoryIndex.getNestedLayout = function getNestedLayout(page: ReactElement) {
   return <CustomLayout>{page}</CustomLayout>;
 };
 
-export default History;
+export default withNecessaryUserRoleAuth(
+  HistoryIndex,
+  HistoryIndex.getNestedLayout,
+  [UserRole.MEMBER, UserRole.ADMIN],
+  '/guide',
+);
