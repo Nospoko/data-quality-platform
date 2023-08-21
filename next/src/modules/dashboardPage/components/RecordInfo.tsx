@@ -28,7 +28,6 @@ const RecordInfo: React.FC<Props> = ({ record }) => {
         <Descriptions.Item label="Exam UID">{exam_uid}</Descriptions.Item>
         <Descriptions.Item label="Position">{position}</Descriptions.Item>
         <Descriptions.Item label="Time">{time as any}</Descriptions.Item>
-        <Descriptions.Item label="Label">{label}</Descriptions.Item>
       </Descriptions>
     </>
   );
