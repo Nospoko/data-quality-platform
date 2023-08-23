@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Layout, Spin, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -18,7 +19,7 @@ import {
   getFragment,
   sendFeedback,
 } from '@/services/reactQueryFn';
-import { Filter, SelectedChartData } from '@/types/common';
+import { EcgFragment, Filter, SelectedChartData } from '@/types/common';
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -40,6 +41,11 @@ const DashboardPage = () => {
 
   const { status } = useSession();
   const loading = status === 'loading';
+
+  const queryClient = useQueryClient();
+
+  const getCachedFragment = () =>
+    queryClient.getQueryData<EcgFragment>(['record', recordsToDisplay[0]?.id]);
 
   const fetchAndUpdateHistoryData = async () => {
     setIsFetching(true);
@@ -204,15 +210,18 @@ const DashboardPage = () => {
 
     setZoomMode(true);
 
-    const { id, exam_uid, position } = recordsToDisplay[0];
-
     try {
-      const fragment = await getFragment(
-        exam_uid,
-        position,
-        datasetName as string,
+      let fragment = getCachedFragment();
+      if (!fragment) {
+        const { exam_uid, position } = recordsToDisplay[0];
+        fragment = await getFragment(exam_uid, position, datasetName as string);
+      }
+
+      const nextChartData = getChartData(
+        recordsToDisplay[0].id,
+        fragment,
+        isDarkMode,
       );
-      const nextChartData = getChartData(id, fragment, isDarkMode);
 
       handleOpenModal(nextChartData);
     } catch (error) {
@@ -237,7 +246,9 @@ const DashboardPage = () => {
           unCheckedChildren="Zoom Mode OFF"
           checked={zoomMode}
           onChange={handleClickZoomMode}
-          disabled={isFetching}
+          disabled={
+            (recordsToDisplay && recordsToDisplay.length === 0) || isFetching
+          }
         />
       </SwitchWrapper>
 
