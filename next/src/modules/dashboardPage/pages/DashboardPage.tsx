@@ -44,14 +44,13 @@ const DashboardPage = () => {
 
   const queryClient = useQueryClient();
 
-  const getCachedFragment = () =>
-    queryClient.getQueryData<EcgFragment>(['record', recordsToDisplay[0]?.id]);
+  const getCachedFragment = (id: string) =>
+    queryClient.getQueryData<EcgFragment>(['record', id]);
 
   const fetchAndUpdateHistoryData = async () => {
     setIsFetching(true);
     try {
       const response = await fetchRecords(datasetName, filters);
-
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
         const newData: Record[] = [...prev, ...response.data];
@@ -89,7 +88,6 @@ const DashboardPage = () => {
         paramFilters ?? filters,
         limit,
       );
-
       setRecordsToDisplay(response.data);
       if (response.total > recordsToDisplay.length + 5) {
         return setHasNextPage(true);
@@ -125,11 +123,12 @@ const DashboardPage = () => {
 
     const { id, exam_uid, position } = record;
     try {
-      const fragment = await getFragment(
-        exam_uid,
-        position,
-        datasetName as string,
-      );
+      let fragment = getCachedFragment(id);
+      //fetch if cached fragment does't exist
+      if (!fragment) {
+        fragment = await getFragment(exam_uid, position, datasetName as string);
+      }
+
       const nextChartData = getChartData(id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
@@ -140,13 +139,14 @@ const DashboardPage = () => {
 
   const addFeedback = useCallback(
     async (id: string, choice: Choice) => {
+      setSelectedChoice(choice);
+      const nextIndex = recordsToDisplay.findIndex((r) => r.id === id);
+      if (nextIndex == -1) {
+        return;
+      }
       await sendFeedback({ id, choice });
 
-      setSelectedChoice(choice);
-
-      const nextIndex = recordsToDisplay.findIndex((r) => r.id === id);
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
-
       setRecordsToDisplay(newRecords);
 
       if (isZoomModal && !zoomMode) {
@@ -211,9 +211,10 @@ const DashboardPage = () => {
     setZoomMode(true);
 
     try {
-      let fragment = getCachedFragment();
+      const { exam_uid, position, id } = recordsToDisplay[0];
+      let fragment = getCachedFragment(id);
+      //fetch if cached fragment does't exist
       if (!fragment) {
-        const { exam_uid, position } = recordsToDisplay[0];
         fragment = await getFragment(exam_uid, position, datasetName as string);
       }
 
