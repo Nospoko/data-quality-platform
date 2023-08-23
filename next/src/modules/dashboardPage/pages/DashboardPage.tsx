@@ -21,7 +21,7 @@ import { Filter, SelectedChartData } from '@/types/common';
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { datasetName } = router.query;
+  const { datasetName } = router.query as { datasetName: string };
 
   const { isDarkMode } = useTheme();
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
@@ -43,7 +43,7 @@ const DashboardPage = () => {
   const fetchAndUpdateHistoryData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetchRecords(filters);
+      const response = await fetchRecords(datasetName, filters);
 
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
@@ -77,7 +77,11 @@ const DashboardPage = () => {
   ) => {
     setIsFetching(true);
     try {
-      const response = await fetchRecords(paramFilters ?? filters, limit);
+      const response = await fetchRecords(
+        datasetName,
+        paramFilters ?? filters,
+        limit,
+      );
 
       setRecordsToDisplay(response.data);
       if (response.total > recordsToDisplay.length + 5) {
@@ -272,8 +276,9 @@ const DashboardPage = () => {
           },
         ]}
       >
-        {recordsToDisplay
-          ? recordsToDisplay.map((record, i) => (
+        {recordsToDisplay && !!recordsToDisplay.length ? (
+          <>
+            {recordsToDisplay.map((record, i) => (
               <MainChart
                 key={record.index}
                 isFirst={i === 0}
@@ -284,12 +289,15 @@ const DashboardPage = () => {
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
               />
-            ))
-          : null}
+            ))}
+            <Button disabled={!hasNextPage} onClick={fetchNextPage}>
+              Load More
+            </Button>
+          </>
+        ) : (
+          <Typography.Text type="secondary">No records found</Typography.Text>
+        )}
       </QueueAnim>
-      <Button disabled={!hasNextPage} onClick={fetchNextPage}>
-        Load More
-      </Button>
     </Layout>
   );
 };

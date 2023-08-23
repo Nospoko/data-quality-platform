@@ -28,12 +28,14 @@ export const getFragment = async (
 };
 
 export const fetchRecords = async (
+  datasetName: string,
   filters: Filter,
   limit = 5,
 ): Promise<RecordsResponse> => {
   const { exams } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
+      datasetName,
       exams,
       limit,
     },
