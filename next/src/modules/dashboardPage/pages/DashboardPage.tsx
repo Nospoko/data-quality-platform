@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import QueueAnim from 'rc-queue-anim';
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
@@ -236,6 +237,7 @@ const DashboardPage = () => {
           unCheckedChildren="Zoom Mode OFF"
           checked={zoomMode}
           onChange={handleClickZoomMode}
+          disabled={isFetching}
         />
       </SwitchWrapper>
 
@@ -249,6 +251,26 @@ const DashboardPage = () => {
           addFeedback={addFeedback}
         />
       )}
+
+      {!selectedChartData &&
+        zoomMode &&
+        createPortal(
+          <ZoomModeLoadingWrapper>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+              }}
+            >
+              <Spin size="large" />
+              <Typography.Text>Loading chart data...</Typography.Text>
+            </div>
+          </ZoomModeLoadingWrapper>,
+          document.body,
+        )}
 
       {loading && (
         <StateWrapper>
@@ -303,6 +325,18 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
+const ZoomModeLoadingWrapper = styled.div`
+  background-color: #00000080;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+`;
 
 const StateWrapper = styled.div`
   display: flex;
