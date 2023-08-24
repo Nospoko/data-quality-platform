@@ -7,6 +7,7 @@ import { useTheme } from '@/app/contexts/ThemeProvider';
 import { ThemeType } from '@/types/common';
 
 declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace JSX {
     interface IntrinsicElements {
       'midi-player': any;
@@ -14,7 +15,6 @@ declare global {
     }
   }
 }
-
 
 export default function MidiPlayer() {
   if (typeof window !== 'undefined') {
@@ -30,30 +30,34 @@ export default function MidiPlayer() {
 
   useEffect(() => {
     const player: any = playerRef.current;
-    const visualizer = visualizerRef.current;
+    const visualizer: any = visualizerRef.current;
 
     if (player && visualizer) {
+      const blockWidth = visualizer.getBoundingClientRect().width - 4 * 2;
+
+      const x = blockWidth / 16;
+      visualizer.config = { pixelsPerTimeStep: x < 20 ? 40 : x * 2 };
+
       player.addVisualizer(visualizer);
     }
   }, []);
 
   return (
     <section>
+      {/* "https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" */}
+      {/* "https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid" */}
       <PlayerWrapper color={theme}>
         <midi-player
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
+          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
           sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
           ref={playerRef}
         />
       </PlayerWrapper>
-      <VisualizerWrapper
-        color={theme}
-        // dangerouslySetInnerHTML={{ __html: midiVisualizer }}
-      >
+      <VisualizerWrapper color={theme}>
         <midi-visualizer
           ref={visualizerRef}
           type="piano-roll"
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
+          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
         />
       </VisualizerWrapper>
     </section>
@@ -61,6 +65,7 @@ export default function MidiPlayer() {
 }
 
 const VisualizerWrapper = styled.div`
+  overflow-x: auto;
   & > midi-visualizer .piano-roll-visualizer {
     background-color: ${(props) =>
       props.color === ThemeType.DARK ? '#282828' : '#fff'};
@@ -71,24 +76,25 @@ const VisualizerWrapper = styled.div`
     overflow: auto;
   }
   & > midi-visualizer svg rect.note {
-    opacity: 0.6;
-    stroke-width: 2;
+    opacity: ${(props) => (props.color === ThemeType.DARK ? 0.4 : 0.7)};
+    stroke-width: 0;
   }
   & > midi-visualizer svg rect.note[data-instrument='0'] {
-    fill: #2699ff;
-    stroke: #1677ff;
+    fill: ${(props) =>
+      props.color === ThemeType.DARK ? '#2699ff' : '#074192'};
+    /* stroke: #1677ff; */
   }
   & > midi-visualizer svg rect.note[data-instrument='2'] {
-    fill: #2ee;
-    stroke: #055;
+    fill: ${(props) =>
+      props.color === ThemeType.DARK ? '#e430cc' : '#7e106f'};
+    /* stroke: #055; */
   }
   & > midi-visualizer svg rect.note[data-is-drum='true'] {
-    fill: #888;
-    stroke: #888;
+    fill: ${(props) => (props.color === ThemeType.DARK ? '#888' : '#535353')};
+    /* stroke: #888; */
   }
   & > midi-visualizer svg rect.note.active {
-    opacity: 0.9;
-    stroke: #000;
+    opacity: 1;
   }
 `;
 
@@ -96,7 +102,7 @@ const PlayerWrapper = styled.div`
   & > midi-player {
     display: block;
     width: inherit;
-    margin-top: 8px;
+    margin-bottom: 8px;
   }
   & > midi-player::part(control-panel) {
     border: 1px solid
