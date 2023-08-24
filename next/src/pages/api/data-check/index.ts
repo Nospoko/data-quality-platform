@@ -16,7 +16,7 @@ router.post(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const { id, choice } = req.body;
+  const { id, choice, comment, rhythm, quality } = req.body;
   const dataCheckRepo = await customGetRepository(DataCheck);
   const recordRepo = await customGetRepository(Record);
   const record = await recordRepo.findOne({ where: { id } });
@@ -29,6 +29,9 @@ router.post(async (req, res) => {
     choice,
     user: session.user.id,
     record,
+    comment,
+    score1: rhythm,
+    score2: quality,
   });
 
   const result = await dataCheckRepo.save(newDataCheck);
@@ -45,7 +48,7 @@ router.patch(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const { dataCheckId, choice } = req.body;
+  const { dataCheckId, choice, comment, rhythm, quality } = req.body;
 
   const dataCheckRepo = await customGetRepository(DataCheck);
   const existingDataCheck = await dataCheckRepo.findOne({
@@ -56,7 +59,13 @@ router.patch(async (req, res) => {
     return res.status(404).json({ error: 'DataCheck not found' });
   }
 
-  existingDataCheck.choice = choice;
+  if (choice) {
+    existingDataCheck.choice = choice;
+  } else {
+    existingDataCheck.comment = comment;
+    existingDataCheck.score1 = rhythm;
+    existingDataCheck.score2 = quality;
+  }
 
   await dataCheckRepo.save(existingDataCheck);
 

@@ -42,50 +42,24 @@ export const fetchRecords = async (
   return response.data;
 };
 
+export type MidiFeedback = {
+  comment?: string;
+  rhythm?: number;
+  quality?: number;
+};
 export const sendFeedback = async ({
   id,
   choice,
+  comment,
+  rhythm,
+  quality,
 }: {
   id: string;
-  choice: string;
-}): Promise<RecordsResponse> => {
+  choice?: string;
+} & MidiFeedback): Promise<RecordsResponse> => {
   const response = await axios.post('/api/data-check', {
     id,
     choice,
-  });
-
-  return response.data;
-};
-
-export type MidiFeedback = {
-  id: string;
-  comment: string | null;
-  rhythm: number;
-  quality: number;
-};
-export const sendFeedbackMidi = async ({
-  id,
-  comment,
-  rhythm,
-  quality,
-}: MidiFeedback): Promise<RecordsResponse> => {
-  const response = await axios.post('/api/data-check/midi', {
-    id,
-    comment,
-    rhythm,
-    quality,
-  });
-
-  return response.data;
-};
-export const changeFeedbackMidi = async ({
-  id,
-  comment,
-  rhythm,
-  quality,
-}: MidiFeedback) => {
-  const response = await axios.patch('/api/data-check/midi', {
-    id,
     comment,
     rhythm,
     quality,
@@ -121,6 +95,27 @@ export const changeChoice = async ({
   const response = await axios.patch('/api/data-check', {
     dataCheckId,
     choice,
+  });
+
+  return response.data;
+};
+
+export const changeMidiFeedback = async ({
+  dataCheckId,
+  comment,
+  rhythm,
+  quality,
+}: {
+  dataCheckId: string;
+  comment: string;
+  rhythm: number;
+  quality: number;
+}): Promise<RecordsResponse> => {
+  const response = await axios.patch('/api/data-check', {
+    dataCheckId,
+    rhythm,
+    quality,
+    comment,
   });
 
   return response.data;

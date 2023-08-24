@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import SearchingForm from '../components/common/SearchForm';
+import MidiChart from '../components/midi/MidiChart';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -18,9 +19,12 @@ import {
   getFragment,
   MidiFeedback,
   sendFeedback,
-  sendFeedbackMidi,
 } from '@/services/reactQueryFn';
 import { Filter, SelectedChartData } from '@/types/common';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
+  | 'ecg_classification'
+  | 'midi_review';
 
 const DashboardPage = () => {
   const router = useRouter();
@@ -156,8 +160,8 @@ const DashboardPage = () => {
   );
 
   const addFeedbackMidi = useCallback(
-    async (midiFeedback: MidiFeedback) => {
-      await sendFeedbackMidi(midiFeedback);
+    async (midiFeedback: MidiFeedback & { id: string }) => {
+      await sendFeedback(midiFeedback);
 
       const nextIndex = recordsToDisplay.findIndex(
         (r) => r.id === midiFeedback.id,
@@ -258,14 +262,16 @@ const DashboardPage = () => {
         <SearchingForm onChangeFilter={addNewFilters} />
       </SearchingFormWrapper>
 
-      <SwitchWrapper>
-        <Switch
-          checkedChildren="Zoom Mode ON"
-          unCheckedChildren="Zoom Mode OFF"
-          checked={zoomMode}
-          onChange={handleClickZoomMode}
-        />
-      </SwitchWrapper>
+      {DATA_PROBLEM === 'ecg_classification' && (
+        <SwitchWrapper>
+          <Switch
+            checkedChildren="Zoom Mode ON"
+            unCheckedChildren="Zoom Mode OFF"
+            checked={zoomMode}
+            onChange={handleClickZoomMode}
+          />
+        </SwitchWrapper>
+      )}
 
       {selectedChartData && (
         <ZoomView
@@ -304,7 +310,7 @@ const DashboardPage = () => {
           },
         ]}
       >
-        {recordsToDisplay
+        {DATA_PROBLEM === 'ecg_classification' && recordsToDisplay
           ? recordsToDisplay.map((record, i) => (
               <MainChart
                 key={record.index}
@@ -314,12 +320,20 @@ const DashboardPage = () => {
                 record={record}
                 datasetName={datasetName as string}
                 addFeedback={addFeedback}
-                addFeedbackMidi={addFeedbackMidi}
                 onClickChart={handleOpenModal}
               />
             ))
           : null}
       </QueueAnim>
+      {DATA_PROBLEM === 'midi_review' &&
+        recordsToDisplay &&
+        recordsToDisplay.map((record) => (
+          <MidiChart
+            key={record.index}
+            record={record}
+            addFeedbackMidi={addFeedbackMidi}
+          />
+        ))}
       <Button disabled={!hasNextPage} onClick={fetchNextPage}>
         Load More
       </Button>

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { Button, Input, Rate, Spin, Typography } from 'antd';
+import { Spin } from 'antd';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React, { forwardRef, memo, useEffect, useMemo, useState } from 'react';
+import React, { forwardRef, memo, useEffect, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
@@ -29,7 +29,7 @@ import Feedback from './Feedback';
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
-import { getFragment, MidiFeedback } from '@/services/reactQueryFn';
+import { getFragment } from '@/services/reactQueryFn';
 import {
   EcgFragment,
   HistoryData,
@@ -49,12 +49,8 @@ interface Props {
   isZoomView: boolean;
   isFetching?: boolean;
   addFeedback: (index: number | string, choice: Choice) => void;
-  addFeedbackMidi: (midiFeedback: MidiFeedback) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
-  comment?: string;
-  rhythm?: number;
-  quality?: number;
 }
 
 ChartJS.register(
@@ -73,14 +69,10 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     datasetName,
     historyData,
     addFeedback,
-    addFeedbackMidi,
     onClickChart,
     isFirst,
     isZoomView,
     isFetching = false,
-    comment,
-    rhythm,
-    quality,
   },
   ref,
 ) => {
@@ -108,18 +100,6 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     }
 
     addFeedback(record.id, choice);
-  };
-
-  const handleClickRate = (midiFeedback: Omit<MidiFeedback, 'id'>) => {
-    if (historyData) {
-      addFeedbackMidi({
-        ...midiFeedback,
-        id: historyData.id,
-      });
-
-      return;
-    }
-    addFeedbackMidi({ id: record.id, ...midiFeedback });
   };
 
   const handleClickChart = () => {
@@ -188,17 +168,6 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isFetching,
   ]);
 
-  const [rate, setRate] = useState<{ rhythm: number; quality: number }>({
-    rhythm: rhythm ?? 0,
-    quality: quality ?? 0,
-  });
-  const [commentValue, setCommentValue] = useState(comment || '');
-
-  const desc = useMemo(
-    () => ['Terrible', 'Bad', 'Average', 'Good', 'Wonderful'],
-    [],
-  );
-
   return (
     <Wrapper ref={ref}>
       <ChartWrapper color={theme}>
@@ -243,49 +212,6 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
               ))}
             </CustomLegend>
           </LegendContainer>
-          {DATA_PROBLEM === 'midi_review' && (
-            <RateContainer>
-              <label style={{ flexGrow: 1 }}>
-                <Typography.Text>Comment</Typography.Text>
-                <Input
-                  style={{ width: 'full' }}
-                  placeholder="Enter your comment here..."
-                  value={commentValue}
-                  onChange={(e) => setCommentValue(e.target.value)}
-                />
-              </label>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography.Text>Rhythm</Typography.Text>
-                <Rate
-                  tooltips={desc}
-                  onChange={(n) => setRate({ ...rate, rhythm: n })}
-                  value={rate?.rhythm}
-                />
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <Typography.Text>Quality</Typography.Text>
-                <Rate
-                  tooltips={desc}
-                  onChange={(n) => setRate({ ...rate, quality: n })}
-                  value={rate?.quality}
-                />
-              </div>
-              <Button
-                onClick={() => {
-                  const midiFeedback: Omit<MidiFeedback, 'id'> = {
-                    comment: commentValue ? commentValue : null,
-                    rhythm: rate?.rhythm,
-                    quality: rate?.quality,
-                  };
-                  handleClickRate(midiFeedback);
-                }}
-                disabled={!rate?.quality || !rate?.rhythm}
-                type="primary"
-              >
-                {historyData ? 'Update' : 'Submit'}
-              </Button>
-            </RateContainer>
-          )}
         </>
       )}
     </Wrapper>
@@ -386,14 +312,6 @@ const CustomLegend = styled.div`
 
 const LegendContainer = styled.div`
   position: relative;
-`;
-
-const RateContainer = styled.div`
-  display: flex;
-  margin-top: 4px;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 24px;
 `;
 
 const LineColor = styled.div`

@@ -4,17 +4,23 @@ import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import MidiChart from '../components/midi/MidiChart';
+
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import SearchingForm from '@/modules/dashboard/components/common/SearchForm';
 import MainChart from '@/modules/dashboard/components/ecg/MainChart';
 import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
 import {
   changeChoice,
-  changeFeedbackMidi,
+  changeMidiFeedback,
   fetchUserRecords,
   MidiFeedback,
 } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
+  | 'ecg_classification'
+  | 'midi_review';
 
 const History = () => {
   const router = useRouter();
@@ -89,8 +95,16 @@ const History = () => {
     setIsConfirmModal(true);
   };
 
-  const changeFeedbackForMidi = async (midiFeedback: MidiFeedback) => {
-    await changeFeedbackMidi(midiFeedback);
+  const changeFeedbackForMidi = async (
+    midiFeedback: MidiFeedback & { id: string },
+  ) => {
+    const { id, comment, quality, rhythm } = midiFeedback;
+    await changeMidiFeedback({
+      dataCheckId: id,
+      comment: comment as string,
+      quality: quality as number,
+      rhythm: rhythm as number,
+    });
     await refetchAndReplaceHistoryData(recordsToDisplay.length);
   };
 
@@ -175,7 +189,7 @@ const History = () => {
         </StateWrapper>
       )}
 
-      {recordsToDisplay
+      {DATA_PROBLEM === 'ecg_classification' && recordsToDisplay
         ? recordsToDisplay.map((history) => (
             <MainChart
               datasetName={datasetName as string}
@@ -183,17 +197,23 @@ const History = () => {
               record={history.record}
               isFirst={false}
               addFeedback={changeFeedback}
-              addFeedbackMidi={changeFeedbackForMidi}
               onClickChart={handleOpenModal}
               historyData={history}
               isZoomView={false}
               isFetching={false}
-              comment={history.comment}
-              rhythm={history.score1}
-              quality={history.score2}
             />
           ))
         : null}
+      {DATA_PROBLEM === 'midi_review' &&
+        recordsToDisplay &&
+        recordsToDisplay.map((history) => (
+          <MidiChart
+            key={history.record.id}
+            record={history.record}
+            addFeedbackMidi={changeFeedbackForMidi}
+            historyData={history}
+          />
+        ))}
       <Button disabled={!hasNextPage} onClick={fetchNextPage}>
         Load More
       </Button>
