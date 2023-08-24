@@ -62,7 +62,7 @@ const DashboardDatasetSelect = () => {
       return;
     }
 
-    router.push(`/dashboard/${datasetName}`);
+    router.push(`/dashboard/${encodeURIComponent(datasetName)}`);
   };
 
   return (
