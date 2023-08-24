@@ -1,39 +1,61 @@
-import 'html-midi-player';
+import 'focus-visible/dist/focus-visible.min.js';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { styled } from 'styled-components';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { ThemeType } from '@/types/common';
 
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      'midi-player': any;
+      'midi-visualizer': any;
+    }
+  }
+}
+
+
 export default function MidiPlayer() {
+  if (typeof window !== 'undefined') {
+    require('tone/build/Tone.js');
+    require('@magenta/music/es6/core.js');
+    require('html-midi-player');
+  }
+
   const { theme } = useTheme();
 
-  const midiVisualizer = `
-    <midi-visualizer
-      id="visualizer"
-      type="piano-roll"
-      src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
-    />
-  `;
-  const midiPlayer = `
-    <midi-player
-      src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
-      sound-font
-      visualizer="#visualizer"
-    />
-  `;
+  const playerRef = useRef(null);
+  const visualizerRef = useRef(null);
+
+  useEffect(() => {
+    const player: any = playerRef.current;
+    const visualizer = visualizerRef.current;
+
+    if (player && visualizer) {
+      player.addVisualizer(visualizer);
+    }
+  }, []);
 
   return (
     <section>
+      <PlayerWrapper color={theme}>
+        <midi-player
+          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
+          sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
+          ref={playerRef}
+        />
+      </PlayerWrapper>
       <VisualizerWrapper
         color={theme}
-        dangerouslySetInnerHTML={{ __html: midiVisualizer }}
-      />
-      <PlayerWrapper
-        color={theme}
-        dangerouslySetInnerHTML={{ __html: midiPlayer }}
-      />
+        // dangerouslySetInnerHTML={{ __html: midiVisualizer }}
+      >
+        <midi-visualizer
+          ref={visualizerRef}
+          type="piano-roll"
+          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid"
+        />
+      </VisualizerWrapper>
     </section>
   );
 }

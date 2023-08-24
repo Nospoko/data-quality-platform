@@ -1726,7 +1726,7 @@
   resolved "https://registry.yarnpkg.com/@kurkle/color/-/color-0.3.2.tgz#5acd38242e8bde4f9986e7913c8fdf49d3aa199f"
   integrity sha512-fuscdXJ9G1qb7W8VdHi+IwRqij3lBkosAm4ydQtEmbY58OzHXqQhvlxqEkoz0yssNVn38bcpRWgA9PP+OGoisw==
 
-"@magenta/music@^1.22.1":
+"@magenta/music@^1.22.1", "@magenta/music@^1.23.1":
   version "1.23.1"
   resolved "https://registry.yarnpkg.com/@magenta/music/-/music-1.23.1.tgz#ef4e49e0744285e7636a6170cf66c4dad91bf0f9"
   integrity sha512-MKIf5nU5fJg/j0y+zCeuQuhA5D4TD0hWv+crOpNQLq7TRJ5GQnlz4WuShYzSw/gXj2ncWuYGr6ftP9DvqSsQkA==
@@ -4353,6 +4353,11 @@ flubber@^0.4.2:
     svg-path-properties "^0.2.1"
     svgpath "^2.2.1"
     topojson-client "^3.0.0"
+
+focus-visible@^5.2.0:
+  version "5.2.0"
+  resolved "https://registry.yarnpkg.com/focus-visible/-/focus-visible-5.2.0.tgz#3a9e41fccf587bd25dcc2ef045508284f0a4d6b3"
+  integrity sha512-Rwix9pBtC1Nuy5wysTmKy+UjbDJpIfg8eHjw0rjZ1mX4GNLz1Bmd16uDpI3Gk1i70Fgcs8Csg2lPm8HULFg9DQ==
 
 follow-redirects@^1.15.0:
   version "1.15.2"
