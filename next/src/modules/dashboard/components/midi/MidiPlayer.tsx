@@ -70,7 +70,7 @@ export default function MidiPlayer() {
       {/* "https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid" */}
       <PlayerWrapper color={theme}>
         <midi-player
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
+          src="http://0.0.0.0:8080/midi_file"
           sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
           ref={playerRef}
         />
@@ -79,7 +79,7 @@ export default function MidiPlayer() {
         <midi-visualizer
           ref={visualizerRef}
           type="piano-roll"
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
+          src="http://0.0.0.0:8080/midi_file"
         />
       </VisualizerWrapper>
     </section>

@@ -5,6 +5,11 @@ from datasets import load_dataset, Dataset, concatenate_datasets
 from app import config as C
 
 
+def get():
+    dataset = load_dataset("roszcz/giant-midi-sustain", split="train")
+    return dataset
+
+
 def prepare_database(dataset_name: str) -> Dataset:
     token = os.getenv("HF_TOKEN")
     dataset = load_dataset(dataset_name, split="train", use_auth_token=token)

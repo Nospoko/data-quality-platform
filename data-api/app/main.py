@@ -1,4 +1,7 @@
+import io
+import fortepyan as ff
 from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import config as C
@@ -19,7 +22,8 @@ app.add_middleware(
 )
 
 
-dataset = app_utils.prepare_database(C.DATASET_NAME)
+# dataset = app_utils.prepare_database(C.DATASET_NAME)
+dataset = app_utils.get()
 
 
 @app.get("/ping")
@@ -31,6 +35,16 @@ async def ping():
 async def record(record_id: int):
     r = dataset[record_id]
     return r
+
+@app.get("/midi_file")
+async def download_midi():
+    piece = ff.MidiPiece.from_huggingface(dataset[3])
+    midi = piece.to_midi()
+    # Write the MIDI data to a BytesIO buffer
+    buffer = io.BytesIO()
+    midi.write(buffer)
+    buffer.seek(0) 
+    return StreamingResponse(buffer, media_type="audio/midi", headers={"Content-Disposition": "attachment;filename=output.midi"})
 
 
 @app.get("/data")
