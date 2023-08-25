@@ -37,7 +37,7 @@ const ZoomView: React.FC<Props> = ({
   const [selectedDecision, setSelectedDecision] = useState<Choice | null>(null);
 
   const { id, fragment, data, decision } = chartData;
-  const { label, position, exam_uid } = fragment;
+  const { position, exam_uid } = fragment;
 
   const handleDecision = (choice: Choice) => {
     if (decision?.choice === choice) {

@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 
+import withNecessaryUserRoleAuth from '@/components/hoc/withNecessaryUserRoleAuth';
 import CustomLayout from '@/components/layouts/layout';
-import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
-import HistoryPage from '@/modules/dashboardPage/pages/HistoryPage';
+import HistoryPage from '@/modules/dashboard/pages/HistoryPage';
 import { UserRole } from '@/types/common';
 
 const History = () => {
