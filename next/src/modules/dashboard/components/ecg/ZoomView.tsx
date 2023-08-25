@@ -168,9 +168,6 @@ const ZoomView: React.FC<Props> = ({
 
           <AdditionalWrapper color={theme}>
             <FragmentTitle>
-              Label: <FragmentInfo>{label}</FragmentInfo>
-            </FragmentTitle>
-            <FragmentTitle>
               Position: <FragmentInfo>{position}</FragmentInfo>
             </FragmentTitle>
             <FragmentTitle>

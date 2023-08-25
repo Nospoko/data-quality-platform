@@ -15,6 +15,7 @@ router.get(async (req, res) => {
   if (!session) {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
+  const datasetName = req.query.datasetName as string;
   const limit = Number(req.query.limit) || 10;
   const exams = req.query['exams[]'];
   const examIds = Array.isArray(exams) ? exams : [exams];
@@ -24,7 +25,8 @@ router.get(async (req, res) => {
   const query = recordsRepo
     .createQueryBuilder('record')
     .leftJoinAndSelect('record.dataChecks', 'dataCheck')
-    .where(
+    .where('record.dataset_name = :datasetName', { datasetName })
+    .andWhere(
       (qb) => {
         const subQuery = qb
           .subQuery()
@@ -42,15 +44,15 @@ router.get(async (req, res) => {
     await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
   }
 
-  const total = await query.getCount();
-
   // I've added the orderBy('RANDOM()') clause to the query,
   // which orders the records randomly.
-  const recordsWithoutUserCheck = await query.orderBy('RANDOM()').getMany();
-  const randomRecordsWithoutUserCheck = recordsWithoutUserCheck.slice(0, limit);
+  const [recordsWithoutUserCheck, total] = await query
+    .orderBy('RANDOM()')
+    .limit(limit)
+    .getManyAndCount();
 
   res.status(200).json({
-    data: randomRecordsWithoutUserCheck,
+    data: recordsWithoutUserCheck,
     total,
     limit,
   });

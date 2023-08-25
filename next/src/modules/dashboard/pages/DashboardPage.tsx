@@ -1,8 +1,10 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Button, Layout, Spin, Switch, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import QueueAnim from 'rc-queue-anim';
 import React, { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 import SearchingForm from '../components/common/SearchForm';
@@ -20,7 +22,7 @@ import {
   MidiFeedback,
   sendFeedback,
 } from '@/services/reactQueryFn';
-import { Filter, SelectedChartData } from '@/types/common';
+import { EcgFragment, Filter, SelectedChartData } from '@/types/common';
 
 const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
   | 'ecg_classification'
@@ -28,7 +30,7 @@ const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
 
 const DashboardPage = () => {
   const router = useRouter();
-  const { datasetName } = router.query;
+  const { datasetName } = router.query as { datasetName: string };
 
   const { isDarkMode } = useTheme();
   const [recordsToDisplay, setRecordsToDisplay] = useState<Record[]>([]);
@@ -47,10 +49,15 @@ const DashboardPage = () => {
   const { status } = useSession();
   const loading = status === 'loading';
 
-  const fetchAndUpdateHistoryData = async () => {
-    try {
-      const response = await fetchRecords(filters);
+  const queryClient = useQueryClient();
 
+  const getCachedFragment = (id: string) =>
+    queryClient.getQueryData<EcgFragment>(['record', id]);
+
+  const fetchAndUpdateHistoryData = async () => {
+    setIsFetching(true);
+    try {
+      const response = await fetchRecords(datasetName, filters);
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
         const newData: Record[] = [...prev, ...response.data];
@@ -81,9 +88,13 @@ const DashboardPage = () => {
     limit: number,
     paramFilters?: Filter,
   ) => {
+    setIsFetching(true);
     try {
-      const response = await fetchRecords(paramFilters ?? filters, limit);
-
+      const response = await fetchRecords(
+        datasetName,
+        paramFilters ?? filters,
+        limit,
+      );
       setRecordsToDisplay(response.data);
       if (response.total > recordsToDisplay.length + 5) {
         return setHasNextPage(true);
@@ -119,11 +130,12 @@ const DashboardPage = () => {
 
     const { id, exam_uid, position } = record;
     try {
-      const fragment = await getFragment(
-        exam_uid,
-        position,
-        datasetName as string,
-      );
+      let fragment = getCachedFragment(id);
+      //fetch if cached fragment does't exist
+      if (!fragment) {
+        fragment = await getFragment(exam_uid, position, datasetName as string);
+      }
+
       const nextChartData = getChartData(id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
@@ -134,13 +146,14 @@ const DashboardPage = () => {
 
   const addFeedback = useCallback(
     async (id: string, choice: Choice) => {
+      setSelectedChoice(choice);
+      const nextIndex = recordsToDisplay.findIndex((r) => r.id === id);
+      if (nextIndex == -1) {
+        return;
+      }
       await sendFeedback({ id, choice });
 
-      setSelectedChoice(choice);
-
-      const nextIndex = recordsToDisplay.findIndex((r) => r.id === id);
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
-
       setRecordsToDisplay(newRecords);
 
       if (isZoomModal && !zoomMode) {
@@ -202,8 +215,6 @@ const DashboardPage = () => {
       return;
     }
 
-    setIsFetching(true);
-
     const timeoutId = setTimeout(() => {
       fetchNextPage();
     }, 500);
@@ -235,15 +246,19 @@ const DashboardPage = () => {
 
     setZoomMode(true);
 
-    const { id, exam_uid, position } = recordsToDisplay[0];
-
     try {
-      const fragment = await getFragment(
-        exam_uid,
-        position,
-        datasetName as string,
+      const { exam_uid, position, id } = recordsToDisplay[0];
+      let fragment = getCachedFragment(id);
+      //fetch if cached fragment does't exist
+      if (!fragment) {
+        fragment = await getFragment(exam_uid, position, datasetName as string);
+      }
+
+      const nextChartData = getChartData(
+        recordsToDisplay[0].id,
+        fragment,
+        isDarkMode,
       );
-      const nextChartData = getChartData(id, fragment, isDarkMode);
 
       handleOpenModal(nextChartData);
     } catch (error) {
@@ -283,6 +298,26 @@ const DashboardPage = () => {
           addFeedback={addFeedback}
         />
       )}
+
+      {!selectedChartData &&
+        zoomMode &&
+        createPortal(
+          <ZoomModeLoadingWrapper>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 12,
+              }}
+            >
+              <Spin size="large" />
+              <Typography.Text>Loading chart data...</Typography.Text>
+            </div>
+          </ZoomModeLoadingWrapper>,
+          document.body,
+        )}
 
       {loading && (
         <StateWrapper>
@@ -342,6 +377,18 @@ const DashboardPage = () => {
 };
 
 export default DashboardPage;
+
+const ZoomModeLoadingWrapper = styled.div`
+  background-color: #00000080;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+`;
 
 const StateWrapper = styled.div`
   display: flex;

@@ -1,4 +1,4 @@
-import { Button, Modal, Spin } from 'antd';
+import { Button, Modal, Spin, Typography } from 'antd';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -24,7 +24,7 @@ const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
 
 const History = () => {
   const router = useRouter();
-  const { datasetName } = router.query;
+  const { datasetName } = router.query as { datasetName: string };
 
   const [recordsToDisplay, setRecordsToDisplay] = useState<HistoryData[]>([]);
   const [selectedChartData, setSelectedChartData] =
@@ -46,7 +46,7 @@ const History = () => {
 
   const fetchAndUpdateHistoryData = async (skip: number) => {
     try {
-      const response = await fetchUserRecords(skip, filters);
+      const response = await fetchUserRecords(datasetName, skip, filters);
       const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
         acc[d.record.index] = true;
         return acc;
@@ -72,6 +72,7 @@ const History = () => {
   ) => {
     try {
       const response = await fetchUserRecords(
+        datasetName,
         0,
         paramFilters ?? filters,
         limit,
@@ -167,6 +168,11 @@ const History = () => {
       >
         <p>Are you sure you want to change the feedback?</p>
       </Modal>
+
+      <Typography.Title style={{ margin: 0 }}>History</Typography.Title>
+      <Typography.Title style={{ marginBottom: '16px' }} level={5}>
+        Dataset Name: {datasetName}
+      </Typography.Title>
 
       <SearchingFormWrapper>
         <SearchingForm onChangeFilter={addNewFilters} />

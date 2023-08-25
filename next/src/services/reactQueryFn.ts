@@ -28,12 +28,14 @@ export const getFragment = async (
 };
 
 export const fetchRecords = async (
+  datasetName: string,
   filters: Filter,
   limit = 5,
 ): Promise<RecordsResponse> => {
   const { exams } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
+      datasetName,
       exams,
       limit,
     },
@@ -69,6 +71,7 @@ export const sendFeedback = async ({
 };
 
 export const fetchUserRecords = async (
+  datasetName: string,
   skip: number,
   filters: Filter,
   limit = 5,
@@ -76,6 +79,7 @@ export const fetchUserRecords = async (
   const { exams } = filters;
   const response = await axios.get('/api/records/history', {
     params: {
+      datasetName,
       skip,
       exams,
       limit,
