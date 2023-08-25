@@ -28,18 +28,40 @@ export default function MidiPlayer() {
   const playerRef = useRef(null);
   const visualizerRef = useRef(null);
 
+  const [finished, setFinished] = React.useState(false);
+
   useEffect(() => {
     const player: any = playerRef.current;
     const visualizer: any = visualizerRef.current;
+    if (finished && player && visualizer) {
+      player.currentTime = 0;
+      visualizer.childNodes[0].scrollTo(0, 0);
+
+      setFinished(false);
+    }
+  }, [finished]);
+
+  useEffect(() => {
+    const player: any = playerRef.current;
+    const visualizer: any = visualizerRef.current;
+    const detectFinish = (e: { detail: { finished: boolean } }) => {
+      setFinished(e.detail.finished);
+    };
 
     if (player && visualizer) {
-      const blockWidth = visualizer.getBoundingClientRect().width - 4 * 2;
+      player.addEventListener('stop', detectFinish);
 
+      const blockWidth = visualizer.getBoundingClientRect().width - 4 * 2;
       const x = blockWidth / 16;
       visualizer.config = { pixelsPerTimeStep: x < 20 ? 40 : x * 2 };
 
       player.addVisualizer(visualizer);
     }
+
+    return () => {
+      player.removeVisualizer(visualizer);
+      player.removeEventListener('stop', detectFinish);
+    };
   }, []);
 
   return (
