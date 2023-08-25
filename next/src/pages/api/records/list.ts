@@ -44,15 +44,15 @@ router.get(async (req, res) => {
     await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
   }
 
-  const total = await query.getCount();
-
   // I've added the orderBy('RANDOM()') clause to the query,
   // which orders the records randomly.
-  const recordsWithoutUserCheck = await query.orderBy('RANDOM()').getMany();
-  const randomRecordsWithoutUserCheck = recordsWithoutUserCheck.slice(0, limit);
+  const [recordsWithoutUserCheck, total] = await query
+    .orderBy('RANDOM()')
+    .limit(limit)
+    .getManyAndCount();
 
   res.status(200).json({
-    data: randomRecordsWithoutUserCheck,
+    data: recordsWithoutUserCheck,
     total,
     limit,
   });
