@@ -22,8 +22,12 @@ app.add_middleware(
 )
 
 
-# dataset = app_utils.prepare_database(C.DATASET_NAME)
-dataset = app_utils.get()
+if C.DATA_PROBLEM == "ecg_classification":
+    dataset = app_utils.prepare_ecg_classification(C.DATASET_NAME)
+elif C.DATA_PROBLEM == "midi_review":
+    dataset = app_utils.prepare_midi_review(C.DATASET_NAME)
+else:
+    raise NotImplementedError("Incorrect data problem")
 
 
 @app.get("/ping")
@@ -36,9 +40,11 @@ async def record(record_id: int):
     r = dataset[record_id]
     return r
 
-@app.get("/midi_file")
-async def download_midi():
-    piece = ff.MidiPiece.from_huggingface(dataset[3])
+@app.get("/midi_file/{record_id}")
+async def download_midi(record_id: int):
+    piece = ff.MidiPiece.from_huggingface(dataset[record_id])
+    piece.time_shift(-piece.df.start.min())
+
     midi = piece.to_midi()
     # Write the MIDI data to a BytesIO buffer
     buffer = io.BytesIO()

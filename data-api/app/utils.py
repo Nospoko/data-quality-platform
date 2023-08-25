@@ -5,12 +5,36 @@ from datasets import load_dataset, Dataset, concatenate_datasets
 from app import config as C
 
 
-def get():
-    dataset = load_dataset("roszcz/giant-midi-sustain", split="train")
+def prepare_midi_review(dataset_name: str) -> Dataset:
+    token = os.getenv("HF_TOKEN")
+    dataset = load_dataset(dataset_name, split="train", use_auth_token=token)
+    engine = sa.create_engine(C.PG_DSN)
+
+    query = sa.text("SELECT EXISTS(SELECT 1 FROM records WHERE dataset_name = :name)")
+    with engine.connect() as c:
+        res = c.execute(query, {"name": dataset_name})
+        dataset_present = res.scalar()
+
+    if dataset_present:
+        print("Dataset already ingested", dataset_name)
+    else:
+        # This is the fastest way I now to add a column to hf dataset
+        # It's not pretty
+        metadata = [{
+            "dataset_name": dataset_name,
+            "midi_file_path": f"midi_file/{idx}",
+        } for idx in range(dataset.num_rows)]
+        meta_dataset = Dataset.from_list(metadata)
+        dataset = concatenate_datasets([dataset, meta_dataset], axis=1)
+
+        print("Populating records table")
+        columns = ["midi_file_path", "dataset_name", "midi_filename"]
+        dataset.select_columns(columns).to_sql("midi_records", con=engine, index=True, if_exists="append")
+
     return dataset
 
 
-def prepare_database(dataset_name: str) -> Dataset:
+def prepare_ecg_classification(dataset_name: str) -> Dataset:
     token = os.getenv("HF_TOKEN")
     dataset = load_dataset(dataset_name, split="train", use_auth_token=token)
     dataset = dataset.filter(lambda e: e['to_review'])
