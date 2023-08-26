@@ -40,6 +40,7 @@ async def record(record_id: int):
     r = dataset[record_id]
     return r
 
+
 @app.get("/midi_file/{record_id}")
 async def download_midi(record_id: int):
     piece = ff.MidiPiece.from_huggingface(dataset[record_id])
@@ -49,7 +50,7 @@ async def download_midi(record_id: int):
     # Write the MIDI data to a BytesIO buffer
     buffer = io.BytesIO()
     midi.write(buffer)
-    buffer.seek(0) 
+    buffer.seek(0)
     return StreamingResponse(buffer, media_type="audio/midi", headers={"Content-Disposition": "attachment;filename=output.midi"})
 
 

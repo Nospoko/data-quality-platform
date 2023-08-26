@@ -1,4 +1,3 @@
-import os
 import sqlalchemy as sa
 from datasets import load_dataset, Dataset, concatenate_datasets
 
@@ -6,8 +5,6 @@ from app import config as C
 
 
 def prepare_midi_review(dataset_name: str) -> Dataset:
-    token = os.getenv("HF_TOKEN")
-    dataset = load_dataset(dataset_name, split="train", use_auth_token=token)
     engine = sa.create_engine(C.PG_DSN)
 
     query = sa.text("SELECT EXISTS(SELECT 1 FROM records WHERE dataset_name = :name)")
@@ -18,25 +15,27 @@ def prepare_midi_review(dataset_name: str) -> Dataset:
     if dataset_present:
         print("Dataset already ingested", dataset_name)
     else:
+        print("Ingesting dataset", dataset_name)
+        dataset = load_dataset(dataset_name, split="train", use_auth_token=C.HF_TOKEN)
         # This is the fastest way I now to add a column to hf dataset
         # It's not pretty
         metadata = [{
+            "idx": idx,
             "dataset_name": dataset_name,
-            "midi_file_path": f"midi_file/{idx}",
-        } for idx in range(dataset.num_rows)]
-        meta_dataset = Dataset.from_list(metadata)
-        dataset = concatenate_datasets([dataset, meta_dataset], axis=1)
+            "metadata": {
+                "midi_filename": record["midi_filename"],
+            }
+        } for idx, record in enumerate(dataset)]
 
-        print("Populating records table")
-        columns = ["midi_file_path", "dataset_name", "midi_filename"]
-        dataset.select_columns(columns).to_sql("midi_records", con=engine, index=True, if_exists="append")
+        meta_dataset = Dataset.from_list(metadata)
+        types = {"metadata": sa.types.JSON}
+        meta_dataset.to_sql("midi_records", con=engine, index=True, if_exists="append", dtype=types)
 
     return dataset
 
 
 def prepare_ecg_classification(dataset_name: str) -> Dataset:
-    token = os.getenv("HF_TOKEN")
-    dataset = load_dataset(dataset_name, split="train", use_auth_token=token)
+    dataset = load_dataset(dataset_name, split="train", use_auth_token=C.HF_TOKEN)
     dataset = dataset.filter(lambda e: e['to_review'])
     engine = sa.create_engine(C.PG_DSN)
 
