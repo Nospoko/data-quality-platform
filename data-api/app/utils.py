@@ -12,11 +12,11 @@ def prepare_midi_review(dataset_name: str) -> Dataset:
         res = c.execute(query, {"name": dataset_name})
         dataset_present = res.scalar()
 
+    dataset = load_dataset(dataset_name, split="train", use_auth_token=C.HF_TOKEN)
     if dataset_present:
         print("Dataset already ingested", dataset_name)
     else:
         print("Ingesting dataset", dataset_name)
-        dataset = load_dataset(dataset_name, split="train", use_auth_token=C.HF_TOKEN)
         # This is the fastest way I now to add a column to hf dataset
         # It's not pretty
         metadata = [{
