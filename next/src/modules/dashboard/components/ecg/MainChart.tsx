@@ -10,7 +10,7 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
-import React, { forwardRef, memo, useEffect, useState } from 'react';
+import React, { forwardRef, memo, useEffect, useMemo, useState } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
@@ -21,6 +21,7 @@ import {
   LEGEND_DATA_LIGHT,
   lightTheme,
 } from '../../models';
+import { mockEcgRanges } from '../../models';
 import { getChartData } from '../../utils/getChartData';
 import showNotification from '../../utils/helpers/showNotification';
 import RecordInfo from '../common/RecordInfo';
@@ -81,7 +82,13 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   const { theme, isDarkMode } = useTheme();
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
-  const chartSettings = getChartSettings(theme);
+  const chartSettings = useMemo(
+    () =>
+      DATA_PROBLEM === 'ecg_classification'
+        ? getChartSettings(theme, mockEcgRanges, chartData?.data?.labels)
+        : getChartSettings(theme),
+    [theme, chartData],
+  );
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],

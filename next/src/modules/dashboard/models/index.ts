@@ -120,7 +120,11 @@ type MyChartOptions = ChartOptions<'line'> & {
   events: ChartEvent[];
 };
 
-export const getChartSettings = (theme: string): MyChartOptions => {
+export const getChartSettings = (
+  theme: string,
+  ranges?: Record<string, [number, number]>,
+  labels?: string[],
+): MyChartOptions => {
   const colorCollection = theme === ThemeType.DARK ? darkTheme : lightTheme;
 
   return {
@@ -161,6 +165,7 @@ export const getChartSettings = (theme: string): MyChartOptions => {
         },
         grid: { display: false },
       },
+      ...(ranges && labels && getRangesScales(ranges, labels)),
     },
     maintainAspectRatio: false,
     plugins: {
@@ -171,4 +176,102 @@ export const getChartSettings = (theme: string): MyChartOptions => {
     },
     events: [],
   };
+};
+
+type RangeConf = Record<
+  string,
+  { left: number; center: number; right: number; color: string }
+>;
+
+// hard-code ranges for ECG
+export const mockEcgRanges = {
+  P: [0.6, 0.9],
+  Q: [1.6, 1.9],
+  R: [2.8, 3.2],
+  S: [3.6, 3.9],
+  T: [4.6, 4.9],
+} as Record<string, [number, number]>;
+
+const rangeColors = ['red', 'green', 'blue'];
+
+const getRangesScales = (
+  ranges: Record<string, [number, number]>,
+  labels: string[],
+  yStart = 2,
+) => {
+  const labelIndexToRangeLabel: Record<number, string> = {};
+
+  const rangeConf = Object.entries(ranges).reduce(
+    (acc: RangeConf, [label, range], index) => {
+      const left = findClosestLabelIndex(labels, range[0]);
+      const right = findClosestLabelIndex(labels, range[1], left);
+      const center = Math.floor((left + right) / 2);
+
+      acc[label] = {
+        left,
+        center,
+        right,
+        color: rangeColors[index % rangeColors.length],
+      };
+
+      labelIndexToRangeLabel[center] = label;
+
+      return acc;
+    },
+    {},
+  );
+
+  const scales: ChartOptions<'line'>['scales'] = {};
+
+  let yIndex = yStart;
+
+  // add scales for range lines
+  Object.keys(ranges).forEach((label) => {
+    scales[`y${++yIndex}`] = {
+      position: { x: rangeConf[label].left },
+      border: { color: rangeConf[label].color, width: 3 },
+      ticks: { display: false },
+      grid: { display: false },
+    };
+
+    scales[`y${++yIndex}`] = {
+      position: { x: rangeConf[label].right },
+      border: { color: rangeConf[label].color, width: 3 },
+      ticks: { display: false },
+      grid: { display: false },
+    };
+  });
+
+  // add scale for range labels
+  scales[`y${++yIndex}`] = {
+    position: 'top',
+    ticks: {
+      callback: (val) => labelIndexToRangeLabel[val],
+      color: (ctx) =>
+        typeof ctx.tick.label === 'string'
+          ? rangeConf[ctx.tick.label]?.color
+          : undefined,
+    },
+  };
+
+  return scales;
+};
+
+const findClosestLabelIndex = (arr: string[], val: number, startFrom = 0) => {
+  let lo = startFrom;
+  let hi = arr.length;
+  const target = val.toFixed(2);
+  do {
+    const mid = Math.floor(lo + (hi - lo) / 2);
+    const cur = arr[mid];
+    if (cur === target) {
+      return mid;
+    }
+    if (+cur > val) {
+      hi = mid;
+    } else {
+      lo = mid + 1;
+    }
+  } while (lo < hi);
+  return lo;
 };
