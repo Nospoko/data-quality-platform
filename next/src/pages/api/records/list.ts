@@ -15,8 +15,7 @@ router.get(async (req, res) => {
   if (!session) {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
-  // const datasetName = req.query.datasetName as string;
-  const datasetName = 'roszcz/qrs-swipe-demo';
+  const datasetName = req.query.datasetName as string;
   const limit = Number(req.query.limit) || 10;
   const exams = req.query['exams[]'];
   const examIds = Array.isArray(exams) ? exams : [exams];
