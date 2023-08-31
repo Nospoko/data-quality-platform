@@ -178,10 +178,7 @@ export const getChartSettings = (
   };
 };
 
-type RangeConf = Record<
-  string,
-  { left: number; center: number; right: number; color: string }
->;
+type RangeConf = Record<string, { left: number; right: number; color: string }>;
 
 // hard-code ranges for ECG
 export const mockEcgRanges = {
@@ -194,6 +191,15 @@ export const mockEcgRanges = {
 
 const rangeColors = ['red', 'green', 'blue'];
 
+/**
+ * For each range create a y-scale (vertical line) at its left and right boundaries,
+ * and add a label at the center of the range.
+ *
+ * @param {Object.<string, number[]>} ranges
+ * @param {string[]} labels
+ * @param {?number} [yStart=2] (Optional) id offset for y-scales to be created (`y2`, `y3`, ...)
+ * @returns chartjs `scales` object
+ */
 const getRangesScales = (
   ranges: Record<string, [number, number]>,
   labels: string[],
@@ -201,22 +207,23 @@ const getRangesScales = (
 ) => {
   const labelIndexToRangeLabel: Record<number, string> = {};
 
+  // for each range get the label index at it's boundaries and it's center,
+  // and assign a color for the range
   const rangeConf = Object.entries(ranges).reduce(
-    (acc: RangeConf, [label, range], index) => {
+    (conf: RangeConf, [label, range], index) => {
       const left = findClosestLabelIndex(labels, range[0]);
       const right = findClosestLabelIndex(labels, range[1], left);
       const center = Math.floor((left + right) / 2);
 
-      acc[label] = {
+      conf[label] = {
         left,
-        center,
         right,
         color: rangeColors[index % rangeColors.length],
       };
 
       labelIndexToRangeLabel[center] = label;
 
-      return acc;
+      return conf;
     },
     {},
   );
@@ -257,7 +264,17 @@ const getRangesScales = (
   return scales;
 };
 
+/**
+ * Given an array of labels e.g. `["1.00", "1.46", "2.05", ...]` and a number `val`,
+ * return the index of the label that is closest to the `val` (if `val = 1.5` return `1`).
+ *
+ * @param {string[]} arr array of labels `[number.toFixed(2)]`
+ * @param {number} val search for label that is or closest to `val.toFixed(2)`
+ * @param {?number} [startFrom=0] (Optional) index in `arr` to start searching from
+ * @returns {number}
+ */
 const findClosestLabelIndex = (arr: string[], val: number, startFrom = 0) => {
+  // regular binary search
   let lo = startFrom;
   let hi = arr.length;
   const target = val.toFixed(2);
