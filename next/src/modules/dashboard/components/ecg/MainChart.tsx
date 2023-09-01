@@ -83,10 +83,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
   const chartSettings = useMemo(
-    () =>
-      DATA_PROBLEM === 'ecg_classification'
-        ? getChartSettings(theme, mockEcgRanges, chartData?.data?.labels)
-        : getChartSettings(theme),
+    () => getChartSettings(theme, mockEcgRanges, chartData?.data?.labels),
     [theme, chartData],
   );
 

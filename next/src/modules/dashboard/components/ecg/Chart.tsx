@@ -23,10 +23,6 @@ import { getLimits } from '../../utils/getRange';
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { ChartData, ThemeType } from '@/types/common';
 
-const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
-  | 'ecg_classification'
-  | 'midi_review';
-
 interface Props {
   data: ChartData;
 }
@@ -44,10 +40,7 @@ ChartJS.register(
 const Chart: React.FC<Props> = ({ data }) => {
   const { theme } = useTheme();
   const chartSettings = useMemo(
-    () =>
-      DATA_PROBLEM === 'ecg_classification'
-        ? getChartSettings(theme, mockEcgRanges, data.labels)
-        : getChartSettings(theme),
+    () => getChartSettings(theme, mockEcgRanges, data.labels),
     [theme, data],
   );
 
