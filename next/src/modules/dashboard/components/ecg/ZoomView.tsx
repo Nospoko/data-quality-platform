@@ -2,6 +2,7 @@ import { Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
+import { ChartRanges } from '../../models';
 import Chart from './Chart';
 import Feedback from './Feedback';
 
@@ -21,6 +22,7 @@ interface Props {
   isFetching?: boolean;
   onClose: () => void;
   addFeedback: (index: number | string, choice: Choice) => void;
+  ranges?: ChartRanges;
 }
 
 const ZoomView: React.FC<Props> = ({
@@ -30,6 +32,7 @@ const ZoomView: React.FC<Props> = ({
   isFetching = false,
   onClose,
   addFeedback,
+  ranges,
 }) => {
   const { theme } = useTheme();
 
@@ -150,7 +153,7 @@ const ZoomView: React.FC<Props> = ({
                   };
                   return (
                     <ChartContainer key={dataset.label}>
-                      <Chart data={lineProps} />
+                      <Chart data={lineProps} ranges={ranges} />
                     </ChartContainer>
                   );
                 })}

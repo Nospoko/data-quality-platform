@@ -180,15 +180,6 @@ export const getChartSettings = (
 
 type RangeConf = Record<string, { left: number; right: number; color: string }>;
 
-// hard-code ranges for ECG
-export const mockEcgRanges = {
-  P: [0.6, 0.9],
-  Q: [1.6, 1.9],
-  R: [2.8, 3.2],
-  S: [3.6, 3.9],
-  T: [4.6, 4.9],
-} as Record<string, [number, number]>;
-
 const rangeColors = ['red', 'green', 'blue'];
 
 /**

@@ -15,13 +15,13 @@ import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
 import {
+  ChartRanges,
   darkTheme,
   getChartSettings,
   LEGEND_DATA_DARK,
   LEGEND_DATA_LIGHT,
   lightTheme,
 } from '../../models';
-import { mockEcgRanges } from '../../models';
 import { getChartData } from '../../utils/getChartData';
 import showNotification from '../../utils/helpers/showNotification';
 import RecordInfo from '../common/RecordInfo';
@@ -52,6 +52,7 @@ interface Props {
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
+  ranges?: ChartRanges;
 }
 
 ChartJS.register(
@@ -74,6 +75,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isFirst,
     isZoomView,
     isFetching = false,
+    ranges,
   },
   ref,
 ) => {
@@ -83,8 +85,8 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
   const chartSettings = useMemo(
-    () => getChartSettings(theme, mockEcgRanges, chartData?.data?.labels),
-    [theme, chartData],
+    () => getChartSettings(theme, ranges, chartData?.data?.labels),
+    [theme, ranges, chartData],
   );
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(

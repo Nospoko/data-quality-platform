@@ -12,12 +12,8 @@ import { memo, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import {
-  darkTheme,
-  getChartSettings,
-  lightTheme,
-  mockEcgRanges,
-} from '../../models';
+import { darkTheme, getChartSettings, lightTheme } from '../../models';
+import { ChartRanges } from '../../models';
 import { getLimits } from '../../utils/getRange';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
@@ -25,6 +21,7 @@ import { ChartData, ThemeType } from '@/types/common';
 
 interface Props {
   data: ChartData;
+  ranges?: ChartRanges;
 }
 
 ChartJS.register(
@@ -37,11 +34,11 @@ ChartJS.register(
   Legend,
 );
 
-const Chart: React.FC<Props> = ({ data }) => {
+const Chart: React.FC<Props> = ({ data, ranges }) => {
   const { theme } = useTheme();
   const chartSettings = useMemo(
-    () => getChartSettings(theme, mockEcgRanges, data.labels),
-    [theme, data],
+    () => getChartSettings(theme, ranges, data.labels),
+    [theme, ranges, data],
   );
 
   const { borderColor, label, data: signal } = data.datasets[0];
