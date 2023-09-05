@@ -21,6 +21,7 @@ import {
   LEGEND_DATA_DARK,
   LEGEND_DATA_LIGHT,
   lightTheme,
+  rangeLinesPlugin,
 } from '../../models';
 import { getChartData } from '../../utils/getChartData';
 import showNotification from '../../utils/helpers/showNotification';
@@ -53,6 +54,7 @@ interface Props {
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
   ranges?: ChartRanges;
+  updateRanges?: React.Dispatch<React.SetStateAction<ChartRanges>>;
 }
 
 ChartJS.register(
@@ -76,6 +78,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isZoomView,
     isFetching = false,
     ranges,
+    updateRanges,
   },
   ref,
 ) => {
@@ -84,10 +87,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   const { theme, isDarkMode } = useTheme();
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
-  const chartSettings = useMemo(
-    () => getChartSettings(theme, ranges, chartData?.data?.labels),
-    [theme, ranges, chartData],
-  );
+  const chartSettings = useMemo(() => getChartSettings(theme), [theme]);
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
@@ -189,7 +189,15 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
               </DescriptionWrapper>
 
               <LineWrapper>
-                <Line data={chartData.data} options={chartSettings} />
+                <Line
+                  data={chartData.data}
+                  options={chartSettings}
+                  plugins={
+                    ranges && updateRanges
+                      ? [rangeLinesPlugin(ranges, updateRanges)]
+                      : []
+                  }
+                />
               </LineWrapper>
             </LineDescriptionWrapper>
             {DATA_PROBLEM === 'ecg_classification' && (

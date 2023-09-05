@@ -380,6 +380,7 @@ const DashboardPage = () => {
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
                 ranges={userRanges}
+                updateRanges={setUserRanges}
               />
             ))
           : null}

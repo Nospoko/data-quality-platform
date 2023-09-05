@@ -1,4 +1,4 @@
-import { ChartEvent, ChartOptions, TooltipPositioner } from 'chart.js';
+import { ChartOptions, Plugin, TooltipPositioner } from 'chart.js';
 
 import { ThemeType } from '@/types/common';
 
@@ -117,14 +117,9 @@ type MyChartOptions = ChartOptions<'line'> & {
       position?: TooltipPositioner;
     };
   };
-  events: ChartEvent[];
 };
 
-export const getChartSettings = (
-  theme: string,
-  ranges?: Record<string, [number, number]>,
-  labels?: string[],
-): MyChartOptions => {
+export const getChartSettings = (theme: string): MyChartOptions => {
   const colorCollection = theme === ThemeType.DARK ? darkTheme : lightTheme;
 
   return {
@@ -165,7 +160,6 @@ export const getChartSettings = (
         },
         grid: { display: false },
       },
-      ...(ranges && labels && getRangesScales(ranges, labels)),
     },
     maintainAspectRatio: false,
     plugins: {
@@ -174,85 +168,235 @@ export const getChartSettings = (
         enabled: false,
       },
     },
-    events: [],
+    events: ['mousedown', 'mousemove', 'mouseup', 'mouseleave'],
   };
 };
 
-type RangeConf = Record<string, { left: number; right: number; color: string }>;
+export type ChartRanges = Record<string, [number, number]>;
+
+type SideConf = {
+  initial: number;
+  x: number | undefined;
+  label: string;
+  rangeLabel: string;
+  side: 'left' | 'right';
+};
+
+type RangeConf = {
+  [label: string]: {
+    left: SideConf;
+    right: SideConf;
+    color: string;
+  };
+};
 
 const rangeColors = ['red', 'green', 'blue'];
+const rangeLineWidth = 3;
 
-/**
- * For each range create a y-scale (vertical line) at its left and right boundaries,
- * and add a label at the center of the range.
- *
- * @param {Object.<string, number[]>} ranges
- * @param {string[]} labels
- * @param {?number} [yStart=2] (Optional) id offset for y-scales to be created (`y2`, `y3`, ...)
- * @returns chartjs `scales` object
- */
-const getRangesScales = (
-  ranges: Record<string, [number, number]>,
-  labels: string[],
-  yStart = 2,
-) => {
-  const labelIndexToRangeLabel: Record<number, string> = {};
+export const rangeLinesPlugin = (
+  ranges: ChartRanges,
+  updateRanges: (newRanges: ChartRanges) => void,
+): Plugin<'line'> => {
+  let nearestLine: SideConf | null = null;
+  let isDragging = false;
+  let isUpdatePending = false;
 
-  // for each range get the label index at it's boundaries and it's center,
-  // and assign a color for the range
-  const rangeConf = Object.entries(ranges).reduce(
+  const rangesConf = Object.entries(ranges).reduce(
     (conf: RangeConf, [label, range], index) => {
-      const left = findClosestLabelIndex(labels, range[0]);
-      const right = findClosestLabelIndex(labels, range[1], left);
-      const center = Math.floor((left + right) / 2);
-
       conf[label] = {
-        left,
-        right,
+        left: {
+          initial: range[0],
+          x: undefined,
+          label: `${range[0]}`,
+          rangeLabel: label,
+          side: 'left',
+        },
+        right: {
+          initial: range[1],
+          x: undefined,
+          label: `${range[1]}`,
+          rangeLabel: label,
+          side: 'right',
+        },
         color: rangeColors[index % rangeColors.length],
       };
-
-      labelIndexToRangeLabel[center] = label;
 
       return conf;
     },
     {},
   );
 
-  const scales: ChartOptions<'line'>['scales'] = {};
+  /**
+   * Get the nearest line to the cursor, or null if not close to any lines
+   *
+   * @param {number} x `MouseEvent.offsetX`
+   */
+  const getNearestLine = (x: number): SideConf | null => {
+    for (const label in rangesConf) {
+      const { left, right } = rangesConf[label];
 
-  let yIndex = yStart;
+      if (left.x !== undefined && x >= left.x - 6 && x <= left.x + 6) {
+        return left;
+      }
 
-  // add scales for range lines
-  Object.keys(ranges).forEach((label) => {
-    scales[`y${++yIndex}`] = {
-      position: { x: rangeConf[label].left },
-      border: { color: rangeConf[label].color, width: 3 },
-      ticks: { display: false },
-      grid: { display: false },
-    };
+      if (right.x !== undefined && x >= right.x - 6 && x <= right.x + 6) {
+        return right;
+      }
+    }
 
-    scales[`y${++yIndex}`] = {
-      position: { x: rangeConf[label].right },
-      border: { color: rangeConf[label].color, width: 3 },
-      ticks: { display: false },
-      grid: { display: false },
-    };
-  });
-
-  // add scale for range labels
-  scales[`y${++yIndex}`] = {
-    position: 'top',
-    ticks: {
-      callback: (val) => labelIndexToRangeLabel[val],
-      color: (ctx) =>
-        typeof ctx.tick.label === 'string'
-          ? rangeConf[ctx.tick.label]?.color
-          : undefined,
-    },
+    return null;
   };
 
-  return scales;
+  /**
+   * Update ranges after Drag-n-drop
+   */
+  const performUpdateRanges = () => {
+    const newRanges = Object.entries(rangesConf).reduce(
+      (acc: ChartRanges, [label, { left, right }]) => {
+        acc[label] = [+left.label, +right.label];
+        return acc;
+      },
+      {},
+    );
+
+    updateRanges(newRanges);
+
+    isUpdatePending = false;
+  };
+
+  // ChartJS plugin
+  return {
+    id: 'segmentation-ranges',
+
+    // handle lines Dran-n-Drop
+    afterEvent(chart, args) {
+      const event = args.event.native as MouseEvent;
+
+      if (!isDragging) {
+        const nearest = getNearestLine(event.offsetX);
+
+        if (nearest !== nearestLine) {
+          args.changed = true;
+        }
+
+        if (nearest) {
+          document.body.style.cursor = 'ew-resize';
+          nearestLine = nearest;
+        } else {
+          document.body.style.cursor = '';
+          nearestLine = null;
+        }
+      }
+
+      switch (event.type) {
+        case 'mousedown':
+          if (nearestLine) {
+            isDragging = true;
+          }
+          break;
+
+        case 'mousemove':
+          if (isDragging && nearestLine) {
+            let newX = event.offsetX;
+            if (newX < chart.chartArea.left) {
+              newX = chart.chartArea.left;
+            }
+            if (newX > chart.chartArea.right) {
+              newX = chart.chartArea.right;
+            }
+
+            nearestLine.x = newX;
+
+            const nearest = chart.getElementsAtEventForMode(
+              event,
+              'nearest',
+              { intersect: false },
+              true,
+            );
+
+            if (nearest.length > 0) {
+              const newPointLabel = chart.data.labels?.[
+                nearest[0].index
+              ] as string;
+              nearestLine.label = newPointLabel;
+              isUpdatePending = true;
+            }
+
+            args.changed = true;
+          }
+          break;
+
+        case 'mouseup':
+          isUpdatePending && performUpdateRanges();
+          isDragging = false;
+          break;
+
+        case 'mouseleave':
+          isUpdatePending && performUpdateRanges();
+          isDragging = false;
+          nearestLine = null;
+          document.body.style.cursor = '';
+          args.changed = true;
+          break;
+      }
+    },
+
+    // draw the lines
+    afterDatasetDraw(chart) {
+      const { ctx, data, scales, chartArea } = chart;
+
+      Object.values(rangesConf).forEach(({ left, right, color }) => {
+        // find X coordinate for the boundaries
+        if (left.x === undefined) {
+          left.x = scales.x.getPixelForValue(
+            findClosestLabelIndex(data.labels as string[], left.initial),
+          );
+        }
+        if (right.x === undefined) {
+          right.x = scales.x.getPixelForValue(
+            findClosestLabelIndex(data.labels as string[], right.initial),
+          );
+        }
+
+        // draw left boundary
+        const isOverLeft = nearestLine === left;
+        ctx.beginPath();
+        ctx.lineWidth = isOverLeft ? rangeLineWidth * 2 : rangeLineWidth;
+        ctx.strokeStyle = color;
+        ctx.moveTo(left.x, chartArea.bottom);
+        ctx.lineTo(left.x, chartArea.top - 2);
+        ctx.stroke();
+        if (isOverLeft) {
+          ctx.fillStyle = color;
+          ctx.fillText(left.label, left.x, chartArea.top);
+        }
+
+        // draw right boundary
+        const isOverRight = nearestLine === right;
+        ctx.beginPath();
+        ctx.lineWidth = isOverRight ? rangeLineWidth * 2 : rangeLineWidth;
+        ctx.strokeStyle = color;
+        ctx.moveTo(right.x, chartArea.bottom);
+        ctx.lineTo(right.x, chartArea.top - 2);
+        ctx.stroke();
+        if (isOverRight) {
+          ctx.fillStyle = color;
+          ctx.fillText(right.label, right.x, chartArea.top);
+        }
+
+        // draw label
+        ctx.font = 'bold';
+        ctx.fillStyle = color;
+        ctx.fillText(
+          left.rangeLabel,
+          Math.floor((left.x + right.x) / 2),
+          chartArea.top,
+        );
+
+        ctx.save();
+      });
+    },
+  };
 };
 
 /**

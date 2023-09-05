@@ -36,10 +36,7 @@ ChartJS.register(
 
 const Chart: React.FC<Props> = ({ data, ranges }) => {
   const { theme } = useTheme();
-  const chartSettings = useMemo(
-    () => getChartSettings(theme, ranges, data.labels),
-    [theme, ranges, data],
-  );
+  const chartSettings = useMemo(() => getChartSettings(theme), [theme]);
 
   const { borderColor, label, data: signal } = data.datasets[0];
   const limits = getLimits(signal);
