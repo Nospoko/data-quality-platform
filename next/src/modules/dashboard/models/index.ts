@@ -191,8 +191,9 @@ export type ChartRanges = Record<string, [number, number]>;
 
 type SideConf = {
   initial: number;
+  position: number;
   x: number | undefined;
-  label: string;
+  lineLabel: string;
   rangeLabel: string;
   side: 'left' | 'right';
 };
@@ -228,6 +229,10 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
   let nearestRange: string | null = null;
   let isDragging = false;
   let isUpdatePending = false;
+  let deleteRangeLabel: string | null = null;
+  /** @var `[xStart, xEnd, yStart, yEnd]` */
+  let deleteRangeBtnCoords: [number, number, number, number] | null = null;
+  let isOverDelBtn = false;
 
   /**
    * Transorm ranges to plugin's internal ranges settings object
@@ -241,15 +246,17 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
         conf[label] = {
           left: {
             initial: range[0],
+            position: 0,
             x: undefined,
-            label: `${range[0]}`,
+            lineLabel: `${range[0]}`,
             rangeLabel: label,
             side: 'left',
           },
           right: {
             initial: range[1],
+            position: 0,
             x: undefined,
-            label: `${range[1]}`,
+            lineLabel: `${range[1]}`,
             rangeLabel: label,
             side: 'right',
           },
@@ -303,6 +310,7 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
    */
   const performUpdateRanges = (
     updaterFn?: (newRanges: ChartRanges) => void,
+    rangeToDelete?: string | null,
   ) => {
     if (!rangesConf || !updaterFn) {
       console.warn(
@@ -316,7 +324,14 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
 
     const newRanges = Object.entries(rangesConf).reduce(
       (acc: ChartRanges, [label, { left, right }]) => {
-        acc[label] = [+left.label, +right.label];
+        if (rangeToDelete === label) {
+          return acc;
+        }
+
+        const leftBoundary = Math.min(+left.lineLabel, +right.lineLabel);
+        const rightBoundary = Math.max(+left.lineLabel, +right.lineLabel);
+
+        acc[label] = [leftBoundary, rightBoundary];
         return acc;
       },
       {},
@@ -358,10 +373,30 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
         nearestLine = line;
 
         chart.canvas.style.cursor = line ? 'ew-resize' : '';
+
+        if (
+          deleteRangeBtnCoords &&
+          event.offsetX >= deleteRangeBtnCoords[0] &&
+          event.offsetX <= deleteRangeBtnCoords[1] &&
+          event.offsetY >= deleteRangeBtnCoords[2] &&
+          event.offsetY <= deleteRangeBtnCoords[3]
+        ) {
+          isOverDelBtn = true;
+          chart.canvas.style.cursor = 'pointer';
+        } else {
+          isOverDelBtn = false;
+        }
       }
 
       switch (event.type) {
         case 'mousedown':
+          if (isOverDelBtn) {
+            performUpdateRanges(options.updateRanges, deleteRangeLabel);
+            isOverDelBtn = false;
+            deleteRangeLabel = null;
+            deleteRangeBtnCoords = null;
+          }
+
           if (nearestLine) {
             isDragging = true;
           }
@@ -379,18 +414,12 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
 
             nearestLine.x = newX;
 
-            const nearest = chart.getElementsAtEventForMode(
-              event,
-              'nearest',
-              { intersect: false },
-              true,
-            );
+            const newVal = chart.scales.x.getValueForPixel(newX);
 
-            if (nearest.length > 0) {
-              const newPointLabel = chart.data.labels?.[
-                nearest[0].index
-              ] as string;
-              nearestLine.label = newPointLabel;
+            if (newVal !== undefined) {
+              const newPointLabel = chart.data.labels?.[newVal];
+              nearestLine.lineLabel = newPointLabel as string;
+              nearestLine.position = newVal;
               isUpdatePending = true;
             }
 
@@ -398,17 +427,13 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
           }
           break;
 
-        case 'mouseup':
-          isUpdatePending && performUpdateRanges(options.updateRanges);
-          isDragging = false;
-          break;
-
         case 'mouseleave':
-          isUpdatePending && performUpdateRanges(options.updateRanges);
-          isDragging = false;
           nearestLine = null;
           document.body.style.cursor = '';
           args.changed = true;
+        case 'mouseup':
+          isUpdatePending && performUpdateRanges(options.updateRanges);
+          isDragging = false;
           break;
       }
     },
@@ -451,7 +476,7 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
         ctx.stroke();
         if (isOverRange) {
           ctx.fillStyle = color;
-          ctx.fillText(left.label, left.x, chartArea.top);
+          ctx.fillText(left.lineLabel, left.x, chartArea.top);
         }
 
         // draw right boundary
@@ -463,7 +488,7 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
         ctx.stroke();
         if (isOverRange) {
           ctx.fillStyle = color;
-          ctx.fillText(right.label, right.x, chartArea.top);
+          ctx.fillText(right.lineLabel, right.x, chartArea.top);
         }
 
         // fill range
@@ -477,14 +502,30 @@ export const rangeLinesPlugin = (): Plugin<'line'> => {
           );
         }
 
+        const rangeCenterX = Math.floor((left.x + right.x) / 2);
+
         // draw label
         ctx.font = 'bold';
         ctx.fillStyle = color;
-        ctx.fillText(
-          left.rangeLabel,
-          Math.floor((left.x + right.x) / 2),
-          chartArea.top,
-        );
+        ctx.textAlign = 'center';
+        ctx.fillText(left.rangeLabel, rangeCenterX, chartArea.top);
+
+        // draw delete button
+        if (isOverRange && left.rangeLabel !== 'R') {
+          ctx.fillStyle = 'black';
+          ctx.roundRect(rangeCenterX - 22, chartArea.bottom - 20, 44, 20, 5);
+          ctx.fill();
+          ctx.fillStyle = 'white';
+          ctx.fillText('Delete', rangeCenterX, chartArea.bottom - 7);
+
+          deleteRangeBtnCoords = [
+            rangeCenterX - 22,
+            rangeCenterX + 22,
+            chartArea.bottom - 20,
+            chartArea.bottom,
+          ];
+          deleteRangeLabel = left.rangeLabel;
+        }
 
         ctx.save();
       });
