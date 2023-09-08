@@ -23,6 +23,7 @@ interface Props {
   onClose: () => void;
   addFeedback: (index: number | string, choice: Choice) => void;
   ranges?: ChartRanges;
+  updateRanges?: (newRanges: ChartRanges) => void;
 }
 
 const ZoomView: React.FC<Props> = ({
@@ -33,6 +34,7 @@ const ZoomView: React.FC<Props> = ({
   onClose,
   addFeedback,
   ranges,
+  updateRanges,
 }) => {
   const { theme } = useTheme();
 
@@ -153,7 +155,11 @@ const ZoomView: React.FC<Props> = ({
                   };
                   return (
                     <ChartContainer key={dataset.label}>
-                      <Chart data={lineProps} ranges={ranges} />
+                      <Chart
+                        data={lineProps}
+                        ranges={ranges}
+                        updateRanges={updateRanges}
+                      />
                     </ChartContainer>
                   );
                 })}

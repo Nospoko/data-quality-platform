@@ -222,7 +222,7 @@ const opacityColors = {
 };
 const rangeLineWidth = 3;
 
-export const rangeLinesPlugin = (): Plugin<'line'> => {
+export const segmentationPlugin = (): Plugin<'line'> => {
   let savedRanges: ChartRanges | null = null;
   let rangesConf: RangeConf | null = null;
   let nearestLine: SideConf | null = null;

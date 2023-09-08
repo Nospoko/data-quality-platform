@@ -12,7 +12,12 @@ import { memo, useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { styled } from 'styled-components';
 
-import { darkTheme, getChartSettings, lightTheme } from '../../models';
+import {
+  darkTheme,
+  getChartSettings,
+  lightTheme,
+  segmentationPlugin,
+} from '../../models';
 import { ChartRanges } from '../../models';
 import { getLimits } from '../../utils/getRange';
 
@@ -22,6 +27,7 @@ import { ChartData, ThemeType } from '@/types/common';
 interface Props {
   data: ChartData;
   ranges?: ChartRanges;
+  updateRanges?: (newRanges: ChartRanges) => void;
 }
 
 ChartJS.register(
@@ -34,9 +40,12 @@ ChartJS.register(
   Legend,
 );
 
-const Chart: React.FC<Props> = ({ data, ranges }) => {
+const Chart: React.FC<Props> = ({ data, ranges, updateRanges }) => {
   const { theme } = useTheme();
-  const chartSettings = useMemo(() => getChartSettings(theme), [theme]);
+  const chartSettings = useMemo(
+    () => getChartSettings(theme, ranges, updateRanges),
+    [theme, ranges, updateRanges],
+  );
 
   const { borderColor, label, data: signal } = data.datasets[0];
   const limits = getLimits(signal);
@@ -57,6 +66,7 @@ const Chart: React.FC<Props> = ({ data, ranges }) => {
               },
             },
           }}
+          plugins={[segmentationPlugin()]}
         />
         <LegendContainer>
           <CustomLegend color={theme}>

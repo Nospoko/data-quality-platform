@@ -18,12 +18,11 @@ import { styled } from 'styled-components';
 import {
   ChartRanges,
   darkTheme,
-  defaltRanges,
   getChartSettings,
   LEGEND_DATA_DARK,
   LEGEND_DATA_LIGHT,
   lightTheme,
-  rangeLinesPlugin,
+  segmentationPlugin,
 } from '../../models';
 import { getChartData } from '../../utils/getChartData';
 import showNotification from '../../utils/helpers/showNotification';
@@ -56,6 +55,8 @@ interface Props {
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
+  ranges?: ChartRanges;
+  updateRanges?: (newRanges: ChartRanges) => void;
 }
 
 ChartJS.register(
@@ -78,19 +79,20 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isFirst,
     isZoomView,
     isFetching = false,
+    ranges,
+    updateRanges,
   },
   ref,
 ) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
-  const [userRanges, setUserRanges] = useState<ChartRanges>(defaltRanges);
   const [isRangesModalOpen, setIsRangesModalOpen] = useState(false);
 
   const { theme, isDarkMode } = useTheme();
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
   const chartSettings = useMemo(
-    () => getChartSettings(theme, userRanges, setUserRanges),
-    [theme, userRanges, setUserRanges],
+    () => getChartSettings(theme, ranges, updateRanges),
+    [theme, ranges, updateRanges],
   );
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
@@ -196,7 +198,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 <Line
                   data={chartData.data}
                   options={chartSettings}
-                  plugins={[rangeLinesPlugin()]}
+                  plugins={[segmentationPlugin()]}
                 />
               </LineWrapper>
             </LineDescriptionWrapper>
@@ -209,17 +211,21 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                   isFetching={isFetching}
                   isZoomView={isZoomView}
                 >
-                  <Button
-                    style={{ width: '100%', height: '30%' }}
-                    icon={<ColumnWidthOutlined />}
-                    onClick={() => setIsRangesModalOpen(true)}
-                  ></Button>
-                  <RangesModal
-                    isOpen={isRangesModalOpen}
-                    onClose={() => setIsRangesModalOpen(false)}
-                    ranges={userRanges}
-                    onChange={setUserRanges}
-                  />
+                  {ranges && updateRanges && (
+                    <>
+                      <Button
+                        style={{ width: '100%', height: '30%' }}
+                        icon={<ColumnWidthOutlined />}
+                        onClick={() => setIsRangesModalOpen(true)}
+                      ></Button>
+                      <RangesModal
+                        isOpen={isRangesModalOpen}
+                        onClose={() => setIsRangesModalOpen(false)}
+                        ranges={ranges}
+                        onChange={updateRanges}
+                      />
+                    </>
+                  )}
                 </Feedback>
               </ButtonWrapper>
             )}

@@ -9,6 +9,7 @@ import styled from 'styled-components';
 
 import SearchingForm from '../components/common/SearchForm';
 import MidiChart from '../components/midi/MidiChart';
+import { ChartRanges, defaltRanges } from '../models';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -45,6 +46,25 @@ const DashboardPage = () => {
   const [isFetching, setIsFetching] = useState(false);
 
   const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
+
+  const [segmentationRanges, setSegmentationRanges] = useState<{
+    [recordId: string]: ChartRanges;
+  }>({});
+  const getRangesForRecord = (recordId: Record['id']) => {
+    if (!segmentationRanges[recordId]) {
+      setSegmentationRanges((ranges) => ({
+        ...ranges,
+        [recordId]: defaltRanges,
+      }));
+      return defaltRanges;
+    } else {
+      return segmentationRanges[recordId];
+    }
+  };
+  const getRangesUpdaterFn = (recordId: Record['id']) => {
+    return (newRanges: ChartRanges) =>
+      setSegmentationRanges((ranges) => ({ ...ranges, [recordId]: newRanges }));
+  };
 
   const { status } = useSession();
   const loading = status === 'loading';
@@ -296,6 +316,8 @@ const DashboardPage = () => {
           isFetching={isFetching}
           onClose={handleCloseModal}
           addFeedback={addFeedback}
+          ranges={getRangesForRecord(selectedChartData.id)}
+          updateRanges={getRangesUpdaterFn(selectedChartData.id)}
         />
       )}
 
@@ -356,6 +378,8 @@ const DashboardPage = () => {
                 datasetName={datasetName as string}
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
+                ranges={getRangesForRecord(record.id)}
+                updateRanges={getRangesUpdaterFn(record.id)}
               />
             ))
           : null}
