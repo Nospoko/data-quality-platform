@@ -8,9 +8,7 @@ import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
 import SearchingForm from '../components/common/SearchForm';
-import RangesModal from '../components/ecg/RangesModal';
 import MidiChart from '../components/midi/MidiChart';
-import { ChartRanges } from '../models';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -30,15 +28,6 @@ const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
   | 'ecg_classification'
   | 'midi_review';
 
-// hard-code ranges for ECG
-export const mockEcgRanges: ChartRanges = {
-  P: [0.6, 0.9],
-  Q: [1.6, 1.9],
-  R: [2.8, 3.2],
-  S: [3.6, 3.9],
-  T: [4.6, 4.9],
-};
-
 const DashboardPage = () => {
   const router = useRouter();
   const { datasetName } = router.query as { datasetName: string };
@@ -56,9 +45,6 @@ const DashboardPage = () => {
   const [isFetching, setIsFetching] = useState(false);
 
   const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
-
-  const [userRanges, setUserRanges] = useState<ChartRanges>(mockEcgRanges);
-  const [isRangesModalOpen, setIsRangesModalOpen] = useState(false);
 
   const { status } = useSession();
   const loading = status === 'loading';
@@ -299,14 +285,6 @@ const DashboardPage = () => {
             checked={zoomMode}
             onChange={handleClickZoomMode}
           />
-
-          <Button onClick={() => setIsRangesModalOpen(true)}>Ranges</Button>
-          <RangesModal
-            isOpen={isRangesModalOpen}
-            onClose={() => setIsRangesModalOpen(false)}
-            ranges={userRanges}
-            onChange={setUserRanges}
-          />
         </SwitchWrapper>
       )}
 
@@ -318,7 +296,6 @@ const DashboardPage = () => {
           isFetching={isFetching}
           onClose={handleCloseModal}
           addFeedback={addFeedback}
-          ranges={userRanges}
         />
       )}
 
@@ -379,8 +356,6 @@ const DashboardPage = () => {
                 datasetName={datasetName as string}
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
-                ranges={userRanges}
-                updateRanges={setUserRanges}
               />
             ))
           : null}

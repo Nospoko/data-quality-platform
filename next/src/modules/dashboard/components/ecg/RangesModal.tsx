@@ -1,4 +1,12 @@
-import { Button, Input, Modal, Table, TableColumnsType } from 'antd';
+import {
+  Button,
+  Input,
+  Modal,
+  Popover,
+  Space,
+  Table,
+  TableColumnsType,
+} from 'antd';
 import React, { useState } from 'react';
 import styled from 'styled-components';
 
@@ -12,11 +20,21 @@ type Props = {
 };
 
 type TableData = {
-  key: number;
+  key: string;
   label: string;
   left: number;
   right: number;
 };
+
+const possibleRanges = ['P', 'Q', 'R', 'S', 'T', 'X'];
+
+const rangesToTableData = (ranges: ChartRanges) =>
+  Object.entries(ranges).map(([label, range]) => ({
+    key: label,
+    label,
+    left: range[0],
+    right: range[1],
+  }));
 
 const RangesModal: React.FC<Props> = ({
   isOpen,
@@ -25,34 +43,26 @@ const RangesModal: React.FC<Props> = ({
   onChange,
 }) => {
   const [tableData, setTableData] = useState<TableData[]>(() =>
-    Object.entries(ranges).map(([label, range], index) => ({
-      key: index,
-      label,
-      left: range[0],
-      right: range[1],
-    })),
+    rangesToTableData(ranges),
   );
-  const [rangesCount, setRangesCount] = useState(tableData.length);
+  const [xRangesCount, setXRangesCount] = useState(0);
+  const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
 
-  const handleChangeLabel = (index: number) => (newLabel: string) => {
-    setTableData((data) =>
-      data.map((row) =>
-        row.key !== index ? row : { ...row, label: newLabel },
-      ),
-    );
-  };
+  React.useEffect(() => {
+    setTableData(rangesToTableData(ranges));
+  }, [ranges]);
 
   const handleChangeNumber =
-    (index: number, side: 'left' | 'right') => (newValue: number) => {
+    (label: string, side: 'left' | 'right') => (newValue: number) => {
       setTableData((data) =>
         data.map((row) =>
-          row.key !== index ? row : { ...row, [side]: newValue },
+          row.label !== label ? row : { ...row, [side]: newValue },
         ),
       );
     };
 
-  const handleDeleteRage = (index: number) => () => {
-    setTableData((data) => data.filter((row) => row.key !== index));
+  const handleDeleteRage = (label: string) => () => {
+    setTableData((data) => data.filter((row) => row.label !== label));
   };
 
   const columns: TableColumnsType<TableData> = [
@@ -60,12 +70,6 @@ const RangesModal: React.FC<Props> = ({
       title: 'Label',
       dataIndex: 'label',
       width: '30%',
-      render: (_, row) => (
-        <EditableLabel
-          value={row.label}
-          onChange={handleChangeLabel(row.key)}
-        />
-      ),
     },
     {
       title: 'Left boundary',
@@ -73,7 +77,7 @@ const RangesModal: React.FC<Props> = ({
       render: (_, row) => (
         <EditableNumber
           value={row.left}
-          onChange={handleChangeNumber(row.key, 'left')}
+          onChange={handleChangeNumber(row.label, 'left')}
         />
       ),
     },
@@ -83,7 +87,7 @@ const RangesModal: React.FC<Props> = ({
       render: (_, row) => (
         <EditableNumber
           value={row.right}
-          onChange={handleChangeNumber(row.key, 'right')}
+          onChange={handleChangeNumber(row.label, 'right')}
         />
       ),
     },
@@ -93,7 +97,8 @@ const RangesModal: React.FC<Props> = ({
         <Button
           size="small"
           style={{ color: 'red' }}
-          onClick={handleDeleteRage(row.key)}
+          onClick={handleDeleteRage(row.label)}
+          disabled={row.label === 'R'}
         >
           Delete
         </Button>
@@ -101,12 +106,26 @@ const RangesModal: React.FC<Props> = ({
     },
   ];
 
-  const handleAddNewRange = () => {
-    setTableData((data) => [
-      ...data,
-      { key: rangesCount, label: `Range ${++data.length}`, left: 0, right: 0 },
-    ]);
-    setRangesCount((x) => ++x);
+  const handleAddNewRange = (label: string) => {
+    if (label === 'X') {
+      setXRangesCount((x) => ++x);
+      setTableData((data) => [
+        ...data,
+        {
+          key: `X${xRangesCount + 1}`,
+          label: `X${xRangesCount + 1}`,
+          left: 0,
+          right: 0,
+        },
+      ]);
+    } else {
+      setTableData((data) => [
+        ...data,
+        { key: label, label, left: 0, right: 0 },
+      ]);
+    }
+
+    setIsAddPopoverOpen(false);
   };
 
   const handleSave = () => {
@@ -125,20 +144,40 @@ const RangesModal: React.FC<Props> = ({
         <Table columns={columns} dataSource={tableData} />
 
         <ButtonsWrapper>
-          <Button onClick={handleAddNewRange}>+ Add Range</Button>
+          <Popover
+            open={isAddPopoverOpen}
+            onOpenChange={setIsAddPopoverOpen}
+            trigger="click"
+            content={
+              <Space>
+                {possibleRanges.map((label) => {
+                  if (
+                    label !== 'X' &&
+                    tableData.find((r) => r.label === label)
+                  ) {
+                    return null;
+                  }
+
+                  return (
+                    <Button
+                      key={label}
+                      onClick={() => handleAddNewRange(label)}
+                    >
+                      {label}
+                    </Button>
+                  );
+                })}
+              </Space>
+            }
+          >
+            <Button>+ Add Range</Button>
+          </Popover>
           <Button onClick={handleSave}>Save</Button>
         </ButtonsWrapper>
       </ModalBody>
     </Modal>
   );
 };
-
-const EditableLabel: React.FC<{
-  value: string;
-  onChange: (newValue: string) => void;
-}> = ({ value, onChange }) => (
-  <Input type="text" value={value} onChange={(e) => onChange(e.target.value)} />
-);
 
 const EditableNumber: React.FC<{
   value: number;

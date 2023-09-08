@@ -116,10 +116,18 @@ type MyChartOptions = ChartOptions<'line'> & {
       enabled: boolean;
       position?: TooltipPositioner;
     };
+    segmentation?: {
+      ranges: ChartRanges;
+      updateRanges: (newRanges: ChartRanges) => void;
+    };
   };
 };
 
-export const getChartSettings = (theme: string): MyChartOptions => {
+export const getChartSettings = (
+  theme: string,
+  ranges?: ChartRanges,
+  updateRanges?: (newRanges: ChartRanges) => void,
+): MyChartOptions => {
   const colorCollection = theme === ThemeType.DARK ? darkTheme : lightTheme;
 
   return {
@@ -167,6 +175,13 @@ export const getChartSettings = (theme: string): MyChartOptions => {
       tooltip: {
         enabled: false,
       },
+      ...(ranges &&
+        updateRanges && {
+          segmentation: {
+            ranges,
+            updateRanges,
+          },
+        }),
     },
     events: ['mousedown', 'mousemove', 'mouseup', 'mouseleave'],
   };
@@ -190,67 +205,115 @@ type RangeConf = {
   };
 };
 
+export const defaltRanges: ChartRanges = {
+  P: [0.6, 0.9],
+  Q: [1.6, 1.9],
+  R: [2.8, 3.2],
+  S: [3.6, 3.9],
+  T: [4.6, 4.9],
+};
+
 const rangeColors = ['red', 'green', 'blue'];
+const opacityColors = {
+  red: 'rgba(255, 0, 0, 0.1)',
+  green: 'rgba(0, 255, 0, 0.1)',
+  blue: 'rgba(0, 0, 255, 0.1)',
+};
 const rangeLineWidth = 3;
 
-export const rangeLinesPlugin = (
-  ranges: ChartRanges,
-  updateRanges: (newRanges: ChartRanges) => void,
-): Plugin<'line'> => {
+export const rangeLinesPlugin = (): Plugin<'line'> => {
+  let savedRanges: ChartRanges | null = null;
+  let rangesConf: RangeConf | null = null;
   let nearestLine: SideConf | null = null;
+  let nearestRange: string | null = null;
   let isDragging = false;
   let isUpdatePending = false;
 
-  const rangesConf = Object.entries(ranges).reduce(
-    (conf: RangeConf, [label, range], index) => {
-      conf[label] = {
-        left: {
-          initial: range[0],
-          x: undefined,
-          label: `${range[0]}`,
-          rangeLabel: label,
-          side: 'left',
-        },
-        right: {
-          initial: range[1],
-          x: undefined,
-          label: `${range[1]}`,
-          rangeLabel: label,
-          side: 'right',
-        },
-        color: rangeColors[index % rangeColors.length],
-      };
+  /**
+   * Transorm ranges to plugin's internal ranges settings object
+   *
+   * @param {ChartRanges} rangesObj
+   * @returns {RangeConf}
+   */
+  const loadRanges = (rangesObj: ChartRanges): RangeConf =>
+    Object.entries(rangesObj).reduce(
+      (conf: RangeConf, [label, range], index) => {
+        conf[label] = {
+          left: {
+            initial: range[0],
+            x: undefined,
+            label: `${range[0]}`,
+            rangeLabel: label,
+            side: 'left',
+          },
+          right: {
+            initial: range[1],
+            x: undefined,
+            label: `${range[1]}`,
+            rangeLabel: label,
+            side: 'right',
+          },
+          color: rangeColors[index % rangeColors.length],
+        };
 
-      return conf;
-    },
-    {},
-  );
+        return conf;
+      },
+      {},
+    );
 
   /**
    * Get the nearest line to the cursor, or null if not close to any lines
    *
    * @param {number} x `MouseEvent.offsetX`
+   * @returns {[string|null, SideConf|null]} `[rangeLabel, line]`
    */
-  const getNearestLine = (x: number): SideConf | null => {
+  const getNearest = (x: number): [string | null, SideConf | null] => {
+    if (!rangesConf) {
+      return [null, null];
+    }
+
     for (const label in rangesConf) {
       const { left, right } = rangesConf[label];
 
-      if (left.x !== undefined && x >= left.x - 6 && x <= left.x + 6) {
-        return left;
+      if (left.x === undefined || right.x === undefined) {
+        continue;
       }
 
-      if (right.x !== undefined && x >= right.x - 6 && x <= right.x + 6) {
-        return right;
+      if (x >= left.x - 6 && x <= left.x + 6) {
+        return [label, left];
+      }
+
+      if (x >= right.x - 6 && x <= right.x + 6) {
+        return [label, right];
+      }
+
+      const leftPoint = Math.min(left.x, right.x);
+      const rightPoint = leftPoint + Math.abs(right.x - left.x);
+
+      if (x >= leftPoint - 6 && x <= rightPoint + 6) {
+        return [label, null];
       }
     }
 
-    return null;
+    return [null, null];
   };
 
   /**
    * Update ranges after Drag-n-drop
    */
-  const performUpdateRanges = () => {
+  const performUpdateRanges = (
+    updaterFn?: (newRanges: ChartRanges) => void,
+  ) => {
+    if (!rangesConf || !updaterFn) {
+      console.warn(
+        'segmentation plugin:',
+        !rangesConf ? 'No rangesConf;' : '',
+        !updaterFn ? 'No updaterFn;' : '',
+      );
+      isUpdatePending = false;
+      return;
+    }
+
     const newRanges = Object.entries(rangesConf).reduce(
       (acc: ChartRanges, [label, { left, right }]) => {
         acc[label] = [+left.label, +right.label];
@@ -259,33 +322,42 @@ export const rangeLinesPlugin = (
       {},
     );
 
-    updateRanges(newRanges);
+    updaterFn(newRanges);
 
     isUpdatePending = false;
   };
 
   // ChartJS plugin
   return {
-    id: 'segmentation-ranges',
+    id: 'segmentation',
+
+    // load initial ranges from chart options
+    afterInit(chart, args, options) {
+      savedRanges = options.ranges as ChartRanges;
+      if (savedRanges) {
+        rangesConf = loadRanges(savedRanges);
+      } else {
+        console.warn('segmentation plugin: No initial ranges provided');
+      }
+    },
 
     // handle lines Dran-n-Drop
-    afterEvent(chart, args) {
+    afterEvent(chart, args, options) {
       const event = args.event.native as MouseEvent;
 
       if (!isDragging) {
-        const nearest = getNearestLine(event.offsetX);
+        const [rangeLabel, line] = args.inChartArea
+          ? getNearest(event.offsetX)
+          : [null, null];
 
-        if (nearest !== nearestLine) {
+        if (line !== nearestLine || rangeLabel !== nearestRange) {
           args.changed = true;
         }
 
-        if (nearest) {
-          document.body.style.cursor = 'ew-resize';
-          nearestLine = nearest;
-        } else {
-          document.body.style.cursor = '';
-          nearestLine = null;
-        }
+        nearestRange = rangeLabel;
+        nearestLine = line;
+
+        chart.canvas.style.cursor = line ? 'ew-resize' : '';
       }
 
       switch (event.type) {
@@ -327,12 +399,12 @@ export const rangeLinesPlugin = (
           break;
 
         case 'mouseup':
-          isUpdatePending && performUpdateRanges();
+          isUpdatePending && performUpdateRanges(options.updateRanges);
           isDragging = false;
           break;
 
         case 'mouseleave':
-          isUpdatePending && performUpdateRanges();
+          isUpdatePending && performUpdateRanges(options.updateRanges);
           isDragging = false;
           nearestLine = null;
           document.body.style.cursor = '';
@@ -341,9 +413,19 @@ export const rangeLinesPlugin = (
       }
     },
 
-    // draw the lines
-    afterDatasetDraw(chart) {
+    // check options.ranges change; draw the ranges
+    afterDatasetDraw(chart, args, options) {
       const { ctx, data, scales, chartArea } = chart;
+
+      if (options.ranges !== savedRanges) {
+        savedRanges = options.ranges as ChartRanges;
+        rangesConf = loadRanges(savedRanges);
+      }
+
+      if (!rangesConf) {
+        console.warn('segmentation plugin: No ragesConf');
+        return;
+      }
 
       Object.values(rangesConf).forEach(({ left, right, color }) => {
         // find X coordinate for the boundaries
@@ -358,30 +440,41 @@ export const rangeLinesPlugin = (
           );
         }
 
+        const isOverRange = nearestRange === left.rangeLabel;
+
         // draw left boundary
-        const isOverLeft = nearestLine === left;
         ctx.beginPath();
-        ctx.lineWidth = isOverLeft ? rangeLineWidth * 2 : rangeLineWidth;
+        ctx.lineWidth = isOverRange ? rangeLineWidth * 2 : rangeLineWidth;
         ctx.strokeStyle = color;
         ctx.moveTo(left.x, chartArea.bottom);
         ctx.lineTo(left.x, chartArea.top - 2);
         ctx.stroke();
-        if (isOverLeft) {
+        if (isOverRange) {
           ctx.fillStyle = color;
           ctx.fillText(left.label, left.x, chartArea.top);
         }
 
         // draw right boundary
-        const isOverRight = nearestLine === right;
         ctx.beginPath();
-        ctx.lineWidth = isOverRight ? rangeLineWidth * 2 : rangeLineWidth;
+        ctx.lineWidth = isOverRange ? rangeLineWidth * 2 : rangeLineWidth;
         ctx.strokeStyle = color;
         ctx.moveTo(right.x, chartArea.bottom);
         ctx.lineTo(right.x, chartArea.top - 2);
         ctx.stroke();
-        if (isOverRight) {
+        if (isOverRange) {
           ctx.fillStyle = color;
           ctx.fillText(right.label, right.x, chartArea.top);
+        }
+
+        // fill range
+        if (isOverRange) {
+          ctx.fillStyle = opacityColors[color];
+          ctx.fillRect(
+            Math.min(left.x, right.x) + rangeLineWidth,
+            chartArea.top,
+            Math.abs(right.x - left.x) - rangeLineWidth * 2,
+            chartArea.height,
+          );
         }
 
         // draw label

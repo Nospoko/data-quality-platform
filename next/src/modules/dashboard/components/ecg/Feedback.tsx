@@ -20,12 +20,14 @@ type Props = {
   decision?: Choice;
   handleSelect: (choice: Choice) => void;
   isFetching: boolean;
+  children?: React.ReactNode;
 };
 const Feedback: React.FC<Props> = ({
   onOpenZoomView,
   handleSelect,
   decision,
   isFetching,
+  children,
 }) => {
   const isApproved = decision === Choice.APPROVED;
 
@@ -46,6 +48,7 @@ const Feedback: React.FC<Props> = ({
         disabled={isFetching}
       ></Button>
 
+      {/* 
       <Button
         style={ButtonStyle}
         type="primary"
@@ -68,6 +71,9 @@ const Feedback: React.FC<Props> = ({
         icon={<QuestionOutlined />}
         disabled={isFetching}
       ></Button>
+      */}
+
+      {children}
     </Wrapper>
   );
 };
@@ -78,7 +84,7 @@ const Wrapper = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   min-height: 160px;
   height: 100%;
   width: 100%;

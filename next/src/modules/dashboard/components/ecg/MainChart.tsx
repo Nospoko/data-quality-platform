@@ -1,5 +1,6 @@
+import { ColumnWidthOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
-import { Spin } from 'antd';
+import { Button, Spin } from 'antd';
 import {
   CategoryScale,
   Chart as ChartJS,
@@ -17,6 +18,7 @@ import { styled } from 'styled-components';
 import {
   ChartRanges,
   darkTheme,
+  defaltRanges,
   getChartSettings,
   LEGEND_DATA_DARK,
   LEGEND_DATA_LIGHT,
@@ -27,6 +29,7 @@ import { getChartData } from '../../utils/getChartData';
 import showNotification from '../../utils/helpers/showNotification';
 import RecordInfo from '../common/RecordInfo';
 import Feedback from './Feedback';
+import RangesModal from './RangesModal';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -53,8 +56,6 @@ interface Props {
   addFeedback: (index: number | string, choice: Choice) => void;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
-  ranges?: ChartRanges;
-  updateRanges?: React.Dispatch<React.SetStateAction<ChartRanges>>;
 }
 
 ChartJS.register(
@@ -77,17 +78,20 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     isFirst,
     isZoomView,
     isFetching = false,
-    ranges,
-    updateRanges,
   },
   ref,
 ) => {
   const [chartData, setChartData] = useState<SelectedChartData | null>(null);
+  const [userRanges, setUserRanges] = useState<ChartRanges>(defaltRanges);
+  const [isRangesModalOpen, setIsRangesModalOpen] = useState(false);
 
   const { theme, isDarkMode } = useTheme();
   const LEGEND_DATA = isDarkMode ? LEGEND_DATA_DARK : LEGEND_DATA_LIGHT;
 
-  const chartSettings = useMemo(() => getChartSettings(theme), [theme]);
+  const chartSettings = useMemo(
+    () => getChartSettings(theme, userRanges, setUserRanges),
+    [theme, userRanges, setUserRanges],
+  );
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
@@ -192,11 +196,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 <Line
                   data={chartData.data}
                   options={chartSettings}
-                  plugins={
-                    ranges && updateRanges
-                      ? [rangeLinesPlugin(ranges, updateRanges)]
-                      : []
-                  }
+                  plugins={[rangeLinesPlugin()]}
                 />
               </LineWrapper>
             </LineDescriptionWrapper>
@@ -208,7 +208,19 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                   decision={historyData?.choice}
                   isFetching={isFetching}
                   isZoomView={isZoomView}
-                />
+                >
+                  <Button
+                    style={{ width: '100%', height: '30%' }}
+                    icon={<ColumnWidthOutlined />}
+                    onClick={() => setIsRangesModalOpen(true)}
+                  ></Button>
+                  <RangesModal
+                    isOpen={isRangesModalOpen}
+                    onClose={() => setIsRangesModalOpen(false)}
+                    ranges={userRanges}
+                    onChange={setUserRanges}
+                  />
+                </Feedback>
               </ButtonWrapper>
             )}
           </>
