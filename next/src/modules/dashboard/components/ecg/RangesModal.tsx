@@ -22,18 +22,18 @@ type Props = {
 type TableData = {
   key: string;
   label: string;
-  left: number;
-  right: number;
+  left: string | number;
+  right: string | number;
 };
 
 const possibleRanges = ['P', 'Q', 'R', 'S', 'T', 'X'];
 
-const rangesToTableData = (ranges: ChartRanges) =>
+const rangesToTableData = (ranges: ChartRanges): TableData[] =>
   Object.entries(ranges).map(([label, range]) => ({
     key: label,
     label,
-    left: range[0],
-    right: range[1],
+    left: (range[0] / 200).toFixed(2),
+    right: (range[1] / 200).toFixed(2),
   }));
 
 const RangesModal: React.FC<Props> = ({
@@ -45,7 +45,7 @@ const RangesModal: React.FC<Props> = ({
   const [tableData, setTableData] = useState<TableData[]>(() =>
     rangesToTableData(ranges),
   );
-  const [xRangesCount, setXRangesCount] = useState(0);
+  const [nextXRangeIndex, setNextXRangeIndex] = useState(1);
   const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
 
   const reset = () => {
@@ -115,16 +115,16 @@ const RangesModal: React.FC<Props> = ({
 
   const handleAddNewRange = (label: string) => {
     if (label === 'X') {
-      setXRangesCount((x) => ++x);
       setTableData((data) => [
         ...data,
         {
-          key: `X${xRangesCount + 1}`,
-          label: `X${xRangesCount + 1}`,
+          key: `X${nextXRangeIndex}`,
+          label: `X${nextXRangeIndex}`,
           left: 0,
           right: 0,
         },
       ]);
+      setNextXRangeIndex((x) => ++x);
     } else {
       setTableData((data) => [
         ...data,
@@ -137,7 +137,9 @@ const RangesModal: React.FC<Props> = ({
 
   const handleSave = () => {
     const newRanges = tableData.reduce((acc: ChartRanges, row) => {
-      acc[row.label] = [row.left, row.right];
+      const left = Math.min(+row.left, +row.right);
+      const right = Math.max(+row.left, +row.right);
+      acc[row.label] = [left * 200, right * 200];
       return acc;
     }, {});
 
@@ -193,12 +195,14 @@ const RangesModal: React.FC<Props> = ({
 };
 
 const EditableNumber: React.FC<{
-  value: number;
+  value: number | string;
   onChange: (newValue: number) => void;
 }> = ({ value, onChange }) => (
   <Input
     type="number"
     step={0.01}
+    min={0}
+    max={6}
     value={value}
     onChange={(e) => onChange(+e.target.value)}
   />

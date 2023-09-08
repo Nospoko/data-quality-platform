@@ -168,6 +168,15 @@ export const getChartSettings = (
         },
         grid: { display: false },
       },
+      ...(ranges &&
+        updateRanges && {
+          // empty scale to create padding on top of the chart
+          x2: {
+            position: 'top',
+            ticks: { callback: () => '' },
+            grid: { display: false },
+          },
+        }),
     },
     maintainAspectRatio: false,
     plugins: {
@@ -190,12 +199,9 @@ export const getChartSettings = (
 export type ChartRanges = Record<string, [number, number]>;
 
 type SideConf = {
-  initial: number;
   position: number;
   x: number | undefined;
-  lineLabel: string;
   rangeLabel: string;
-  side: 'left' | 'right';
 };
 
 type RangeConf = {
@@ -207,11 +213,11 @@ type RangeConf = {
 };
 
 export const defaltRanges: ChartRanges = {
-  P: [0.6, 0.9],
-  Q: [1.6, 1.9],
-  R: [2.8, 3.2],
-  S: [3.6, 3.9],
-  T: [4.6, 4.9],
+  P: [120, 180],
+  Q: [340, 400],
+  R: [550, 650],
+  S: [800, 860],
+  T: [1000, 1100],
 };
 
 const rangeColors = ['red', 'green', 'blue'];
@@ -245,20 +251,14 @@ export const segmentationPlugin = (): Plugin<'line'> => {
       (conf: RangeConf, [label, range], index) => {
         conf[label] = {
           left: {
-            initial: range[0],
-            position: 0,
+            position: range[0],
             x: undefined,
-            lineLabel: `${range[0]}`,
             rangeLabel: label,
-            side: 'left',
           },
           right: {
-            initial: range[1],
-            position: 0,
+            position: range[1],
             x: undefined,
-            lineLabel: `${range[1]}`,
             rangeLabel: label,
-            side: 'right',
           },
           color: rangeColors[index % rangeColors.length],
         };
@@ -328,8 +328,8 @@ export const segmentationPlugin = (): Plugin<'line'> => {
           return acc;
         }
 
-        const leftBoundary = Math.min(+left.lineLabel, +right.lineLabel);
-        const rightBoundary = Math.max(+left.lineLabel, +right.lineLabel);
+        const leftBoundary = Math.min(left.position, right.position);
+        const rightBoundary = Math.max(+left.position, +right.position);
 
         acc[label] = [leftBoundary, rightBoundary];
         return acc;
@@ -347,13 +347,21 @@ export const segmentationPlugin = (): Plugin<'line'> => {
     id: 'segmentation',
 
     // load initial ranges from chart options
-    afterInit(chart, args, options) {
+    beforeInit(chart, args, options) {
       savedRanges = options.ranges as ChartRanges;
       if (savedRanges) {
         rangesConf = loadRanges(savedRanges);
       } else {
         console.warn('segmentation plugin: No initial ranges provided');
       }
+
+      if (!options.layout) {
+        options.layout = {};
+      }
+      if (!options.layout.padding) {
+        options.layout.padding = {};
+      }
+      options.layout.padding.top = 30;
     },
 
     // handle lines Dran-n-Drop
@@ -417,8 +425,6 @@ export const segmentationPlugin = (): Plugin<'line'> => {
             const newVal = chart.scales.x.getValueForPixel(newX);
 
             if (newVal !== undefined) {
-              const newPointLabel = chart.data.labels?.[newVal];
-              nearestLine.lineLabel = newPointLabel as string;
               nearestLine.position = newVal;
               isUpdatePending = true;
             }
@@ -440,7 +446,7 @@ export const segmentationPlugin = (): Plugin<'line'> => {
 
     // check options.ranges change; draw the ranges
     afterDatasetDraw(chart, args, options) {
-      const { ctx, data, scales, chartArea } = chart;
+      const { ctx, scales, chartArea } = chart;
 
       if (options.ranges !== savedRanges) {
         savedRanges = options.ranges as ChartRanges;
@@ -455,17 +461,15 @@ export const segmentationPlugin = (): Plugin<'line'> => {
       Object.values(rangesConf).forEach(({ left, right, color }) => {
         // find X coordinate for the boundaries
         if (left.x === undefined) {
-          left.x = scales.x.getPixelForValue(
-            findClosestLabelIndex(data.labels as string[], left.initial),
-          );
+          left.x = scales.x.getPixelForValue(left.position);
         }
         if (right.x === undefined) {
-          right.x = scales.x.getPixelForValue(
-            findClosestLabelIndex(data.labels as string[], right.initial),
-          );
+          right.x = scales.x.getPixelForValue(right.position);
         }
 
         const isOverRange = nearestRange === left.rangeLabel;
+
+        ctx.textAlign = 'center';
 
         // draw left boundary
         ctx.beginPath();
@@ -476,7 +480,11 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         ctx.stroke();
         if (isOverRange) {
           ctx.fillStyle = color;
-          ctx.fillText(left.lineLabel, left.x, chartArea.top);
+          ctx.fillText(
+            (left.position / 200).toFixed(2),
+            left.x,
+            chartArea.top - 5,
+          );
         }
 
         // draw right boundary
@@ -488,7 +496,11 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         ctx.stroke();
         if (isOverRange) {
           ctx.fillStyle = color;
-          ctx.fillText(right.lineLabel, right.x, chartArea.top);
+          ctx.fillText(
+            (right.position / 200).toFixed(2),
+            right.x,
+            chartArea.top - 5,
+          );
         }
 
         // fill range
@@ -507,8 +519,7 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         // draw label
         ctx.font = 'bold';
         ctx.fillStyle = color;
-        ctx.textAlign = 'center';
-        ctx.fillText(left.rangeLabel, rangeCenterX, chartArea.top);
+        ctx.fillText(left.rangeLabel, rangeCenterX, chartArea.top - 15);
 
         // draw delete button
         if (isOverRange && left.rangeLabel !== 'R') {
@@ -531,33 +542,4 @@ export const segmentationPlugin = (): Plugin<'line'> => {
       });
     },
   };
-};
-
-/**
- * Given an array of labels e.g. `["1.00", "1.46", "2.05", ...]` and a number `val`,
- * return the index of the label that is closest to the `val` (if `val = 1.5` return `1`).
- *
- * @param {string[]} arr array of labels `[number.toFixed(2)]`
- * @param {number} val search for label that is or closest to `val.toFixed(2)`
- * @param {?number} [startFrom=0] (Optional) index in `arr` to start searching from
- * @returns {number}
- */
-const findClosestLabelIndex = (arr: string[], val: number, startFrom = 0) => {
-  // regular binary search
-  let lo = startFrom;
-  let hi = arr.length;
-  const target = val.toFixed(2);
-  do {
-    const mid = Math.floor(lo + (hi - lo) / 2);
-    const cur = arr[mid];
-    if (cur === target) {
-      return mid;
-    }
-    if (+cur > val) {
-      hi = mid;
-    } else {
-      lo = mid + 1;
-    }
-  } while (lo < hi);
-  return lo;
 };
