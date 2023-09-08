@@ -171,7 +171,12 @@ const DashboardPage = () => {
       if (nextIndex == -1) {
         return;
       }
-      await sendFeedback({ id, choice });
+      await sendFeedback({
+        id,
+        choice,
+        metadata:
+          DATA_PROBLEM === 'ecg_classification' ? getRangesForRecord(id) : null,
+      });
 
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
       setRecordsToDisplay(newRecords);

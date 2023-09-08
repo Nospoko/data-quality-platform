@@ -55,9 +55,11 @@ export const sendFeedback = async ({
   comment,
   rhythm,
   quality,
+  metadata,
 }: {
   id: string;
   choice?: string;
+  metadata?: any;
 } & MidiFeedback): Promise<RecordsResponse> => {
   const response = await axios.post('/api/data-check', {
     id,
@@ -65,6 +67,7 @@ export const sendFeedback = async ({
     comment,
     rhythm,
     quality,
+    metadata,
   });
 
   return response.data;

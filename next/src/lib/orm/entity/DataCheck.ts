@@ -48,6 +48,12 @@ export class DataCheck {
   })
   score2: number;
 
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  metadata: any;
+
   @Column('timestamp', {
     name: 'created_at',
     default: () => 'CURRENT_TIMESTAMP',

@@ -16,7 +16,7 @@ router.post(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const { id, choice, comment, rhythm, quality } = req.body;
+  const { id, choice, comment, rhythm, quality, metadata } = req.body;
   const dataCheckRepo = await customGetRepository(DataCheck);
   const recordRepo = await customGetRepository(Record);
   const record = await recordRepo.findOne({ where: { id } });
@@ -32,6 +32,7 @@ router.post(async (req, res) => {
     comment,
     score1: rhythm,
     score2: quality,
+    metadata,
   });
 
   const result = await dataCheckRepo.save(newDataCheck);
