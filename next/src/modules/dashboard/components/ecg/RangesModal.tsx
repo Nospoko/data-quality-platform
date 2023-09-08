@@ -48,9 +48,16 @@ const RangesModal: React.FC<Props> = ({
   const [xRangesCount, setXRangesCount] = useState(0);
   const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
 
-  React.useEffect(() => {
+  const reset = () => {
     setTableData(rangesToTableData(ranges));
-  }, [ranges]);
+  };
+
+  React.useEffect(reset, [ranges]);
+
+  const onDiscard = () => {
+    reset();
+    onClose();
+  };
 
   const handleChangeNumber =
     (label: string, side: 'left' | 'right') => (newValue: number) => {
@@ -139,7 +146,13 @@ const RangesModal: React.FC<Props> = ({
   };
 
   return (
-    <Modal centered open={isOpen} onCancel={onClose} width={600} footer={null}>
+    <Modal
+      centered
+      open={isOpen}
+      onCancel={onDiscard}
+      width={600}
+      footer={null}
+    >
       <ModalBody>
         <Table columns={columns} dataSource={tableData} />
 
