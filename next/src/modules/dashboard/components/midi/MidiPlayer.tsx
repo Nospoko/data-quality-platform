@@ -17,12 +17,6 @@ declare global {
 }
 
 export default function MidiPlayer() {
-  if (typeof window !== 'undefined') {
-    require('tone/build/Tone.js');
-    require('@magenta/music/es6/core.js');
-    require('html-midi-player');
-  }
-
   const { theme } = useTheme();
 
   const playerRef = useRef(null);

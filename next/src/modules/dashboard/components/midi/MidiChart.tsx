@@ -1,13 +1,18 @@
+import dynamic from 'next/dynamic';
 import React from 'react';
 import { styled } from 'styled-components';
 
 import Feedback from './Feedback';
-import MidiPlayer from './MidiPlayer';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Record } from '@/lib/orm/entity/Record';
 import { MidiFeedback } from '@/services/reactQueryFn';
 import { HistoryData, ThemeType } from '@/types/common';
+
+const DynamicMidiPlayer = dynamic(() => import('./MidiPlayer'), {
+  ssr: false,
+  loading: () => <div>Loading...</div>,
+});
 
 type Props = {
   record: Record;
@@ -36,7 +41,7 @@ export default function MidiChart({
 
   return (
     <Wrapper color={theme}>
-      <MidiPlayer />
+      <DynamicMidiPlayer />
       <Feedback historyData={historyData} handleFeedback={handleFeedback} />
     </Wrapper>
   );
