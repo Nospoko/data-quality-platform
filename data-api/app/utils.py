@@ -20,7 +20,7 @@ def prepare_midi_review(dataset_name: str) -> Dataset:
         # This is the fastest way I now to add a column to hf dataset
         # It's not pretty
         metadata = [{
-            "idx": idx,
+            "record_id": idx,
             "dataset_name": dataset_name,
             "metadata": {
                 "midi_filename": record["midi_filename"],
@@ -29,7 +29,7 @@ def prepare_midi_review(dataset_name: str) -> Dataset:
 
         meta_dataset = Dataset.from_list(metadata)
         types = {"metadata": sa.types.JSON}
-        meta_dataset.to_sql("records", con=engine, index=True, if_exists="append", dtype=types)
+        meta_dataset.to_sql("records", con=engine, index=False, if_exists="append", dtype=types)
 
     return dataset
 
@@ -49,12 +49,19 @@ def prepare_ecg_classification(dataset_name: str) -> Dataset:
     else:
         # This is the fastest way I now to add a column to hf dataset
         # It's not pretty
-        dataset_names = [{"dataset_name": dataset_name}] * dataset.num_rows
-        name_dataset = Dataset.from_list(dataset_names)
-        dataset = concatenate_datasets([dataset, name_dataset], axis=1)
+        metadata = [{
+            "record_id": idx,
+            "dataset_name": dataset_name,
+            "metadata": {
+                "time": record["time"].isoformat(),
+                "label": record["label"],
+                "position": record["position"],
+                "exam_uid": record["exam_uid"],
+            }
+        } for idx, record in enumerate(dataset)]
 
-        print("Populating records table")
-        columns = ["time", "label", "position", "exam_uid", "dataset_name"]
-        dataset.select_columns(columns).to_sql("records", con=engine, index=True, if_exists="append")
+        meta_dataset = Dataset.from_list(metadata)
+        types = {"metadata": sa.types.JSON}
+        meta_dataset.to_sql("records", con=engine, index=False, if_exists="append", dtype=types)
 
     return dataset
