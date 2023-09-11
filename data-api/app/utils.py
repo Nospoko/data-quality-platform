@@ -29,7 +29,7 @@ def prepare_midi_review(dataset_name: str) -> Dataset:
 
         meta_dataset = Dataset.from_list(metadata)
         types = {"metadata": sa.types.JSON}
-        meta_dataset.to_sql("midi_records", con=engine, index=True, if_exists="append", dtype=types)
+        meta_dataset.to_sql("records", con=engine, index=True, if_exists="append", dtype=types)
 
     return dataset
 
