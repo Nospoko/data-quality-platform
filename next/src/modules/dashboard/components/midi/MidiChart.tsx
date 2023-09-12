@@ -36,7 +36,7 @@ export default function MidiChart({
 
   return (
     <Wrapper color={theme}>
-      <MidiPlayer />
+      <MidiPlayer record={record} />
       <Feedback historyData={historyData} handleFeedback={handleFeedback} />
     </Wrapper>
   );

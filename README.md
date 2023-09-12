@@ -10,7 +10,7 @@ docker-compose up
 2. Run the command `docker-compose up`.
 3. Open `http://localhost:3000/` in your browser
 4. Register a new user.
-5.  Use pgAdmin or another similar tool, and in the 'users' table, set the value of the 'role' field to 'admin'. Raw query: `UPDATE users SET role='admin'::users_role_enum WHERE email='user@email.com';`
+5. In the 'users' table, set the value of the 'role' field to 'admin'. Query: `UPDATE users SET role='admin'::users_role_enum WHERE email='user@email.com';`
 6. Refresh the page.
 7. Navigate to the admin page.
 

@@ -97,7 +97,12 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
-    () => getFragment(record.exam_uid, record.position, datasetName),
+    () =>
+      getFragment(
+        record.metadata.exam_uid,
+        record.metadata.position,
+        datasetName,
+      ),
   );
 
   const handleSelect = (choice: Choice) => {

@@ -4,6 +4,7 @@ import React, { useEffect, useRef } from 'react';
 import { styled } from 'styled-components';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
+import { Record } from '@/lib/orm/entity/Record';
 import { ThemeType } from '@/types/common';
 
 declare global {
@@ -16,7 +17,11 @@ declare global {
   }
 }
 
-export default function MidiPlayer() {
+type Props = {
+  record: Record;
+};
+
+export default function MidiPlayer({ record }: Props) {
   if (typeof window !== 'undefined') {
     require('tone/build/Tone.js');
     require('@magenta/music/es6/core.js');
@@ -66,11 +71,9 @@ export default function MidiPlayer() {
 
   return (
     <section>
-      {/* "https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/twinkle_twinkle.mid" */}
-      {/* "https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid" */}
       <PlayerWrapper color={theme}>
         <midi-player
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
+          src={`http://0.0.0.0:8080/midi_file/${record.record_id}`}
           sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
           ref={playerRef}
         />
@@ -79,7 +82,7 @@ export default function MidiPlayer() {
         <midi-visualizer
           ref={visualizerRef}
           type="piano-roll"
-          src="https://cdn.jsdelivr.net/gh/cifkao/html-midi-player@2b12128/jazz.mid"
+          src={`http://0.0.0.0:8080/midi_file/${record.record_id}`}
         />
       </VisualizerWrapper>
     </section>

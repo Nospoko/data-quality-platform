@@ -8,7 +8,7 @@ interface Props {
 }
 
 const RecordInfo: React.FC<Props> = ({ record }) => {
-  const { index, exam_uid, position, time } = record;
+  const { index, exam_uid, position, time } = record.metadata;
 
   return (
     <>

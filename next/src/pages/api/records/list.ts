@@ -41,7 +41,9 @@ router.get(async (req, res) => {
     );
 
   if (exams) {
-    await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
+    await query.andWhere('record.metadata.exam_uid IN (:...examIds)', {
+      examIds,
+    });
   }
 
   // I've added the orderBy('RANDOM()') clause to the query,
