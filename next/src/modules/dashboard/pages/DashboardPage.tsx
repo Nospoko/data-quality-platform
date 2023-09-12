@@ -128,7 +128,7 @@ const DashboardPage = () => {
       return;
     }
 
-    const { id, exam_uid, position } = record;
+    const { id, exam_uid, position } = record.metadata;
     try {
       let fragment = getCachedFragment(id);
       //fetch if cached fragment does't exist
@@ -247,7 +247,7 @@ const DashboardPage = () => {
     setZoomMode(true);
 
     try {
-      const { exam_uid, position, id } = recordsToDisplay[0];
+      const { exam_uid, position, id } = recordsToDisplay[0].metadata;
       let fragment = getCachedFragment(id);
       //fetch if cached fragment does't exist
       if (!fragment) {
@@ -348,7 +348,7 @@ const DashboardPage = () => {
         {DATA_PROBLEM === 'ecg_classification' && recordsToDisplay
           ? recordsToDisplay.map((record, i) => (
               <MainChart
-                key={record.index}
+                key={record.metadata.index}
                 isFirst={i === 0}
                 isZoomView={isZoomModal}
                 isFetching={isFetching}
@@ -364,7 +364,7 @@ const DashboardPage = () => {
         recordsToDisplay &&
         recordsToDisplay.map((record) => (
           <MidiChart
-            key={record.index}
+            key={record.metadata.index}
             record={record}
             addFeedbackMidi={addFeedbackMidi}
           />

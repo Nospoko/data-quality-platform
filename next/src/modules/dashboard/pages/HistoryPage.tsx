@@ -48,12 +48,12 @@ const History = () => {
     try {
       const response = await fetchUserRecords(datasetName, skip, filters);
       const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
-        acc[d.record.index] = true;
+        acc[d.record.metadata.index] = true;
         return acc;
       }, {});
 
       const newRecords = response.data?.filter(
-        (record) => !existedRecordsId[record.record.index],
+        (record) => !existedRecordsId[record.record.metadata.index],
       );
 
       setRecordsToDisplay((prev) => [...prev, ...newRecords]);
@@ -199,7 +199,7 @@ const History = () => {
         ? recordsToDisplay.map((history) => (
             <MainChart
               datasetName={datasetName as string}
-              key={history.record.index}
+              key={history.record.metadata.index}
               record={history.record}
               isFirst={false}
               addFeedback={changeFeedback}
