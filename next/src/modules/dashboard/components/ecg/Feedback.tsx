@@ -8,6 +8,9 @@ import React from 'react';
 import { styled } from 'styled-components';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
+import { AllowedDataProblem } from '@/pages/_app';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 
 const ButtonStyle: React.CSSProperties = {
   height: '30%',
@@ -47,32 +50,31 @@ const Feedback: React.FC<Props> = ({
         onClick={() => handleSelect(Choice.APPROVED)}
         disabled={isFetching}
       ></Button>
-
-      {/* 
-      <Button
-        style={ButtonStyle}
-        type="primary"
-        ghost={decision !== Choice.REJECTED}
-        danger
-        size="large"
-        onClick={() => handleSelect(Choice.REJECTED)}
-        icon={<CloseOutlined />}
-        disabled={isFetching}
-      ></Button>
-
-      <Button
-        style={ButtonStyle}
-        type="primary"
-        ghost={decision !== Choice.UNKNOWN}
-        size="large"
-        onClick={() =>
-          onOpenZoomView ? onOpenZoomView() : handleSelect(Choice.UNKNOWN)
-        }
-        icon={<QuestionOutlined />}
-        disabled={isFetching}
-      ></Button>
-      */}
-
+      {DATA_PROBLEM === 'ecg_classification' && (
+        <>
+          <Button
+            style={ButtonStyle}
+            type="primary"
+            ghost={decision !== Choice.REJECTED}
+            danger
+            size="large"
+            onClick={() => handleSelect(Choice.REJECTED)}
+            icon={<CloseOutlined />}
+            disabled={isFetching}
+          />
+          <Button
+            style={ButtonStyle}
+            type="primary"
+            ghost={decision !== Choice.UNKNOWN}
+            size="large"
+            onClick={() =>
+              onOpenZoomView ? onOpenZoomView() : handleSelect(Choice.UNKNOWN)
+            }
+            icon={<QuestionOutlined />}
+            disabled={isFetching}
+          />
+        </>
+      )}
       {children}
     </Wrapper>
   );

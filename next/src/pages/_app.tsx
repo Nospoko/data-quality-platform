@@ -20,12 +20,19 @@ type AppPropsWithLayout = AppProps & {
 
 const queryClient = new QueryClient();
 
-const ALLOWED_DATA_PROBLEMS = ['ecg_classification', 'midi_review'];
+const ALLOWED_DATA_PROBLEMS = [
+  'ecg_classification',
+  'midi_review',
+  'ecg_segmentation',
+] as const;
+export type AllowedDataProblem = (typeof ALLOWED_DATA_PROBLEMS)[number];
 const verifyDataProblem = (dataProblem: string | undefined) => {
   if (!dataProblem) {
     return false;
   }
-  return ALLOWED_DATA_PROBLEMS.includes(dataProblem);
+  return ALLOWED_DATA_PROBLEMS.includes(
+    dataProblem as (typeof ALLOWED_DATA_PROBLEMS)[number],
+  );
 };
 
 const App = ({ Component, pageProps }: AppPropsWithLayout) => {

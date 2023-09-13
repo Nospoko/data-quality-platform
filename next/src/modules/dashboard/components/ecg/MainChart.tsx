@@ -33,6 +33,7 @@ import RangesModal from './RangesModal';
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
+import { AllowedDataProblem } from '@/pages/_app';
 import { getFragment } from '@/services/reactQueryFn';
 import {
   EcgFragment,
@@ -42,9 +43,8 @@ import {
   ThemeType,
 } from '@/types/common';
 
-const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
-  | 'ecg_classification'
-  | 'midi_review';
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
+console.log('DATA_PROBLEM: ', DATA_PROBLEM);
 
 interface Props {
   record: Record;
@@ -203,11 +203,26 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 <Line
                   data={chartData.data}
                   options={chartSettings}
-                  plugins={[segmentationPlugin()]}
+                  plugins={
+                    DATA_PROBLEM === 'ecg_segmentation'
+                      ? [segmentationPlugin()]
+                      : []
+                  }
                 />
               </LineWrapper>
             </LineDescriptionWrapper>
             {DATA_PROBLEM === 'ecg_classification' && (
+              <ButtonWrapper>
+                <Feedback
+                  handleSelect={handleSelect}
+                  onOpenZoomView={handleClickChart}
+                  decision={historyData?.choice}
+                  isFetching={isFetching}
+                  isZoomView={isZoomView}
+                />
+              </ButtonWrapper>
+            )}
+            {DATA_PROBLEM === 'ecg_segmentation' && (
               <ButtonWrapper>
                 <Feedback
                   handleSelect={handleSelect}

@@ -10,6 +10,7 @@ import { Choice } from '@/lib/orm/entity/DataCheck';
 import SearchingForm from '@/modules/dashboard/components/common/SearchForm';
 import MainChart from '@/modules/dashboard/components/ecg/MainChart';
 import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
+import { AllowedDataProblem } from '@/pages/_app';
 import {
   changeChoice,
   changeMidiFeedback,
@@ -18,9 +19,7 @@ import {
 } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
 
-const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
-  | 'ecg_classification'
-  | 'midi_review';
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 
 const History = () => {
   const router = useRouter();
@@ -195,7 +194,9 @@ const History = () => {
         </StateWrapper>
       )}
 
-      {DATA_PROBLEM === 'ecg_classification' && recordsToDisplay
+      {(DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation') &&
+      recordsToDisplay
         ? recordsToDisplay.map((history) => (
             <MainChart
               datasetName={datasetName as string}

@@ -17,6 +17,7 @@ import { Record } from '@/lib/orm/entity/Record';
 import MainChart from '@/modules/dashboard/components/ecg/MainChart';
 import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
 import { getChartData } from '@/modules/dashboard/utils/getChartData';
+import { AllowedDataProblem } from '@/pages/_app';
 import {
   fetchRecords,
   getFragment,
@@ -25,10 +26,7 @@ import {
 } from '@/services/reactQueryFn';
 import { EcgFragment, Filter, SelectedChartData } from '@/types/common';
 
-const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as
-  | 'ecg_classification'
-  | 'midi_review';
-
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 const DashboardPage = () => {
   const router = useRouter();
   const { datasetName } = router.query as { datasetName: string };
@@ -372,7 +370,9 @@ const DashboardPage = () => {
           },
         ]}
       >
-        {DATA_PROBLEM === 'ecg_classification' && recordsToDisplay
+        {(DATA_PROBLEM === 'ecg_classification' ||
+          DATA_PROBLEM === 'ecg_segmentation') &&
+        recordsToDisplay
           ? recordsToDisplay.map((record, i) => (
               <MainChart
                 key={record.metadata.index}
