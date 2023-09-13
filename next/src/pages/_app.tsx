@@ -4,6 +4,7 @@ import type { AppProps } from 'next/app';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Typography } from 'antd';
 import { NextPage } from 'next';
+import Script from 'next/script';
 import { SessionProvider } from 'next-auth/react';
 import { ReactElement, ReactNode } from 'react';
 
@@ -45,7 +46,10 @@ const App = ({ Component, pageProps }: AppPropsWithLayout) => {
         <ThemeProvider clearTransition>
           {getLayout(
             verifyDataProblem(process.env.NEXT_PUBLIC_DATA_PROBLEM) ? (
-              <Component {...pageProps} />
+              <>
+                <Component {...pageProps} />
+                <Script src="https://cdn.jsdelivr.net/combine/npm/tone@14.7.58,npm/@magenta/music@1.23.1/es6/core.js,npm/focus-visible@5,npm/html-midi-player@1.5.0" />
+              </>
             ) : (
               <Typography.Title type="danger">
                 The value provided for DATA_PROBLEM is not recognized.
