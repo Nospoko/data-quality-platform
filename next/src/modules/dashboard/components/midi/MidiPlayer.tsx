@@ -1,10 +1,9 @@
 import 'focus-visible/dist/focus-visible.min.js';
 
-import React, { useEffect, useRef } from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 import { styled } from 'styled-components';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
-import { Record } from '@/lib/orm/entity/Record';
 import { ThemeType } from '@/types/common';
 
 declare global {
@@ -18,10 +17,10 @@ declare global {
 }
 
 type Props = {
-  record: Record;
+  recordId: string;
 };
 
-export default function MidiPlayer({ record }: Props) {
+function MidiPlayer({ recordId }: Props) {
   if (typeof window !== 'undefined') {
     require('tone/build/Tone.js');
     require('@magenta/music/es6/core.js');
@@ -69,11 +68,13 @@ export default function MidiPlayer({ record }: Props) {
     };
   }, []);
 
+  console.log('RERENER', recordId);
+
   return (
     <section>
       <PlayerWrapper color={theme}>
         <midi-player
-          src={`http://0.0.0.0:8080/midi_file/${record.record_id}`}
+          src={`${process.env.NEXT_PUBLIC_API_URL}/midi_file/${recordId}`}
           sound-font="https://storage.googleapis.com/magentadata/js/soundfonts/sgm_plus"
           ref={playerRef}
         />
@@ -82,7 +83,7 @@ export default function MidiPlayer({ record }: Props) {
         <midi-visualizer
           ref={visualizerRef}
           type="piano-roll"
-          src={`http://0.0.0.0:8080/midi_file/${record.record_id}`}
+          src={`${process.env.NEXT_PUBLIC_API_URL}/midi_file/${recordId}`}
         />
       </VisualizerWrapper>
     </section>
@@ -150,3 +151,5 @@ const PlayerWrapper = styled.div`
     color: ${(props) => (props.color === ThemeType.DARK ? '#fff' : '#000')};
   }
 `;
+
+export default memo(MidiPlayer);

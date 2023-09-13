@@ -173,9 +173,12 @@ const History = () => {
         Dataset Name: {datasetName}
       </Typography.Title>
 
-      <SearchingFormWrapper>
-        <SearchingForm onChangeFilter={addNewFilters} />
-      </SearchingFormWrapper>
+      {(DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation') && (
+        <SearchingFormWrapper>
+          <SearchingForm onChangeFilter={addNewFilters} />
+        </SearchingFormWrapper>
+      )}
 
       {selectedChartData && (
         <ZoomView

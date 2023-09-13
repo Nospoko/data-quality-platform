@@ -296,20 +296,21 @@ const DashboardPage = () => {
         Dataset Name: {datasetName}
       </Typography.Title>
 
-      <SearchingFormWrapper>
-        <SearchingForm onChangeFilter={addNewFilters} />
-      </SearchingFormWrapper>
-
       {(DATA_PROBLEM === 'ecg_classification' ||
         DATA_PROBLEM === 'ecg_segmentation') && (
-        <SwitchWrapper>
-          <Switch
-            checkedChildren="Zoom Mode ON"
-            unCheckedChildren="Zoom Mode OFF"
-            checked={zoomMode}
-            onChange={handleClickZoomMode}
-          />
-        </SwitchWrapper>
+        <>
+          <SearchingFormWrapper>
+            <SearchingForm onChangeFilter={addNewFilters} />
+          </SearchingFormWrapper>
+          <SwitchWrapper>
+            <Switch
+              checkedChildren="Zoom Mode ON"
+              unCheckedChildren="Zoom Mode OFF"
+              checked={zoomMode}
+              onChange={handleClickZoomMode}
+            />
+          </SwitchWrapper>
+        </>
       )}
 
       {selectedChartData && (
@@ -394,7 +395,7 @@ const DashboardPage = () => {
         recordsToDisplay &&
         recordsToDisplay.map((record) => (
           <MidiChart
-            key={record.metadata.index}
+            key={record.id}
             record={record}
             addFeedbackMidi={addFeedbackMidi}
           />

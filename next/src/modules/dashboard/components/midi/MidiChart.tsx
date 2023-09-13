@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { styled } from 'styled-components';
 
 import Feedback from './Feedback';
@@ -15,11 +15,7 @@ type Props = {
   historyData?: HistoryData;
 };
 
-export default function MidiChart({
-  record,
-  addFeedbackMidi,
-  historyData,
-}: Props) {
+function MidiChart({ record, addFeedbackMidi, historyData }: Props) {
   const { theme } = useTheme();
 
   const handleFeedback = (midiFeedback: MidiFeedback) => {
@@ -36,7 +32,7 @@ export default function MidiChart({
 
   return (
     <Wrapper color={theme}>
-      <MidiPlayer record={record} />
+      <MidiPlayer recordId={record.record_id} />
       <Feedback historyData={historyData} handleFeedback={handleFeedback} />
     </Wrapper>
   );
@@ -49,3 +45,5 @@ const Wrapper = styled.div`
   border-radius: 8px;
   margin-bottom: 40px;
 `;
+
+export default memo(MidiChart);
