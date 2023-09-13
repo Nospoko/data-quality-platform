@@ -300,7 +300,8 @@ const DashboardPage = () => {
         <SearchingForm onChangeFilter={addNewFilters} />
       </SearchingFormWrapper>
 
-      {DATA_PROBLEM === 'ecg_classification' && (
+      {(DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation') && (
         <SwitchWrapper>
           <Switch
             checkedChildren="Zoom Mode ON"
