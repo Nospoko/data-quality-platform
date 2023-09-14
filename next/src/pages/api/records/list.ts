@@ -17,8 +17,9 @@ router.get(async (req, res) => {
   }
   const datasetName = req.query.datasetName as string;
   const limit = Number(req.query.limit) || 10;
-  const exams = req.query['exams[]'];
-  const examIds = Array.isArray(exams) ? exams : [exams];
+  const filterValues = req.query['filterValues[]'];
+  const filters = Array.isArray(filterValues) ? filterValues : [filterValues];
+  const field = req.query.field;
 
   const recordsRepo = await customGetRepository(Record);
   const userId = session.user.id;
@@ -40,9 +41,9 @@ router.get(async (req, res) => {
       { userId },
     );
 
-  if (exams) {
-    await query.andWhere("record.metadata->>'exam_uid' IN (:...examIds)", {
-      examIds,
+  if (filterValues && field) {
+    query.andWhere(`record.metadata->>'${field}' IN (:...filters)`, {
+      filters,
     });
   }
 

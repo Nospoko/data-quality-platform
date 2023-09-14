@@ -21,6 +21,7 @@ import { AllowedDataProblem } from '@/pages/_app';
 import {
   fetchRecords,
   getFragment,
+  MetadataField,
   MidiFeedback,
   sendFeedback,
 } from '@/services/reactQueryFn';
@@ -38,7 +39,7 @@ const DashboardPage = () => {
   const [isZoomModal, setIsZoomModal] = useState(false);
   const [zoomMode, setZoomMode] = useState(false);
   const [filters, setFilters] = useState<Filter>({
-    exams: [],
+    filterValues: [],
   });
   const [hasNextPage, setHasNextPage] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
@@ -75,7 +76,22 @@ const DashboardPage = () => {
   const fetchAndUpdateHistoryData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetchRecords(datasetName, filters);
+      let metadataFieldToFilter: MetadataField | undefined;
+      if (
+        DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation'
+      ) {
+        metadataFieldToFilter = 'exam_uid';
+      }
+      if (DATA_PROBLEM === 'midi_review') {
+        metadataFieldToFilter = 'midi_filename';
+      }
+      const response = await fetchRecords(
+        datasetName,
+        filters,
+        metadataFieldToFilter,
+      );
+
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
         const newData: Record[] = [...prev, ...response.data];
@@ -107,10 +123,23 @@ const DashboardPage = () => {
     paramFilters?: Filter,
   ) => {
     setIsFetching(true);
+
+    let metadataFieldToFilter: MetadataField | undefined;
+    if (
+      DATA_PROBLEM === 'ecg_classification' ||
+      DATA_PROBLEM === 'ecg_segmentation'
+    ) {
+      metadataFieldToFilter = 'exam_uid';
+    }
+    if (DATA_PROBLEM === 'midi_review') {
+      metadataFieldToFilter = 'midi_filename';
+    }
+
     try {
       const response = await fetchRecords(
         datasetName,
         paramFilters ?? filters,
+        metadataFieldToFilter,
         limit,
       );
       setRecordsToDisplay(response.data);
@@ -300,7 +329,10 @@ const DashboardPage = () => {
         DATA_PROBLEM === 'ecg_segmentation') && (
         <>
           <SearchingFormWrapper>
-            <SearchingForm onChangeFilter={addNewFilters} />
+            <SearchingForm
+              filterValue="exam_uid"
+              onChangeFilter={addNewFilters}
+            />
           </SearchingFormWrapper>
           <SwitchWrapper>
             <Switch
@@ -311,6 +343,15 @@ const DashboardPage = () => {
             />
           </SwitchWrapper>
         </>
+      )}
+
+      {DATA_PROBLEM === 'midi_review' && (
+        <SearchingFormWrapper>
+          <SearchingForm
+            filterValue="midi_filename"
+            onChangeFilter={addNewFilters}
+          />
+        </SearchingFormWrapper>
       )}
 
       {selectedChartData && (

@@ -30,14 +30,16 @@ export const getFragment = async (
 export const fetchRecords = async (
   datasetName: string,
   filters: Filter,
+  metadataField?: MetadataField,
   limit = 5,
 ): Promise<RecordsResponse> => {
-  const { exams } = filters;
+  const { filterValues } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
       datasetName,
-      exams,
+      filterValues,
       limit,
+      field: metadataField,
     },
   });
 
@@ -77,15 +79,17 @@ export const fetchUserRecords = async (
   datasetName: string,
   skip: number,
   filters: Filter,
+  metadataField?: MetadataField,
   limit = 5,
 ): Promise<HistoryDataResponse> => {
-  const { exams } = filters;
+  const { filterValues } = filters;
   const response = await axios.get('/api/records/history', {
     params: {
       datasetName,
       skip,
-      exams,
+      filterValues,
       limit,
+      field: metadataField,
     },
   });
 
@@ -128,8 +132,12 @@ export const changeMidiFeedback = async ({
   return response.data;
 };
 
-export const fetchExamIds = async (): Promise<string[]> => {
-  const response = await axios.get('/api/filters');
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type MetadataField = 'exam_uid' | 'midi_filename' | ({} & string);
+export const fetchFilters = async (
+  metadataField: MetadataField,
+): Promise<string[]> => {
+  const response = await axios.get(`/api/filters?field=${metadataField}`);
 
   return response.data;
 };

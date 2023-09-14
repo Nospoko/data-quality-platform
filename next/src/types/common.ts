@@ -72,7 +72,7 @@ export type HistoryDataResponse = {
 };
 
 export interface Filter {
-  exams: string[];
+  filterValues: string[];
 }
 
 export enum UserRole {

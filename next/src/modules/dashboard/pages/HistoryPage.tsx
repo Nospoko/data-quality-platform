@@ -15,6 +15,7 @@ import {
   changeChoice,
   changeMidiFeedback,
   fetchUserRecords,
+  MetadataField,
   MidiFeedback,
 } from '@/services/reactQueryFn';
 import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
@@ -37,15 +38,31 @@ const History = () => {
   const [isZoomModal, setIsZoomModal] = useState(false);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [filters, setFilters] = useState<Filter>({
-    exams: [],
+    filterValues: [],
   });
 
   const { status } = useSession();
   const loading = status === 'loading';
 
   const fetchAndUpdateHistoryData = async (skip: number) => {
+    let metadataFieldToFilter: MetadataField | undefined;
+    if (
+      DATA_PROBLEM === 'ecg_classification' ||
+      DATA_PROBLEM === 'ecg_segmentation'
+    ) {
+      metadataFieldToFilter = 'exam_uid';
+    }
+    if (DATA_PROBLEM === 'midi_review') {
+      metadataFieldToFilter = 'midi_filename';
+    }
+
     try {
-      const response = await fetchUserRecords(datasetName, skip, filters);
+      const response = await fetchUserRecords(
+        datasetName,
+        skip,
+        filters,
+        metadataFieldToFilter,
+      );
       const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
         acc[d.record.metadata.index] = true;
         return acc;
@@ -69,11 +86,23 @@ const History = () => {
     limit: number,
     paramFilters?: Filter,
   ) => {
+    let metadataFieldToFilter: MetadataField | undefined;
+    if (
+      DATA_PROBLEM === 'ecg_classification' ||
+      DATA_PROBLEM === 'ecg_segmentation'
+    ) {
+      metadataFieldToFilter = 'exam_uid';
+    }
+    if (DATA_PROBLEM === 'midi_review') {
+      metadataFieldToFilter = 'midi_filename';
+    }
+
     try {
       const response = await fetchUserRecords(
         datasetName,
         0,
         paramFilters ?? filters,
+        metadataFieldToFilter,
         limit,
       );
 
@@ -176,7 +205,18 @@ const History = () => {
       {(DATA_PROBLEM === 'ecg_classification' ||
         DATA_PROBLEM === 'ecg_segmentation') && (
         <SearchingFormWrapper>
-          <SearchingForm onChangeFilter={addNewFilters} />
+          <SearchingForm
+            filterValue="exam_uid"
+            onChangeFilter={addNewFilters}
+          />
+        </SearchingFormWrapper>
+      )}
+      {DATA_PROBLEM === 'midi_review' && (
+        <SearchingFormWrapper>
+          <SearchingForm
+            filterValue="midi_filename"
+            onChangeFilter={addNewFilters}
+          />
         </SearchingFormWrapper>
       )}
 
