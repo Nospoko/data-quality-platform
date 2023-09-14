@@ -35,7 +35,9 @@ router.get(async (req, res) => {
     });
 
   if (exams) {
-    await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
+    query.andWhere('record.metadata->>exam_uid IN (:...examIds)', {
+      examIds,
+    });
   }
 
   query.orderBy('dataCheck.createdAt', 'DESC');
