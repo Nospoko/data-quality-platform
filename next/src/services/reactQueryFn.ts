@@ -96,16 +96,19 @@ export const fetchUserRecords = async (
   return response.data;
 };
 
-export const changeChoice = async ({
+export const changeFeedbackECG = async ({
   dataCheckId,
   choice,
+  metadata,
 }: {
   dataCheckId: string;
   choice: string;
+  metadata?: { [key: string]: any };
 }): Promise<RecordsResponse> => {
   const response = await axios.patch('/api/data-check', {
     dataCheckId,
     choice,
+    metadata,
   });
 
   return response.data;

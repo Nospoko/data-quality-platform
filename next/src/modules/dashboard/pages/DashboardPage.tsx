@@ -202,7 +202,7 @@ const DashboardPage = () => {
         id,
         choice,
         metadata:
-          DATA_PROBLEM === 'ecg_classification' ? getRangesForRecord(id) : null,
+          DATA_PROBLEM === 'ecg_segmentation' ? getRangesForRecord(id) : null,
       });
 
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);

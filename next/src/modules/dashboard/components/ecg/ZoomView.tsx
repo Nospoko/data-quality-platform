@@ -1,4 +1,5 @@
-import { Modal } from 'antd';
+import { CheckOutlined } from '@ant-design/icons';
+import { Button, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 
@@ -9,11 +10,14 @@ import Feedback from './Feedback';
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import showNotification from '@/modules/dashboard/utils/helpers/showNotification';
+import { AllowedDataProblem } from '@/pages/_app';
 import {
   SelectedChartData,
   SelectedHistoryChartData,
   ThemeType,
 } from '@/types/common';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 
 interface Props {
   zoomMode: boolean;
@@ -171,7 +175,24 @@ const ZoomView: React.FC<Props> = ({
                 isZoomView={true}
                 handleSelect={handleDecision}
                 decision={decision?.choice}
-              />
+              >
+                {DATA_PROBLEM === 'ecg_segmentation' && (
+                  <Button
+                    style={{
+                      height: '30%',
+                      width: '100%',
+                      color: 'green',
+                      backgroundColor: 'transparent',
+                      border: '1px solid green',
+                    }}
+                    type="primary"
+                    size="large"
+                    icon={<CheckOutlined />}
+                    onClick={() => addFeedback(id, Choice.APPROVED)}
+                    disabled={isFetching}
+                  />
+                )}
+              </Feedback>
             </ButtonWrapper>
           </Wrapper>
 

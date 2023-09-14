@@ -49,7 +49,7 @@ router.patch(async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
 
-  const { dataCheckId, choice, comment, rhythm, quality } = req.body;
+  const { dataCheckId, choice, metadata, comment, rhythm, quality } = req.body;
 
   const dataCheckRepo = await customGetRepository(DataCheck);
   const existingDataCheck = await dataCheckRepo.findOne({
@@ -62,6 +62,9 @@ router.patch(async (req, res) => {
 
   if (choice) {
     existingDataCheck.choice = choice;
+    if (metadata) {
+      existingDataCheck.metadata = metadata;
+    }
   } else {
     existingDataCheck.comment = comment;
     existingDataCheck.score1 = rhythm;

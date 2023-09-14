@@ -22,7 +22,10 @@ import { ChartRanges } from '../../models';
 import { getLimits } from '../../utils/getRange';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
+import { AllowedDataProblem } from '@/pages/_app';
 import { ChartData, ThemeType } from '@/types/common';
+
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 
 interface Props {
   data: ChartData;
@@ -66,7 +69,9 @@ const Chart: React.FC<Props> = ({ data, ranges, updateRanges }) => {
               },
             },
           }}
-          plugins={[segmentationPlugin()]}
+          plugins={
+            DATA_PROBLEM === 'ecg_segmentation' ? [segmentationPlugin()] : []
+          }
         />
         <LegendContainer>
           <CustomLegend color={theme}>

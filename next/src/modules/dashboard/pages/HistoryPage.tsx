@@ -5,14 +5,17 @@ import React, { useCallback, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
 import MidiChart from '../components/midi/MidiChart';
+import { ChartRanges } from '../models';
 
 import { Choice } from '@/lib/orm/entity/DataCheck';
+import { Record } from '@/lib/orm/entity/Record';
 import SearchingForm from '@/modules/dashboard/components/common/SearchForm';
 import MainChart from '@/modules/dashboard/components/ecg/MainChart';
 import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
 import { AllowedDataProblem } from '@/pages/_app';
+import dataCheck from '@/pages/api/data-check';
 import {
-  changeChoice,
+  changeFeedbackECG,
   changeMidiFeedback,
   fetchUserRecords,
   MetadataField,
@@ -40,6 +43,30 @@ const History = () => {
   const [filters, setFilters] = useState<Filter>({
     filterValues: [],
   });
+
+  const [segmentationRanges, setSegmentationRanges] = useState<{
+    [recordId: string]: ChartRanges;
+  }>({});
+  const getRangesForRecord = (recordId: Record['id']) => {
+    if (DATA_PROBLEM === 'ecg_segmentation') {
+      if (!segmentationRanges[recordId]) {
+        const recordRanges = recordsToDisplay.find(
+          ({ id }) => id === recordId,
+        )?.metadata;
+        setSegmentationRanges((ranges) => ({
+          ...ranges,
+          [recordId]: recordRanges,
+        }));
+        return recordRanges;
+      } else {
+        return segmentationRanges[recordId];
+      }
+    }
+  };
+  const getRangesUpdaterFn = (recordId: Record['id']) => {
+    return (newRanges: ChartRanges) =>
+      setSegmentationRanges((ranges) => ({ ...ranges, [recordId]: newRanges }));
+  };
 
   const { status } = useSession();
   const loading = status === 'loading';
@@ -119,9 +146,18 @@ const History = () => {
     fetchAndUpdateHistoryData(recordsToDisplay.length);
   };
 
-  const changeFeedback = (dataCheckId: string, choice: Choice) => {
-    setSelectedDataCheck({ dataCheckId, choice });
-    setIsConfirmModal(true);
+  const changeFeedback = async (
+    dataCheckId: string,
+    choice: Choice,
+    metadata?: ChartRanges,
+  ) => {
+    if (DATA_PROBLEM === 'ecg_classification') {
+      setSelectedDataCheck({ dataCheckId, choice });
+      setIsConfirmModal(true);
+    }
+    if (DATA_PROBLEM === 'ecg_segmentation') {
+      await changeFeedbackECG({ dataCheckId, choice, metadata });
+    }
   };
 
   const changeFeedbackForMidi = async (
@@ -148,14 +184,14 @@ const History = () => {
           decision: { ...prev?.decision, choice },
         } as SelectedHistoryChartData),
     );
-    await changeChoice({ dataCheckId, choice });
+    await changeFeedbackECG({ dataCheckId, choice });
     await refetchAndReplaceHistoryData(recordsToDisplay.length);
   };
 
   const handleConfirm = async () => {
     if (selectedDataCheck) {
       const { dataCheckId, choice } = selectedDataCheck;
-      await changeChoice({ dataCheckId, choice });
+      await changeFeedbackECG({ dataCheckId, choice });
       await refetchAndReplaceHistoryData(recordsToDisplay.length);
     }
 
@@ -251,6 +287,8 @@ const History = () => {
               historyData={history}
               isZoomView={false}
               isFetching={false}
+              ranges={getRangesForRecord(history.id)}
+              updateRanges={getRangesUpdaterFn(history.id)}
             />
           ))
         : null}

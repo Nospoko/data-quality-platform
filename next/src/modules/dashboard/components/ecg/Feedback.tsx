@@ -36,22 +36,22 @@ const Feedback: React.FC<Props> = ({
 
   return (
     <Wrapper>
-      <Button
-        style={{
-          ...ButtonStyle,
-          color: isApproved ? 'white' : 'green',
-          backgroundColor: isApproved ? 'green' : 'transparent',
-          border: '1px solid green',
-        }}
-        type="primary"
-        ghost={decision !== Choice.APPROVED}
-        size="large"
-        icon={<CheckOutlined />}
-        onClick={() => handleSelect(Choice.APPROVED)}
-        disabled={isFetching}
-      ></Button>
       {DATA_PROBLEM === 'ecg_classification' && (
         <>
+          <Button
+            style={{
+              ...ButtonStyle,
+              color: isApproved ? 'white' : 'green',
+              backgroundColor: isApproved ? 'green' : 'transparent',
+              border: '1px solid green',
+            }}
+            type="primary"
+            ghost={decision !== Choice.APPROVED}
+            size="large"
+            icon={<CheckOutlined />}
+            onClick={() => handleSelect(Choice.APPROVED)}
+            disabled={isFetching}
+          />
           <Button
             style={ButtonStyle}
             type="primary"

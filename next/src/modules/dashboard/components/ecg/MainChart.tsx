@@ -1,4 +1,4 @@
-import { ColumnWidthOutlined } from '@ant-design/icons';
+import { CheckOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { Button, Spin } from 'antd';
 import {
@@ -52,7 +52,11 @@ interface Props {
   isFirst: boolean;
   isZoomView: boolean;
   isFetching?: boolean;
-  addFeedback: (index: number | string, choice: Choice) => void;
+  addFeedback: (
+    index: number | string,
+    choice: Choice,
+    metadata?: ChartRanges,
+  ) => Promise<void>;
   onClickChart: (data: SelectedChartData | SelectedHistoryChartData) => void;
   historyData?: HistoryData;
   ranges?: ChartRanges;
@@ -117,6 +121,16 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     }
 
     addFeedback(record.id, choice);
+  };
+
+  const handleSegmentation = async (metadata: ChartRanges) => {
+    if (historyData) {
+      await addFeedback(historyData.id, Choice.APPROVED, metadata);
+
+      return;
+    }
+
+    await addFeedback(record.id, Choice.APPROVED, metadata);
   };
 
   const handleClickChart = () => {
@@ -233,6 +247,24 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                 >
                   {ranges && updateRanges && (
                     <>
+                      <Button
+                        style={{
+                          height: '30%',
+                          width: '100%',
+                          color: 'green',
+                          backgroundColor: 'transparent',
+                          border: '1px solid green',
+                        }}
+                        type="primary"
+                        size="large"
+                        icon={<CheckOutlined />}
+                        onClick={() =>
+                          historyData
+                            ? handleSegmentation(ranges)
+                            : handleSelect(Choice.APPROVED)
+                        }
+                        disabled={isFetching}
+                      />
                       <Button
                         style={{ width: '100%', height: '30%' }}
                         icon={<ColumnWidthOutlined />}
