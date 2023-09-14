@@ -271,7 +271,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                         style={{ width: '100%', height: '30%' }}
                         icon={<ColumnWidthOutlined />}
                         onClick={() => setIsRangesModalOpen(true)}
-                      ></Button>
+                      />
                       <RangesModal
                         isOpen={isRangesModalOpen}
                         onClose={() => setIsRangesModalOpen(false)}

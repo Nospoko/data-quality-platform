@@ -1,4 +1,4 @@
-import { CheckOutlined } from '@ant-design/icons';
+import { CheckOutlined, ColumnWidthOutlined } from '@ant-design/icons';
 import { Button, Modal } from 'antd';
 import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import { ChartRanges } from '../../models';
 import Chart from './Chart';
 import Feedback from './Feedback';
+import RangesModal from './RangesModal';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -129,6 +130,8 @@ const ZoomView: React.FC<Props> = ({
     };
   }, [id, addFeedback, chartData, zoomMode, isFetching, isOpen]);
 
+  const [isRangesModalOpen, setIsRangesModalOpen] = useState(false);
+
   return (
     <>
       <Modal
@@ -177,23 +180,38 @@ const ZoomView: React.FC<Props> = ({
                 decision={decision?.choice}
               >
                 {DATA_PROBLEM === 'ecg_segmentation' && (
-                  <Button
-                    style={{
-                      height: '30%',
-                      width: '100%',
-                      color: 'green',
-                      backgroundColor: 'transparent',
-                      border: '1px solid green',
-                    }}
-                    type="primary"
-                    size="large"
-                    icon={<CheckOutlined />}
-                    onClick={() => addFeedback(id, Choice.APPROVED)}
-                    disabled={
-                      isFetching ||
-                      Object.keys(ranges as ChartRanges).length === 0
-                    }
-                  />
+                  <>
+                    <Button
+                      style={{
+                        height: '30%',
+                        width: '100%',
+                        color: 'green',
+                        backgroundColor: 'transparent',
+                        border: '1px solid green',
+                      }}
+                      type="primary"
+                      size="large"
+                      icon={<CheckOutlined />}
+                      onClick={() => addFeedback(id, Choice.APPROVED)}
+                      disabled={
+                        isFetching ||
+                        Object.keys(ranges as ChartRanges).length === 0
+                      }
+                    />
+                    <Button
+                      style={{ width: '100%', height: '30%' }}
+                      icon={<ColumnWidthOutlined />}
+                      onClick={() => setIsRangesModalOpen(true)}
+                    />
+                    <RangesModal
+                      isOpen={isRangesModalOpen}
+                      onClose={() => setIsRangesModalOpen(false)}
+                      ranges={ranges as ChartRanges}
+                      onChange={
+                        updateRanges as (newRanges: ChartRanges) => void
+                      }
+                    />
+                  </>
                 )}
               </Feedback>
             </ButtonWrapper>
