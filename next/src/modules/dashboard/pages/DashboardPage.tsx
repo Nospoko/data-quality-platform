@@ -381,7 +381,9 @@ const DashboardPage = () => {
               }}
             >
               <Spin size="large" />
-              <Typography.Text>Loading chart data...</Typography.Text>
+              <Typography.Text style={{ color: '#fff' }}>
+                Loading chart data...
+              </Typography.Text>
             </div>
           </ZoomModeLoadingWrapper>,
           document.body,

@@ -100,7 +100,9 @@ const TableDatasets: React.FC<Props> = ({
         const tagText = isActive ? 'Active' : 'Not Active';
         const color = isActive ? 'green' : 'red';
 
-        return <Tag style={{ backgroundColor: color }}>{tagText}</Tag>;
+        return (
+          <Tag style={{ backgroundColor: color, color: '#fff' }}>{tagText}</Tag>
+        );
       },
       sorter: (a, b) => a.role.localeCompare(b.role),
     },
