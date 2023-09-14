@@ -120,15 +120,15 @@ const RangesModal: React.FC<Props> = ({
         {
           key: `X${nextXRangeIndex}`,
           label: `X${nextXRangeIndex}`,
-          left: 0,
-          right: 0,
+          left: 2.6,
+          right: 3.4,
         },
       ]);
       setNextXRangeIndex((x) => ++x);
     } else {
       setTableData((data) => [
         ...data,
-        { key: label, label, left: 0, right: 0 },
+        { key: label, label, left: 2.6, right: 3.4 },
       ]);
     }
 

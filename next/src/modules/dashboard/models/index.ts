@@ -212,13 +212,7 @@ type RangeConf = {
   };
 };
 
-export const defaltRanges: ChartRanges = {
-  P: [120, 180],
-  Q: [340, 400],
-  R: [550, 650],
-  S: [800, 860],
-  T: [1000, 1100],
-};
+export const defaltRanges: ChartRanges = {};
 
 const rangeColors = ['red', 'green', 'blue'];
 const opacityColors = {

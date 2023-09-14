@@ -263,7 +263,9 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                             ? handleSegmentation(ranges)
                             : handleSelect(Choice.APPROVED)
                         }
-                        disabled={isFetching}
+                        disabled={
+                          isFetching || Object.keys(ranges).length === 0
+                        }
                       />
                       <Button
                         style={{ width: '100%', height: '30%' }}

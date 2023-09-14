@@ -189,7 +189,10 @@ const ZoomView: React.FC<Props> = ({
                     size="large"
                     icon={<CheckOutlined />}
                     onClick={() => addFeedback(id, Choice.APPROVED)}
-                    disabled={isFetching}
+                    disabled={
+                      isFetching ||
+                      Object.keys(ranges as ChartRanges).length === 0
+                    }
                   />
                 )}
               </Feedback>
