@@ -20,13 +20,13 @@ router.get(async (req, res) => {
 
   const query = recordsRepo
     .createQueryBuilder('record')
-    .select('record.metadata->>exam_uid', 'exam_uid')
-    .where('record.metadata->>exam_uid IS NOT NULL')
-    .groupBy('record.metadata->>exam_uid');
+    .select("record.metadata->>'exam_uid'", 'exam_uid')
+    .where("record.metadata->>'exam_uid' IS NOT NULL")
+    .groupBy("record.metadata->>'exam_uid'");
 
-  const exam_uids = await query.getRawMany();
+  const result = await query.getRawMany();
 
-  const examUids = exam_uids.map((row) => row.record_exam_uid);
+  const examUids = result.map((row) => row.exam_uid);
 
   res.status(200).json(examUids);
 });

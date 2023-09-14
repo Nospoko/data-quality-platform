@@ -35,7 +35,7 @@ router.get(async (req, res) => {
     });
 
   if (exams) {
-    query.andWhere('record.metadata->>exam_uid IN (:...examIds)', {
+    query.andWhere("record.metadata->>'exam_uid' IN (:...examIds)", {
       examIds,
     });
   }
