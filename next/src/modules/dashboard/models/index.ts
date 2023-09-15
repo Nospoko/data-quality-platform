@@ -273,6 +273,9 @@ export const segmentationPlugin = (): Plugin<'line'> => {
       return [null, null];
     }
 
+    let closestRange: [string, SideConf] | null = null;
+    let smallestDistance: number = Number.MAX_VALUE;
+
     for (const label in rangesConf) {
       const { left, right } = rangesConf[label];
 
@@ -280,23 +283,20 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         continue;
       }
 
-      if (x >= left.x - 6 && x <= left.x + 6) {
-        return [label, left];
+      const leftDistance = Math.abs(x - left.x);
+      const rightDistance = Math.abs(x - right.x);
+
+      if (leftDistance <= 6 && leftDistance < smallestDistance) {
+        smallestDistance = leftDistance;
+        closestRange = [label, left];
       }
 
-      if (x >= right.x - 6 && x <= right.x + 6) {
-        return [label, right];
-      }
-
-      const leftPoint = Math.min(left.x, right.x);
-      const rightPoint = leftPoint + Math.abs(right.x - left.x);
-
-      if (x >= leftPoint - 6 && x <= rightPoint + 6) {
-        return [label, null];
+      if (rightDistance <= 6 && rightDistance < smallestDistance) {
+        smallestDistance = rightDistance;
+        closestRange = [label, right];
       }
     }
-
-    return [null, null];
+    return closestRange || [null, null];
   };
 
   /**
@@ -440,6 +440,7 @@ export const segmentationPlugin = (): Plugin<'line'> => {
 
     // check options.ranges change; draw the ranges
     afterDatasetDraw(chart, args, options) {
+      const deleteBtnYCoords = [] as number[][];
       const { ctx, scales, chartArea } = chart;
 
       if (options.ranges !== savedRanges) {
@@ -498,15 +499,14 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         }
 
         // fill range
-        if (isOverRange) {
-          ctx.fillStyle = opacityColors[color];
-          ctx.fillRect(
-            Math.min(left.x, right.x) + rangeLineWidth,
-            chartArea.top,
-            Math.abs(right.x - left.x) - rangeLineWidth * 2,
-            chartArea.height,
-          );
-        }
+
+        ctx.fillStyle = opacityColors[color];
+        ctx.fillRect(
+          Math.min(left.x, right.x) + rangeLineWidth,
+          chartArea.top,
+          Math.abs(right.x - left.x) - rangeLineWidth * 2,
+          chartArea.height,
+        );
 
         const rangeCenterX = Math.floor((left.x + right.x) / 2);
 
@@ -516,20 +516,41 @@ export const segmentationPlugin = (): Plugin<'line'> => {
         ctx.fillText(left.rangeLabel, rangeCenterX, chartArea.top - 15);
 
         // draw delete button
-        if (isOverRange && left.rangeLabel !== 'R') {
+        let deleteBtnY = chartArea.bottom - 20;
+
+        deleteBtnYCoords.forEach((coord) => {
+          const [prevXStart, prevXEnd, prevYStart, prevYEnd] = coord;
+
+          const isOverlappingX =
+            rangeCenterX - 28 < prevXEnd && rangeCenterX + 28 > prevXStart;
+          const isOverlappingY =
+            deleteBtnY < prevYEnd && deleteBtnY + 20 > prevYStart;
+
+          if (isOverlappingX && isOverlappingY) {
+            deleteBtnY -= 25;
+          }
+        });
+
+        if (left.rangeLabel !== 'R') {
           ctx.fillStyle = 'black';
-          ctx.roundRect(rangeCenterX - 22, chartArea.bottom - 20, 44, 20, 5);
+          ctx.roundRect(rangeCenterX - 28, deleteBtnY, 56, 20, 5);
           ctx.fill();
           ctx.fillStyle = 'white';
-          ctx.fillText('Delete', rangeCenterX, chartArea.bottom - 7);
+          ctx.fillText(
+            `Delete ${left.rangeLabel}`,
+            rangeCenterX,
+            deleteBtnY + 13,
+          );
 
           deleteRangeBtnCoords = [
-            rangeCenterX - 22,
-            rangeCenterX + 22,
-            chartArea.bottom - 20,
-            chartArea.bottom,
+            rangeCenterX - 28,
+            rangeCenterX + 28,
+            deleteBtnY,
+            deleteBtnY + 20,
           ];
           deleteRangeLabel = left.rangeLabel;
+
+          deleteBtnYCoords.push(deleteRangeBtnCoords);
         }
 
         ctx.save();

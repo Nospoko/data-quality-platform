@@ -20,7 +20,7 @@ import { getChartData } from '@/modules/dashboard/utils/getChartData';
 import { AllowedDataProblem } from '@/pages/_app';
 import {
   fetchRecords,
-  getFragment,
+  getRecord,
   MetadataField,
   MidiFeedback,
   sendFeedback,
@@ -175,15 +175,14 @@ const DashboardPage = () => {
       return;
     }
 
-    const { id, exam_uid, position } = record.metadata;
     try {
-      let fragment = getCachedFragment(id);
+      let fragment = getCachedFragment(record.id);
       //fetch if cached fragment does't exist
       if (!fragment) {
-        fragment = await getFragment(exam_uid, position, datasetName as string);
+        fragment = await getRecord(record.record_id);
       }
 
-      const nextChartData = getChartData(id, fragment, isDarkMode);
+      const nextChartData = getChartData(record.id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
     } catch (error) {
@@ -299,11 +298,10 @@ const DashboardPage = () => {
     setZoomMode(true);
 
     try {
-      const { exam_uid, position, id } = recordsToDisplay[0].metadata;
-      let fragment = getCachedFragment(id);
+      let fragment = getCachedFragment(recordsToDisplay[0].id);
       //fetch if cached fragment does't exist
       if (!fragment) {
-        fragment = await getFragment(exam_uid, position, datasetName as string);
+        fragment = await getRecord(recordsToDisplay[0].record_id);
       }
 
       const nextChartData = getChartData(
@@ -420,7 +418,7 @@ const DashboardPage = () => {
         recordsToDisplay
           ? recordsToDisplay.map((record, i) => (
               <MainChart
-                key={record.metadata.index}
+                key={record.id}
                 isFirst={i === 0}
                 isZoomView={isZoomModal}
                 isFetching={isFetching}

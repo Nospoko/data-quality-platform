@@ -34,7 +34,7 @@ import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
 import { AllowedDataProblem } from '@/pages/_app';
-import { getFragment } from '@/services/reactQueryFn';
+import { getRecord } from '@/services/reactQueryFn';
 import {
   EcgFragment,
   HistoryData,
@@ -76,7 +76,6 @@ ChartJS.register(
 const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
   {
     record,
-    datasetName,
     historyData,
     addFeedback,
     onClickChart,
@@ -101,12 +100,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
 
   const { isLoading, data: fragment } = useQuery<EcgFragment, Error>(
     ['record', record.id],
-    () =>
-      getFragment(
-        record.metadata.exam_uid,
-        record.metadata.position,
-        datasetName,
-      ),
+    () => getRecord(record.record_id),
   );
 
   const handleSelect = (choice: Choice) => {
@@ -115,7 +109,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
     }
 
     if (historyData) {
-      addFeedback(historyData.id, choice);
+      addFeedback(historyData.id, choice, ranges);
 
       return;
     }
@@ -263,9 +257,7 @@ const MainChart: React.ForwardRefRenderFunction<HTMLDivElement, Props> = (
                             ? handleSegmentation(ranges)
                             : handleSelect(Choice.APPROVED)
                         }
-                        disabled={
-                          isFetching || Object.keys(ranges).length === 0
-                        }
+                        disabled={isFetching}
                       />
                       <Button
                         style={{ width: '100%', height: '30%' }}

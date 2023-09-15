@@ -14,16 +14,8 @@ import {
   RecordsResponse,
 } from '@/types/common';
 
-// I added a new parameter called datasetName of type string to the function getFragment.
-// This parameter represents the name of selected dataset.
-export const getFragment = async (
-  exam_uuid: string,
-  position: number,
-  datasetName: string,
-): Promise<EcgFragment> => {
-  const { data } = await axiosApi.get<EcgFragment>(
-    `data?exam_uid=${exam_uuid}&position=${position}&dataset_name=${datasetName}`,
-  );
+export const getRecord = async (recordId: string): Promise<EcgFragment> => {
+  const { data } = await axiosApi.get<EcgFragment>(`record/${recordId}`);
   return data;
 };
 

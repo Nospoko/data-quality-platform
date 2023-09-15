@@ -50,9 +50,8 @@ const History = () => {
   const getRangesForRecord = (recordId: Record['id']) => {
     if (DATA_PROBLEM === 'ecg_segmentation') {
       if (!segmentationRanges[recordId]) {
-        const recordRanges = recordsToDisplay.find(
-          ({ id }) => id === recordId,
-        )?.metadata;
+        const recordRanges =
+          recordsToDisplay.find(({ id }) => id === recordId)?.metadata || {};
         setSegmentationRanges((ranges) => ({
           ...ranges,
           [recordId]: recordRanges,
@@ -279,7 +278,7 @@ const History = () => {
         ? recordsToDisplay.map((history) => (
             <MainChart
               datasetName={datasetName as string}
-              key={history.record.metadata.index}
+              key={history.record.id}
               record={history.record}
               isFirst={false}
               addFeedback={changeFeedback}
