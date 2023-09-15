@@ -25,7 +25,7 @@ app.add_middleware(
 if C.DATA_PROBLEM == "ecg_classification":
     dataset = app_utils.prepare_ecg_classification(C.DATASET_NAME)
 elif C.DATA_PROBLEM == "ecg_segmentation":
-    dataset = app_utils.prepare_ecg_classification(C.DATASET_NAME)
+    dataset = app_utils.prepare_ecg_segmentation(C.DATASET_NAME)
 elif C.DATA_PROBLEM == "midi_review":
     dataset = app_utils.prepare_midi_review(C.DATASET_NAME)
 else:

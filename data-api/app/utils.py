@@ -1,3 +1,4 @@
+import json
 import sqlalchemy as sa
 from datasets import load_dataset, Dataset, concatenate_datasets
 
@@ -47,8 +48,6 @@ def prepare_ecg_classification(dataset_name: str) -> Dataset:
     if dataset_present:
         print("Dataset already ingested", dataset_name)
     else:
-        # This is the fastest way I now to add a column to hf dataset
-        # It's not pretty
         metadata = [{
             "record_id": idx,
             "dataset_name": dataset_name,
@@ -57,6 +56,46 @@ def prepare_ecg_classification(dataset_name: str) -> Dataset:
                 "label": record["label"],
                 "position": record["position"],
                 "exam_uid": record["exam_uid"],
+            }
+        } for idx, record in enumerate(dataset)]
+
+        meta_dataset = Dataset.from_list(metadata)
+        types = {"metadata": sa.types.JSON}
+        meta_dataset.to_sql("records", con=engine, index=False, if_exists="append", dtype=types)
+
+    return dataset
+
+
+def prepare_ecg_segmentation(dataset_name: str) -> Dataset:
+    dataset = load_dataset(dataset_name, split="train", use_auth_token=C.HF_TOKEN)
+    dataset = dataset.filter(lambda e: e['to_review'])
+    engine = sa.create_engine(C.PG_DSN)
+
+    query = sa.text("SELECT EXISTS(SELECT 1 FROM records WHERE dataset_name = :name)")
+    with engine.connect() as c:
+        res = c.execute(query, {"name": dataset_name})
+        dataset_present = res.scalar()
+
+    if dataset_present:
+        print("Dataset already ingested", dataset_name)
+    else:
+        # Values in signal pixel space, in the future
+        default_segments = {
+            "R": [545, 674],
+            "P": [200, 260],
+            "Q": [369, 467],
+            "S": [732, 810],
+            "T": [864, 973],
+        }
+        metadata = [{
+            "record_id": idx,
+            "dataset_name": dataset_name,
+            "metadata": {
+                "time": record["time"].isoformat(),
+                "label": record["label"],
+                "position": record["position"],
+                "exam_uid": record["exam_uid"],
+                "segments": json.dumps(default_segments),
             }
         } for idx, record in enumerate(dataset)]
 
