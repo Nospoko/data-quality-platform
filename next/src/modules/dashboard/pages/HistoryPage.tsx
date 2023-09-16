@@ -21,7 +21,12 @@ import {
   MetadataField,
   MidiFeedback,
 } from '@/services/reactQueryFn';
-import { Filter, HistoryData, SelectedHistoryChartData } from '@/types/common';
+import {
+  EcgMetadata,
+  Filter,
+  HistoryData,
+  SelectedHistoryChartData,
+} from '@/types/common';
 
 const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 
@@ -50,13 +55,13 @@ const History = () => {
   const getRangesForRecord = (recordId: Record['id']) => {
     if (DATA_PROBLEM === 'ecg_segmentation') {
       if (!segmentationRanges[recordId]) {
-        const recordRanges =
-          recordsToDisplay.find(({ id }) => id === recordId)?.metadata || {};
+        const { segments } = recordsToDisplay.find(({ id }) => id === recordId)
+          ?.metadata as EcgMetadata;
         setSegmentationRanges((ranges) => ({
           ...ranges,
-          [recordId]: recordRanges,
+          [recordId]: segments ?? {},
         }));
-        return recordRanges;
+        return segments ?? {};
       } else {
         return segmentationRanges[recordId];
       }
@@ -83,23 +88,15 @@ const History = () => {
     }
 
     try {
-      const response = await fetchUserRecords(
+      const { data: newRecords, total } = await fetchUserRecords(
         datasetName,
         skip,
         filters,
         metadataFieldToFilter,
       );
-      const existedRecordsId = recordsToDisplay.reduce((acc, d) => {
-        acc[d.record.metadata.index] = true;
-        return acc;
-      }, {});
-
-      const newRecords = response.data?.filter(
-        (record) => !existedRecordsId[record.record.metadata.index],
-      );
 
       setRecordsToDisplay((prev) => [...prev, ...newRecords]);
-      if (response.total > recordsToDisplay.length + 5) {
+      if (total > recordsToDisplay.length + 5) {
         return setHasNextPage(true);
       }
       setHasNextPage(false);
@@ -148,14 +145,14 @@ const History = () => {
   const changeFeedback = async (
     dataCheckId: string,
     choice: Choice,
-    metadata?: ChartRanges,
+    segments?: ChartRanges,
   ) => {
     if (DATA_PROBLEM === 'ecg_classification') {
       setSelectedDataCheck({ dataCheckId, choice });
       setIsConfirmModal(true);
     }
     if (DATA_PROBLEM === 'ecg_segmentation') {
-      await changeFeedbackECG({ dataCheckId, choice, metadata });
+      await changeFeedbackECG({ dataCheckId, choice, segments });
     }
   };
 
@@ -301,7 +298,11 @@ const History = () => {
             historyData={history}
           />
         ))}
-      <Button disabled={!hasNextPage} onClick={fetchNextPage}>
+      <Button
+        style={{ marginBottom: 40 }}
+        disabled={!hasNextPage}
+        onClick={fetchNextPage}
+      >
         Load More
       </Button>
     </>
