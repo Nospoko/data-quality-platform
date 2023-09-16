@@ -23,7 +23,10 @@ type Props = {
 function MidiChart({ record, addFeedbackMidi, historyData }: Props) {
   const { theme } = useTheme();
 
+  const [isPlaying, setIsPlaying] = React.useState(false);
+
   const handleFeedback = (midiFeedback: MidiFeedback) => {
+    setIsPlaying(false);
     if (historyData) {
       addFeedbackMidi({
         ...midiFeedback,
@@ -37,7 +40,11 @@ function MidiChart({ record, addFeedbackMidi, historyData }: Props) {
 
   return (
     <Wrapper color={theme}>
-      <DynamicMidiPlayer recordId={record.record_id} />
+      <DynamicMidiPlayer
+        isPlaying={isPlaying}
+        setIsPlaying={setIsPlaying}
+        recordId={record.record_id}
+      />
       <Feedback historyData={historyData} handleFeedback={handleFeedback} />
     </Wrapper>
   );

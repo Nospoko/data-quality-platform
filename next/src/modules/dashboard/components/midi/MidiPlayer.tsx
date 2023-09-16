@@ -18,15 +18,28 @@ declare global {
 
 type Props = {
   recordId: string;
+  isPlaying: boolean;
+  setIsPlaying: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
-function MidiPlayer({ recordId }: Props) {
+function MidiPlayer({ recordId, isPlaying, setIsPlaying }: Props) {
   const { theme } = useTheme();
 
   const playerRef = useRef(null);
   const visualizerRef = useRef(null);
 
   const [finished, setFinished] = React.useState(false);
+
+  useEffect(() => {
+    const player: any = playerRef.current;
+    if (player) {
+      if (isPlaying) {
+        player.start();
+      } else {
+        player.stop();
+      }
+    }
+  }, [isPlaying]);
 
   useEffect(() => {
     const player: any = playerRef.current;
@@ -42,12 +55,17 @@ function MidiPlayer({ recordId }: Props) {
   useEffect(() => {
     const player: any = playerRef.current;
     const visualizer: any = visualizerRef.current;
-    const detectFinish = (e: { detail: { finished: boolean } }) => {
+    const handleStop = (e: { detail: { finished: boolean } }) => {
       setFinished(e.detail.finished);
+      setIsPlaying(false);
+    };
+    const handlePlay = () => {
+      setIsPlaying(true);
     };
 
     if (player && visualizer) {
-      player.addEventListener('stop', detectFinish);
+      player.addEventListener('stop', handleStop);
+      player.addEventListener('start', handlePlay);
 
       const blockWidth = visualizer.getBoundingClientRect().width - 4 * 2;
       const x = blockWidth / 16;
@@ -58,7 +76,8 @@ function MidiPlayer({ recordId }: Props) {
 
     return () => {
       player.removeVisualizer(visualizer);
-      player.removeEventListener('stop', detectFinish);
+      player.removeEventListener('stop', handleStop);
+      player.removeEventListener('start', handlePlay);
     };
   }, []);
 
