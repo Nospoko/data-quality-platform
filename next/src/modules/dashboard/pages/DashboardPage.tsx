@@ -9,7 +9,7 @@ import styled from 'styled-components';
 
 import SearchingForm from '../components/common/SearchForm';
 import MidiChart from '../components/midi/MidiChart';
-import { ChartRanges, defaltRanges } from '../models';
+import { ChartRanges } from '../models';
 
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
@@ -25,7 +25,12 @@ import {
   MidiFeedback,
   sendFeedback,
 } from '@/services/reactQueryFn';
-import { EcgFragment, Filter, SelectedChartData } from '@/types/common';
+import {
+  EcgFragment,
+  EcgMetadata,
+  Filter,
+  SelectedChartData,
+} from '@/types/common';
 
 const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 const DashboardPage = () => {
@@ -49,13 +54,16 @@ const DashboardPage = () => {
   const [segmentationRanges, setSegmentationRanges] = useState<{
     [recordId: string]: ChartRanges;
   }>({});
+
   const getRangesForRecord = (recordId: Record['id']) => {
+    const { segments } = recordsToDisplay?.find(({ id }) => id === recordId)
+      ?.metadata as EcgMetadata;
     if (!segmentationRanges[recordId]) {
       setSegmentationRanges((ranges) => ({
         ...ranges,
-        [recordId]: defaltRanges,
+        [recordId]: segments ?? {},
       }));
-      return defaltRanges;
+      return segments ?? {};
     } else {
       return segmentationRanges[recordId];
     }
@@ -201,7 +209,12 @@ const DashboardPage = () => {
         id,
         choice,
         metadata:
-          DATA_PROBLEM === 'ecg_segmentation' ? getRangesForRecord(id) : null,
+          DATA_PROBLEM === 'ecg_segmentation'
+            ? {
+                ...recordsToDisplay[nextIndex].metadata,
+                segments: JSON.stringify(getRangesForRecord(id)),
+              }
+            : recordsToDisplay[nextIndex].metadata,
       });
 
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
@@ -441,7 +454,11 @@ const DashboardPage = () => {
             addFeedbackMidi={addFeedbackMidi}
           />
         ))}
-      <Button disabled={!hasNextPage} onClick={fetchNextPage}>
+      <Button
+        style={{ marginBottom: 40 }}
+        disabled={!hasNextPage}
+        onClick={fetchNextPage}
+      >
         Load More
       </Button>
     </Layout>

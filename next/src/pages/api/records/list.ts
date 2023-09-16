@@ -55,7 +55,15 @@ router.get(async (req, res) => {
     .getManyAndCount();
 
   res.status(200).json({
-    data: recordsWithoutUserCheck,
+    data: recordsWithoutUserCheck.map((record) => {
+      return {
+        ...record,
+        metadata: {
+          ...record.metadata,
+          segments: JSON.parse(record.metadata.segments),
+        },
+      };
+    }),
     total,
     limit,
   });

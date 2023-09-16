@@ -14,6 +14,7 @@ export type EcgMetadata = {
   label: 'X' | 'N';
   position: number;
   time: string;
+  segments: { [key: string]: [number, number] };
 };
 
 export type UserData = {

@@ -379,7 +379,9 @@ const CustomLegend = styled.div`
   width: 100px;
   border: 1px solid;
   border-radius: 5px;
-  background: rgba(255, 255, 255, 0.8);
+  background: ${(props) =>
+    props.color === ThemeType.DARK ? '#000000aa' : '#ffffffaa'};
+  color: ${(props) => props.color === ThemeType.DARK && '#fff'};
   padding: 5px 8px;
 
   @media (min-width: 744px) {

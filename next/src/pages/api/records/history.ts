@@ -48,7 +48,15 @@ router.get(async (req, res) => {
   const usersDataChecks = await query.skip(skip).take(limit).getMany();
 
   res.status(200).json({
-    data: usersDataChecks as HistoryData[],
+    data: (usersDataChecks as HistoryData[]).map((record) => {
+      return {
+        ...record,
+        metadata: {
+          ...record.metadata,
+          segments: JSON.parse(record.metadata.segments),
+        },
+      };
+    }),
     total,
     limit,
   });

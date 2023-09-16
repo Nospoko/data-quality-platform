@@ -212,8 +212,6 @@ type RangeConf = {
   };
 };
 
-export const defaltRanges: ChartRanges = {};
-
 const rangeColors = ['red', 'green', 'blue'];
 const opacityColors = {
   red: 'rgba(255, 0, 0, 0.1)',
@@ -232,6 +230,7 @@ export const segmentationPlugin = (): Plugin<'line'> => {
   let deleteRangeLabel: string | null = null;
   /** @var `[xStart, xEnd, yStart, yEnd]` */
   let deleteRangeBtnCoords: [number, number, number, number] | null = null;
+  const mappedDeleteButtonsCoords: { [key: string]: number[] } = {};
   let isOverDelBtn = false;
 
   /**
@@ -376,12 +375,19 @@ export const segmentationPlugin = (): Plugin<'line'> => {
 
         chart.canvas.style.cursor = line ? 'ew-resize' : '';
 
+        const deleteButtonsLabels = Object.keys(mappedDeleteButtonsCoords);
+        const deleteButtonsCoords = Object.values(mappedDeleteButtonsCoords);
         if (
-          deleteRangeBtnCoords &&
-          event.offsetX >= deleteRangeBtnCoords[0] &&
-          event.offsetX <= deleteRangeBtnCoords[1] &&
-          event.offsetY >= deleteRangeBtnCoords[2] &&
-          event.offsetY <= deleteRangeBtnCoords[3]
+          !!deleteButtonsCoords.length &&
+          deleteButtonsCoords.some((coords, idx) => {
+            deleteRangeLabel = deleteButtonsLabels[idx];
+            return (
+              event.offsetX >= coords[0] &&
+              event.offsetX <= coords[1] &&
+              event.offsetY >= coords[2] &&
+              event.offsetY <= coords[3]
+            );
+          })
         ) {
           isOverDelBtn = true;
           chart.canvas.style.cursor = 'pointer';
@@ -548,6 +554,7 @@ export const segmentationPlugin = (): Plugin<'line'> => {
             deleteBtnY,
             deleteBtnY + 20,
           ];
+          mappedDeleteButtonsCoords[left.rangeLabel] = deleteRangeBtnCoords;
           deleteRangeLabel = left.rangeLabel;
 
           deleteBtnYCoords.push(deleteRangeBtnCoords);
