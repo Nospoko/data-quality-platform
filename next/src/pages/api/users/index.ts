@@ -3,7 +3,7 @@ import { createRouter } from 'next-connect';
 
 import { customGetRepository } from '@/lib/orm/data-source';
 import { User, UserRole } from '@/lib/orm/entity/User';
-import { authenticateUser } from '@/modules/adminPage/pages/middleware/authAdminMiddleware';
+import { authenticateUser } from '@/modules/admin/pages/middleware/authAdminMiddleware';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();
 

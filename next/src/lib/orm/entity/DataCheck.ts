@@ -28,6 +28,32 @@ export class DataCheck {
   })
   choice: Choice;
 
+  @Column({
+    type: 'text',
+    nullable: true,
+  })
+  comment: string;
+
+  @Column({
+    type: 'numeric',
+    nullable: true,
+    name: 'score_1',
+  })
+  score1: number;
+
+  @Column({
+    type: 'numeric',
+    nullable: true,
+    name: 'score_2',
+  })
+  score2: number;
+
+  @Column({
+    type: 'json',
+    nullable: true,
+  })
+  metadata: any;
+
   @Column('timestamp', {
     name: 'created_at',
     default: () => 'CURRENT_TIMESTAMP',

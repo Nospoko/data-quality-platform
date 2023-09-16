@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 
+import withNecessaryUserRoleAuth from '@/components/hoc/withNecessaryUserRoleAuth';
 import CustomLayout from '@/components/layouts/layout';
-import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
-import HistoryDatasetSelect from '@/modules/dashboardPage/pages/HistoryDatasetSelect';
+import HistoryDatasetSelect from '@/modules/dashboard/pages/HistoryDatasetSelect';
 import { UserRole } from '@/types/common';
 
 const HistoryIndex = () => {

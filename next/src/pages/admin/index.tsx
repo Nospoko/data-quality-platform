@@ -1,8 +1,8 @@
 import { ReactElement } from 'react';
 
+import withNecessaryUserRoleAuth from '@/components/hoc/withNecessaryUserRoleAuth';
 import CustomLayout from '@/components/layouts/layout';
-import withNecessaryUserRoleAuth from '@/hoc/withNecessaryUserRoleAuth';
-import AdminPage from '@/modules/adminPage/pages/AdminPage';
+import AdminPage from '@/modules/admin/pages/AdminPage';
 import { UserRole } from '@/types/common';
 
 const Admin = () => {

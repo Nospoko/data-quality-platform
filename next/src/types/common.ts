@@ -5,6 +5,18 @@ import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { Record } from '@/lib/orm/entity/Record';
 
+export type MidiMetadata = {
+  midi_filename: string;
+};
+
+export type EcgMetadata = {
+  exam_uid: string;
+  label: 'X' | 'N';
+  position: number;
+  time: string;
+  segments: { [key: string]: [number, number] };
+};
+
 export type UserData = {
   firstName: string;
   lastName: string;
@@ -61,7 +73,7 @@ export type HistoryDataResponse = {
 };
 
 export interface Filter {
-  exams: string[];
+  filterValues: string[];
 }
 
 export enum UserRole {

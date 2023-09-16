@@ -14,22 +14,16 @@ export class Record {
   id: string;
 
   @Column({ type: 'text' })
-  exam_uid: string;
+  record_id: string;
 
   @Column({ type: 'text', nullable: true })
   dataset_name: string;
 
-  @Column({ type: 'int' })
-  position: number;
+  @Column({ type: 'json' })
+  metadata: any;
 
-  @Column({ type: 'text' })
-  label: string;
-
-  @Column({ type: 'int' })
-  index: number;
-
-  @CreateDateColumn({ type: 'timestamp', name: 'time' })
-  time: Date;
+  @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
+  created_at: Date;
 
   @OneToMany(() => DataCheck, (dataCheck) => dataCheck.record)
   dataChecks: DataCheck[];

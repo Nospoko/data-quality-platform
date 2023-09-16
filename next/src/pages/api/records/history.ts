@@ -19,8 +19,9 @@ router.get(async (req, res) => {
   const datasetName = req.query.datasetName as string;
   const limit = Number(req.query.limit) || 10;
   const skip = Number(req.query.skip) || 0;
-  const exams = req.query['exams[]'];
-  const examIds = Array.isArray(exams) ? exams : [exams];
+  const filterValues = req.query['filterValues[]'];
+  const filters = Array.isArray(filterValues) ? filterValues : [filterValues];
+  const field = req.query.field;
 
   const dataCheckRepo = await customGetRepository(DataCheck);
   const userId = session.user.id;
@@ -34,8 +35,10 @@ router.get(async (req, res) => {
       datasetName,
     });
 
-  if (exams) {
-    await query.andWhere('record.exam_uid IN (:...examIds)', { examIds });
+  if (filterValues && field) {
+    query.andWhere(`record.metadata->>'${field}' IN (:...filters)`, {
+      filters,
+    });
   }
 
   query.orderBy('dataCheck.createdAt', 'DESC');
@@ -45,7 +48,15 @@ router.get(async (req, res) => {
   const usersDataChecks = await query.skip(skip).take(limit).getMany();
 
   res.status(200).json({
-    data: usersDataChecks as HistoryData[],
+    data: (usersDataChecks as HistoryData[]).map((record) => {
+      return {
+        ...record,
+        metadata: {
+          ...record.metadata,
+          segments: JSON.parse(record.metadata.segments),
+        },
+      };
+    }),
     total,
     limit,
   });

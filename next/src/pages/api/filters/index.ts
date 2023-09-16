@@ -12,6 +12,8 @@ const router = createRouter<NextApiRequest, NextApiResponse>();
 router.get(async (req, res) => {
   const session = await getServerSession(req, res, authOptions);
 
+  const field = req.query.field as string;
+
   if (!session) {
     return res.status(401).json({ error: 'Unauthorized User' });
   }
@@ -20,15 +22,15 @@ router.get(async (req, res) => {
 
   const query = recordsRepo
     .createQueryBuilder('record')
-    .select('record.exam_uid')
-    .where('record.exam_uid IS NOT NULL')
-    .groupBy('record.exam_uid');
+    .select(`record.metadata->>'${field}'`, 'value')
+    .where(`record.metadata->>'${field}' IS NOT NULL`)
+    .groupBy(`record.metadata->>'${field}'`);
 
-  const exam_uids = await query.getRawMany();
+  const queryResult = await query.getRawMany();
 
-  const examUids = exam_uids.map((row) => row.record_exam_uid);
+  const filters = queryResult.map((row) => row.value);
 
-  res.status(200).json(examUids);
+  res.status(200).json(filters);
 });
 
 export default router.handler({

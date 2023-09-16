@@ -1,14 +1,16 @@
 import { Descriptions } from 'antd';
+import { format, parseISO } from 'date-fns';
 import React from 'react';
 
 import { Record } from '@/lib/orm/entity/Record';
+import { EcgMetadata } from '@/types/common';
 
 interface Props {
   record: Record;
 }
 
 const RecordInfo: React.FC<Props> = ({ record }) => {
-  const { index, exam_uid, position, time, label } = record;
+  const { label, exam_uid, position, time } = record.metadata as EcgMetadata;
 
   return (
     <>
@@ -24,10 +26,12 @@ const RecordInfo: React.FC<Props> = ({ record }) => {
         bordered
         column={{ xxl: 5, xl: 5, lg: 5, md: 3, sm: 2, xs: 1 }}
       >
-        <Descriptions.Item label="Index">{index}</Descriptions.Item>
+        <Descriptions.Item label="Label">{label}</Descriptions.Item>
         <Descriptions.Item label="Exam UID">{exam_uid}</Descriptions.Item>
         <Descriptions.Item label="Position">{position}</Descriptions.Item>
-        <Descriptions.Item label="Time">{time as any}</Descriptions.Item>
+        <Descriptions.Item label="Time">
+          {format(parseISO(time), 'yyyy-MMM-dd HH:mm:ss')}
+        </Descriptions.Item>
       </Descriptions>
     </>
   );

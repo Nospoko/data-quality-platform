@@ -7,7 +7,7 @@ import { DatasetAccess } from '@/lib/orm/entity/DatasetAccess';
 import { Organization } from '@/lib/orm/entity/Organization';
 import { OrganizationMembership } from '@/lib/orm/entity/OrganizationMembership';
 import { User, UserRole } from '@/lib/orm/entity/User';
-import { authenticateUser } from '@/modules/adminPage/pages/middleware/authAdminMiddleware';
+import { authenticateUser } from '@/modules/admin/pages/middleware/authAdminMiddleware';
 import { OrganizationType } from '@/types/common';
 
 const router = createRouter<NextApiRequest, NextApiResponse>();

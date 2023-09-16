@@ -10,7 +10,7 @@ docker-compose up
 2. Run the command `docker-compose up`.
 3. Open `http://localhost:3000/` in your browser
 4. Register a new user.
-5.  Use pgAdmin or another similar tool, and in the 'users' table, set the value of the 'role' field to 'admin'. Raw query: `UPDATE users SET role='admin'::users_role_enum WHERE email='user@email.com';`
+5. In the 'users' table, set the value of the 'role' field to 'admin'. Query: `UPDATE users SET role='admin'::users_role_enum WHERE email='user@email.com';`
 6. Refresh the page.
 7. Navigate to the admin page.
 
@@ -29,6 +29,34 @@ docker-compose up
 10. The application is ready to use.
 
 
+# Next.js Project Structure
+
+This structure has been developed to support various data structures, and MIDI data support is planned to be added soon.
+
+## Structure
+
+### `app`
+Contains global settings for the project, such as styles, themes, contexts, etc.
+
+### `components`
+Contains common reusable components like buttons, layouts, etc.
+
+### `modules`
+Contains modules that the application is divided into, such as admin, dashboard, etc. Each module might include:
+
+- `components`: Folder with components
+  - `common`: Common components used for all data structures (e.g., ECG, MIDI)
+  - `ecg`: Components specific to ECG data structure
+  - `midi`: Components specific to MIDI data structure
+- `models`: Contains types, interfaces, and constants
+- `utils`: Useful utilities
+- `pages`: Contains the main code for the pages used in this module
+
+### `pages`
+Standard folder for a Next.js project with routes.
+
+
+# Python app
 
 Python application will populate a `records` table in the `POSTGRES_DB` database:
 
@@ -89,7 +117,7 @@ $ cp .env.example .env
 
 For deployment, use only prod Dockerfile (not Dockerfile.dev). Note that it should receive `ARG EXTERNAL_API` to work correctly with the Python API.
 
-### Tests
+# Tests
 To run tests for your Next.js application, you first need to start the application inside a Docker container. To do this, use the following command:
 
 ```sh

@@ -14,46 +14,54 @@ import {
   RecordsResponse,
 } from '@/types/common';
 
-// I added a new parameter called datasetName of type string to the function getFragment.
-// This parameter represents the name of selected dataset.
-export const getFragment = async (
-  exam_uuid: string,
-  position: number,
-  datasetName: string,
-): Promise<EcgFragment> => {
-  const { data } = await axiosApi.get<EcgFragment>(
-    `data?exam_uid=${exam_uuid}&position=${position}&dataset_name=${datasetName}`,
-  );
+export const getRecord = async (recordId: string): Promise<EcgFragment> => {
+  const { data } = await axiosApi.get<EcgFragment>(`record/${recordId}`);
   return data;
 };
 
 export const fetchRecords = async (
   datasetName: string,
   filters: Filter,
+  metadataField?: MetadataField,
   limit = 5,
 ): Promise<RecordsResponse> => {
-  const { exams } = filters;
+  const { filterValues } = filters;
   const response = await axios.get('/api/records/list', {
     params: {
       datasetName,
-      exams,
+      filterValues,
       limit,
+      field: metadataField,
     },
   });
 
   return response.data;
 };
 
+export type MidiFeedback = {
+  comment?: string;
+  rhythm?: number;
+  quality?: number;
+};
 export const sendFeedback = async ({
   id,
   choice,
+  comment,
+  rhythm,
+  quality,
+  metadata,
 }: {
   id: string;
-  choice: string;
-}): Promise<RecordsResponse> => {
+  choice?: string;
+  metadata?: any;
+} & MidiFeedback): Promise<RecordsResponse> => {
   const response = await axios.post('/api/data-check', {
     id,
     choice,
+    comment,
+    rhythm,
+    quality,
+    metadata,
   });
 
   return response.data;
@@ -63,38 +71,68 @@ export const fetchUserRecords = async (
   datasetName: string,
   skip: number,
   filters: Filter,
+  metadataField?: MetadataField,
   limit = 5,
 ): Promise<HistoryDataResponse> => {
-  const { exams } = filters;
+  const { filterValues } = filters;
   const response = await axios.get('/api/records/history', {
     params: {
       datasetName,
       skip,
-      exams,
+      filterValues,
       limit,
+      field: metadataField,
     },
   });
 
   return response.data;
 };
 
-export const changeChoice = async ({
+export const changeFeedbackECG = async ({
   dataCheckId,
   choice,
+  segments,
 }: {
   dataCheckId: string;
   choice: string;
+  segments?: { [key: string]: any };
 }): Promise<RecordsResponse> => {
   const response = await axios.patch('/api/data-check', {
     dataCheckId,
     choice,
+    segments,
   });
 
   return response.data;
 };
 
-export const fetchExamIds = async (): Promise<string[]> => {
-  const response = await axios.get('/api/filters');
+export const changeMidiFeedback = async ({
+  dataCheckId,
+  comment,
+  rhythm,
+  quality,
+}: {
+  dataCheckId: string;
+  comment: string;
+  rhythm: number;
+  quality: number;
+}): Promise<RecordsResponse> => {
+  const response = await axios.patch('/api/data-check', {
+    dataCheckId,
+    rhythm,
+    quality,
+    comment,
+  });
+
+  return response.data;
+};
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type MetadataField = 'exam_uid' | 'midi_filename' | ({} & string);
+export const fetchFilters = async (
+  metadataField: MetadataField,
+): Promise<string[]> => {
+  const response = await axios.get(`/api/filters?field=${metadataField}`);
 
   return response.data;
 };

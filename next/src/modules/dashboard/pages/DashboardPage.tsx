@@ -7,20 +7,32 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
 
+import SearchingForm from '../components/common/SearchForm';
+import MidiChart from '../components/midi/MidiChart';
+import { ChartRanges } from '../models';
+
 import { useTheme } from '@/app/contexts/ThemeProvider';
 import { Choice } from '@/lib/orm/entity/DataCheck';
 import { Record } from '@/lib/orm/entity/Record';
-import MainChart from '@/modules/dashboardPage/components/MainChart';
-import SearchingForm from '@/modules/dashboardPage/components/SearchForm';
-import ZoomView from '@/modules/dashboardPage/components/ZoomView';
-import { getChartData } from '@/modules/dashboardPage/utils/getChartData';
+import MainChart from '@/modules/dashboard/components/ecg/MainChart';
+import ZoomView from '@/modules/dashboard/components/ecg/ZoomView';
+import { getChartData } from '@/modules/dashboard/utils/getChartData';
+import { AllowedDataProblem } from '@/pages/_app';
 import {
   fetchRecords,
-  getFragment,
+  getRecord,
+  MetadataField,
+  MidiFeedback,
   sendFeedback,
 } from '@/services/reactQueryFn';
-import { EcgFragment, Filter, SelectedChartData } from '@/types/common';
+import {
+  EcgFragment,
+  EcgMetadata,
+  Filter,
+  SelectedChartData,
+} from '@/types/common';
 
+const DATA_PROBLEM = process.env.NEXT_PUBLIC_DATA_PROBLEM as AllowedDataProblem;
 const DashboardPage = () => {
   const router = useRouter();
   const { datasetName } = router.query as { datasetName: string };
@@ -32,12 +44,34 @@ const DashboardPage = () => {
   const [isZoomModal, setIsZoomModal] = useState(false);
   const [zoomMode, setZoomMode] = useState(false);
   const [filters, setFilters] = useState<Filter>({
-    exams: [],
+    filterValues: [],
   });
   const [hasNextPage, setHasNextPage] = useState(false);
   const [isFetching, setIsFetching] = useState(false);
 
   const [selectedChoice, setSelectedChoice] = useState<Choice | null>(null);
+
+  const [segmentationRanges, setSegmentationRanges] = useState<{
+    [recordId: string]: ChartRanges;
+  }>({});
+
+  const getRangesForRecord = (recordId: Record['id']) => {
+    const { segments } = recordsToDisplay?.find(({ id }) => id === recordId)
+      ?.metadata as EcgMetadata;
+    if (!segmentationRanges[recordId]) {
+      setSegmentationRanges((ranges) => ({
+        ...ranges,
+        [recordId]: segments ?? {},
+      }));
+      return segments ?? {};
+    } else {
+      return segmentationRanges[recordId];
+    }
+  };
+  const getRangesUpdaterFn = (recordId: Record['id']) => {
+    return (newRanges: ChartRanges) =>
+      setSegmentationRanges((ranges) => ({ ...ranges, [recordId]: newRanges }));
+  };
 
   const { status } = useSession();
   const loading = status === 'loading';
@@ -50,7 +84,22 @@ const DashboardPage = () => {
   const fetchAndUpdateHistoryData = async () => {
     setIsFetching(true);
     try {
-      const response = await fetchRecords(datasetName, filters);
+      let metadataFieldToFilter: MetadataField | undefined;
+      if (
+        DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation'
+      ) {
+        metadataFieldToFilter = 'exam_uid';
+      }
+      if (DATA_PROBLEM === 'midi_review') {
+        metadataFieldToFilter = 'midi_filename';
+      }
+      const response = await fetchRecords(
+        datasetName,
+        filters,
+        metadataFieldToFilter,
+      );
+
       setRecordsToDisplay((prev) => {
         const uniqIds = new Set<string>();
         const newData: Record[] = [...prev, ...response.data];
@@ -82,10 +131,23 @@ const DashboardPage = () => {
     paramFilters?: Filter,
   ) => {
     setIsFetching(true);
+
+    let metadataFieldToFilter: MetadataField | undefined;
+    if (
+      DATA_PROBLEM === 'ecg_classification' ||
+      DATA_PROBLEM === 'ecg_segmentation'
+    ) {
+      metadataFieldToFilter = 'exam_uid';
+    }
+    if (DATA_PROBLEM === 'midi_review') {
+      metadataFieldToFilter = 'midi_filename';
+    }
+
     try {
       const response = await fetchRecords(
         datasetName,
         paramFilters ?? filters,
+        metadataFieldToFilter,
         limit,
       );
       setRecordsToDisplay(response.data);
@@ -121,15 +183,14 @@ const DashboardPage = () => {
       return;
     }
 
-    const { id, exam_uid, position } = record;
     try {
-      let fragment = getCachedFragment(id);
+      let fragment = getCachedFragment(record.id);
       //fetch if cached fragment does't exist
       if (!fragment) {
-        fragment = await getFragment(exam_uid, position, datasetName as string);
+        fragment = await getRecord(record.record_id);
       }
 
-      const nextChartData = getChartData(id, fragment, isDarkMode);
+      const nextChartData = getChartData(record.id, fragment, isDarkMode);
 
       setSelectedChartData(nextChartData);
     } catch (error) {
@@ -144,9 +205,48 @@ const DashboardPage = () => {
       if (nextIndex == -1) {
         return;
       }
-      await sendFeedback({ id, choice });
+      await sendFeedback({
+        id,
+        choice,
+        metadata:
+          DATA_PROBLEM === 'ecg_segmentation'
+            ? {
+                ...recordsToDisplay[nextIndex].metadata,
+                segments: JSON.stringify(getRangesForRecord(id)),
+              }
+            : recordsToDisplay[nextIndex].metadata,
+      });
 
       const newRecords = recordsToDisplay.filter((r) => r.id !== id);
+      setRecordsToDisplay(newRecords);
+
+      if (isZoomModal && !zoomMode) {
+        handleCloseModal();
+      }
+
+      if (zoomMode) {
+        handleChangeNextChartData(newRecords[nextIndex]);
+      }
+    },
+    [
+      setRecordsToDisplay,
+      handleChangeNextChartData,
+      recordsToDisplay,
+      zoomMode,
+    ],
+  );
+
+  const addFeedbackMidi = useCallback(
+    async (midiFeedback: MidiFeedback & { id: string }) => {
+      await sendFeedback(midiFeedback);
+
+      const nextIndex = recordsToDisplay.findIndex(
+        (r) => r.id === midiFeedback.id,
+      );
+      const newRecords = recordsToDisplay.filter(
+        (r) => r.id !== midiFeedback.id,
+      );
+
       setRecordsToDisplay(newRecords);
 
       if (isZoomModal && !zoomMode) {
@@ -211,11 +311,10 @@ const DashboardPage = () => {
     setZoomMode(true);
 
     try {
-      const { exam_uid, position, id } = recordsToDisplay[0];
-      let fragment = getCachedFragment(id);
+      let fragment = getCachedFragment(recordsToDisplay[0].id);
       //fetch if cached fragment does't exist
       if (!fragment) {
-        fragment = await getFragment(exam_uid, position, datasetName as string);
+        fragment = await getRecord(recordsToDisplay[0].record_id);
       }
 
       const nextChartData = getChartData(
@@ -237,21 +336,34 @@ const DashboardPage = () => {
         Dataset Name: {datasetName}
       </Typography.Title>
 
-      <SearchingFormWrapper>
-        <SearchingForm onChangeFilter={addNewFilters} />
-      </SearchingFormWrapper>
+      {(DATA_PROBLEM === 'ecg_classification' ||
+        DATA_PROBLEM === 'ecg_segmentation') && (
+        <>
+          <SearchingFormWrapper>
+            <SearchingForm
+              filterValue="exam_uid"
+              onChangeFilter={addNewFilters}
+            />
+          </SearchingFormWrapper>
+          <SwitchWrapper>
+            <Switch
+              checkedChildren="Zoom Mode ON"
+              unCheckedChildren="Zoom Mode OFF"
+              checked={zoomMode}
+              onChange={handleClickZoomMode}
+            />
+          </SwitchWrapper>
+        </>
+      )}
 
-      <SwitchWrapper>
-        <Switch
-          checkedChildren="Zoom Mode ON"
-          unCheckedChildren="Zoom Mode OFF"
-          checked={zoomMode}
-          onChange={handleClickZoomMode}
-          disabled={
-            (recordsToDisplay && recordsToDisplay.length === 0) || isFetching
-          }
-        />
-      </SwitchWrapper>
+      {DATA_PROBLEM === 'midi_review' && (
+        <SearchingFormWrapper>
+          <SearchingForm
+            filterValue="midi_filename"
+            onChangeFilter={addNewFilters}
+          />
+        </SearchingFormWrapper>
+      )}
 
       {selectedChartData && (
         <ZoomView
@@ -261,6 +373,8 @@ const DashboardPage = () => {
           isFetching={isFetching}
           onClose={handleCloseModal}
           addFeedback={addFeedback}
+          ranges={getRangesForRecord(selectedChartData.id)}
+          updateRanges={getRangesUpdaterFn(selectedChartData.id)}
         />
       )}
 
@@ -278,7 +392,9 @@ const DashboardPage = () => {
               }}
             >
               <Spin size="large" />
-              <Typography.Text>Loading chart data...</Typography.Text>
+              <Typography.Text style={{ color: '#fff' }}>
+                Loading chart data...
+              </Typography.Text>
             </div>
           </ZoomModeLoadingWrapper>,
           document.body,
@@ -310,11 +426,12 @@ const DashboardPage = () => {
           },
         ]}
       >
-        {recordsToDisplay && !!recordsToDisplay.length ? (
-          <>
-            {recordsToDisplay.map((record, i) => (
+        {(DATA_PROBLEM === 'ecg_classification' ||
+          DATA_PROBLEM === 'ecg_segmentation') &&
+        recordsToDisplay
+          ? recordsToDisplay.map((record, i) => (
               <MainChart
-                key={record.index}
+                key={record.id}
                 isFirst={i === 0}
                 isZoomView={isZoomModal}
                 isFetching={isFetching}
@@ -322,16 +439,28 @@ const DashboardPage = () => {
                 datasetName={datasetName as string}
                 addFeedback={addFeedback}
                 onClickChart={handleOpenModal}
+                ranges={getRangesForRecord(record.id)}
+                updateRanges={getRangesUpdaterFn(record.id)}
               />
-            ))}
-            <Button disabled={!hasNextPage} onClick={fetchNextPage}>
-              Load More
-            </Button>
-          </>
-        ) : (
-          <Typography.Text type="secondary">No records found</Typography.Text>
-        )}
+            ))
+          : null}
       </QueueAnim>
+      {DATA_PROBLEM === 'midi_review' &&
+        recordsToDisplay &&
+        recordsToDisplay.map((record) => (
+          <MidiChart
+            key={record.id}
+            record={record}
+            addFeedbackMidi={addFeedbackMidi}
+          />
+        ))}
+      <Button
+        style={{ marginBottom: 40 }}
+        disabled={!hasNextPage}
+        onClick={fetchNextPage}
+      >
+        Load More
+      </Button>
     </Layout>
   );
 };
@@ -362,4 +491,7 @@ const SearchingFormWrapper = styled.div`
 
 const SwitchWrapper = styled.div`
   margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 `;

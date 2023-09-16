@@ -2,30 +2,33 @@ import { useQuery } from '@tanstack/react-query';
 import { Select } from 'antd';
 import React, { Dispatch, SetStateAction } from 'react';
 
-import { fetchExamIds } from '@/services/reactQueryFn';
+import { fetchFilters, MetadataField } from '@/services/reactQueryFn';
 import { Filter } from '@/types/common';
 
 interface Props {
   onChangeFilter: Dispatch<SetStateAction<Filter>>;
+  filterValue: MetadataField;
 }
 
-const SearchingForm: React.FC<Props> = ({ onChangeFilter }) => {
-  const { data: examUids } = useQuery(['examIds'], fetchExamIds);
+const SearchingForm: React.FC<Props> = ({ onChangeFilter, filterValue }) => {
+  const { data: filters } = useQuery(['filters'], () =>
+    fetchFilters(filterValue),
+  );
 
   return (
     <div>
       <Select
         mode="multiple"
         style={{ width: '100%' }}
-        placeholder="Please select Exam UID`..."
+        placeholder="Please select a filter..."
         onChange={(selected: string[]) => {
-          onChangeFilter({ exams: selected });
+          onChangeFilter({ filterValues: selected });
         }}
       >
-        {examUids &&
-          examUids.map((id) => (
-            <Select.Option key={id} value={id}>
-              {id}
+        {filters &&
+          filters.map((v) => (
+            <Select.Option key={v} value={v}>
+              {v}
             </Select.Option>
           ))}
       </Select>
