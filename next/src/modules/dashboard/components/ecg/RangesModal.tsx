@@ -45,7 +45,6 @@ const RangesModal: React.FC<Props> = ({
   const [tableData, setTableData] = useState<TableData[]>(() =>
     rangesToTableData(ranges),
   );
-  const [nextXRangeIndex, setNextXRangeIndex] = useState(1);
   const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
 
   const reset = () => {
@@ -115,16 +114,24 @@ const RangesModal: React.FC<Props> = ({
 
   const handleAddNewRange = (label: string) => {
     if (label === 'X') {
+      const xIndexes = tableData
+        .map(({ key }) =>
+          key.startsWith('X') ? parseInt(key.substring(1)) : null,
+        )
+        .filter(Boolean);
+      const nextIndex = xIndexes.length
+        ? Math.max(...(xIndexes as number[])) + 1
+        : 1;
+
       setTableData((data) => [
         ...data,
         {
-          key: `X${nextXRangeIndex}`,
-          label: `X${nextXRangeIndex}`,
+          key: `X${nextIndex}`,
+          label: `X${nextIndex}`,
           left: 2.6,
           right: 3.4,
         },
       ]);
-      setNextXRangeIndex((x) => ++x);
     } else {
       setTableData((data) => [
         ...data,
